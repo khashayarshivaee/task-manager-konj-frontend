@@ -1,0 +1,260 @@
+:host {
+  --orange: #ff6b00;
+  --orange-dark: #e85f00;
+  --orange-soft: #fff1e7;
+  --text: #1c1c1a;
+  --muted: #777771;
+  --border: #e8e8e4;
+  --surface-soft: #f7f7f5;
+  --danger: #d64343;
+
+  display: block;
+  height: 100%;
+  font-family:
+    Inter,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    sans-serif;
+}
+
+.workspace-modal-page {
+  --background: #ffffff;
+}
+
+.workspace-modal-shell {
+  display: flex;
+  min-height: 100%;
+  flex-direction: column;
+  padding: 30px;
+  direction: ltr;
+}
+
+.modal-header,
+.modal-heading,
+.workspace-preview,
+.modal-actions {
+  display: flex;
+  align-items: center;
+}
+
+.modal-header {
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.modal-heading {
+  gap: 13px;
+}
+
+.modal-icon {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 auto;
+  place-items: center;
+  color: var(--orange);
+  font-size: 20px;
+  border-radius: 14px;
+  background: var(--orange-soft);
+}
+
+.modal-eyebrow {
+  color: var(--orange-dark);
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.modal-heading h1 {
+  margin: 5px 0 0;
+  color: var(--text);
+  font-size: 23px;
+  font-weight: 820;
+  letter-spacing: -0.035em;
+}
+
+.modal-close {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 auto;
+  padding: 0;
+  place-items: center;
+  color: #85857f;
+  font-size: 20px;
+  border: 0;
+  border-radius: 11px;
+  background: var(--surface-soft);
+  cursor: pointer;
+}
+
+.modal-close:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.modal-description {
+  margin: 23px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.8;
+}
+
+.workspace-form {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  margin-top: 27px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.form-group label {
+  color: #3d3d39;
+  font-size: 11px;
+  font-weight: 750;
+}
+
+ion-input {
+  --background: var(--surface-soft);
+  --border-color: transparent;
+  --border-color-focused: rgba(255, 107, 0, 0.65);
+  --border-radius: 14px;
+  --color: var(--text);
+  --highlight-color-focused: var(--orange);
+  --padding-start: 15px;
+  --padding-end: 15px;
+  min-height: 56px;
+  font-size: 12px;
+}
+
+.field-error {
+  margin: 0 3px;
+  color: var(--danger);
+  font-size: 10px;
+  line-height: 1.6;
+}
+
+.workspace-preview {
+  gap: 12px;
+  margin-top: 23px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 15px;
+  background: #ffffff;
+}
+
+.preview-avatar {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 auto;
+  place-items: center;
+  color: var(--orange-dark);
+  font-size: 14px;
+  font-weight: 850;
+  border-radius: 12px;
+  background: var(--orange-soft);
+}
+
+.workspace-preview div {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.workspace-preview small {
+  color: var(--muted);
+  font-size: 9px;
+}
+
+.workspace-preview strong {
+  overflow: hidden;
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 750;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.modal-error {
+  margin-top: 18px;
+  padding: 12px 14px;
+  color: #a52e2e;
+  font-size: 11px;
+  line-height: 1.7;
+  border: 1px solid rgba(214, 67, 67, 0.16);
+  border-radius: 12px;
+  background: rgba(214, 67, 67, 0.06);
+}
+
+.modal-actions {
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: auto;
+  padding-top: 28px;
+}
+
+.secondary-button {
+  min-height: 44px;
+  padding: 0 18px;
+  color: #62625d;
+  font-size: 11px;
+  font-weight: 750;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #ffffff;
+  cursor: pointer;
+}
+
+.secondary-button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.create-button {
+  --background: var(--orange);
+  --background-activated: #d95a00;
+  --background-hover: var(--orange-dark);
+  --border-radius: 12px;
+  --box-shadow: 0 12px 24px rgba(255, 107, 0, 0.18);
+  --color: #ffffff;
+  min-height: 44px;
+  margin: 0;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: none;
+}
+
+.create-button ion-spinner {
+  width: 17px;
+  height: 17px;
+  margin-right: 8px;
+}
+
+@media (max-width: 560px) {
+  .workspace-modal-shell {
+    padding: 24px 20px;
+  }
+
+  .modal-heading h1 {
+    font-size: 21px;
+  }
+
+  .modal-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .secondary-button,
+  .create-button {
+    width: 100%;
+  }
+}

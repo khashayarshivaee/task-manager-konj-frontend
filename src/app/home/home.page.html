@@ -1,20 +1,425 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>
-      Blank
-    </ion-title>
-  </ion-toolbar>
-</ion-header>
+<ion-content
+  [fullscreen]="true"
+  class="home-page"
+>
+  <div class="app-shell">
+    @if (isSidebarOpen) {
+    <button
+      type="button"
+      class="sidebar-overlay"
+      aria-label="Close navigation"
+      (click)="closeSidebar()"
+    ></button>
+    }
 
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">Blank</ion-title>
-    </ion-toolbar>
-  </ion-header>
+    <aside
+      class="sidebar"
+      [class.sidebar-open]="isSidebarOpen"
+    >
+      <div class="sidebar-header">
+        <a
+          class="brand"
+          href="/home"
+          aria-label="Konj Task Manager"
+        >
+          <span class="brand-mark">
+            K
+          </span>
 
-  <div id="container">
-    <strong>Ready to create an app?</strong>
-    <p>Start with Ionic <a target="_blank" rel="noopener noreferrer" href="https://ionicframework.com/docs/components">UI Components</a></p>
+          <span class="brand-copy">
+            <strong>Konj</strong>
+            <small>Task Manager</small>
+          </span>
+        </a>
+
+        <button
+          type="button"
+          class="sidebar-close"
+          aria-label="Close navigation"
+          (click)="closeSidebar()"
+        >
+          <ion-icon name="close-outline"></ion-icon>
+        </button>
+      </div>
+
+      <button
+        type="button"
+        class="workspace-switcher"
+      >
+        @if (activeWorkspace$ | async; as workspace) {
+        <span class="workspace-avatar">
+        {{ workspace.name.charAt(0).toUpperCase() }}
+        </span>
+
+        <span class="workspace-copy">
+          <small>Active workspace</small>
+          <strong>{{ workspace.name }}</strong>
+    </span>
+        } @else {
+        <span class="workspace-avatar">
+          K
+        </span>
+
+        <span class="workspace-copy">
+          <small>Workspace</small>
+          <strong>No workspace selected</strong>
+        </span>
+        }
+
+        <ion-icon name="chevron-down-outline"></ion-icon>
+      </button>
+
+      <nav
+        class="sidebar-navigation"
+        aria-label="Main navigation"
+      >
+        <div class="navigation-group">
+          <span class="navigation-label">
+            Overview
+          </span>
+
+          <button
+            type="button"
+            class="navigation-item navigation-item-active"
+            (click)="closeSidebar()"
+          >
+            <ion-icon name="home-outline"></ion-icon>
+            <span>Home</span>
+          </button>
+
+          <button
+            type="button"
+            class="navigation-item"
+            disabled
+          >
+            <ion-icon name="grid-outline"></ion-icon>
+            <span>Workspaces</span>
+            <small>Soon</small>
+          </button>
+        </div>
+
+        <div class="navigation-group">
+          <span class="navigation-label">
+            Manage
+          </span>
+
+          <button
+            type="button"
+            class="navigation-item"
+            disabled
+          >
+            <ion-icon name="folder-open-outline"></ion-icon>
+            <span>Projects</span>
+          </button>
+
+          <button
+            type="button"
+            class="navigation-item"
+            disabled
+          >
+            <ion-icon name="checkbox-outline"></ion-icon>
+            <span>Tasks</span>
+          </button>
+
+          <button
+            type="button"
+            class="navigation-item"
+            disabled
+          >
+            <ion-icon name="people-outline"></ion-icon>
+            <span>Members</span>
+          </button>
+        </div>
+
+        <div class="navigation-group navigation-group-bottom">
+          <button
+            type="button"
+            class="navigation-item"
+            disabled
+          >
+            <ion-icon name="settings-outline"></ion-icon>
+            <span>Settings</span>
+          </button>
+        </div>
+      </nav>
+
+      @if (currentUser$ | async; as user) {
+      <div class="sidebar-account">
+        <div class="account-avatar">
+      {{ getInitials(user.name) }}
+      </div>
+
+      <div class="account-copy">
+        <strong>{{ user.name }}</strong>
+            <span>{{ user.email }}</span>
+          </div>
+
+          <button
+            type="button"
+            class="logout-button"
+            aria-label="Sign out"
+            [disabled]="isLoggingOut"
+            (click)="logout()"
+          >
+            @if (isLoggingOut) {
+      <ion-spinner name="crescent"></ion-spinner>
+      } @else {
+      <ion-icon name="log-out-outline"></ion-icon>
+      }
+      </button>
+    </div>
+      }
+    </aside>
+
+    <main class="main-area">
+      <header class="topbar">
+        <div class="topbar-start">
+          <button
+            type="button"
+            class="mobile-menu-button"
+            aria-label="Open navigation"
+            (click)="toggleSidebar()"
+          >
+            <ion-icon name="menu-outline"></ion-icon>
+          </button>
+
+          <div class="page-location">
+            <span>Overview</span>
+            <strong>Home</strong>
+          </div>
+        </div>
+
+        <div class="topbar-actions">
+          <button
+            type="button"
+            class="search-button"
+          >
+            <ion-icon name="search-outline"></ion-icon>
+            <span>Search anything</span>
+            <kbd>⌘ K</kbd>
+          </button>
+
+          <button
+            type="button"
+            class="icon-button"
+            aria-label="Notifications"
+          >
+            <ion-icon name="notifications-outline"></ion-icon>
+            <span class="notification-dot"></span>
+          </button>
+
+          @if (currentUser$ | async; as user) {
+          <div class="topbar-user">
+            <span class="topbar-avatar">
+          {{ getInitials(user.name) }}
+          </span>
+
+          <span class="topbar-user-copy">
+            <strong>{{ user.name }}</strong>
+                <small>{{ user.role }}</small>
+              </span>
+            </div>
+          }
+        </div>
+      </header>
+
+      <div class="page-content">
+        @if (currentUser$ | async; as user) {
+        <section class="welcome-section">
+          <div>
+            <span class="eyebrow">
+              Dashboard
+            </span>
+
+            <h1>
+              Welcome back, {{ getFirstName(user.name) }}.
+              </h1>
+
+              <p>
+                Start by creating a workspace for your team,
+                projects, and tasks.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              class="primary-button"
+              (click)="showCreateWorkspaceNotice()"
+            >
+              <ion-icon name="add-outline"></ion-icon>
+              <span>Create workspace</span>
+            </button>
+          </section>
+        }
+
+        @if (showWorkspaceNotice) {
+        <div
+          class="setup-notice"
+          role="status"
+        >
+          <ion-icon name="checkmark-circle-outline"></ion-icon>
+
+          <div>
+            <strong>Workspace created successfully</strong>
+            <span>
+              Your new workspace is ready for projects,
+              tasks, and team members.
+            </span>
+          </div>
+
+          <button
+            type="button"
+            aria-label="Dismiss"
+            (click)="showWorkspaceNotice = false"
+          >
+            <ion-icon name="close-outline"></ion-icon>
+          </button>
+        </div>
+        }
+
+        <section class="stats-grid">
+          <article class="stat-card">
+            <div class="stat-icon">
+              <ion-icon name="folder-open-outline"></ion-icon>
+            </div>
+
+            <div>
+              <span>Projects</span>
+              <strong>0</strong>
+              <small>No active projects yet</small>
+            </div>
+          </article>
+
+          <article class="stat-card">
+            <div class="stat-icon">
+              <ion-icon name="checkbox-outline"></ion-icon>
+            </div>
+
+            <div>
+              <span>Open tasks</span>
+              <strong>0</strong>
+              <small>Your task list is clear</small>
+            </div>
+          </article>
+
+          <article class="stat-card">
+            <div class="stat-icon">
+              <ion-icon name="people-outline"></ion-icon>
+            </div>
+
+            <div>
+              <span>Team members</span>
+              <strong>1</strong>
+              <small>Start inviting your team</small>
+            </div>
+          </article>
+        </section>
+
+        <section class="dashboard-grid">
+          <article class="empty-workspace-card">
+            <div class="empty-visual">
+              <div class="visual-layer visual-layer-back"></div>
+              <div class="visual-layer visual-layer-middle"></div>
+
+              <div class="visual-layer visual-layer-front">
+                <span>
+                  <ion-icon name="grid-outline"></ion-icon>
+                </span>
+
+                <i></i>
+                <i></i>
+                <i></i>
+              </div>
+            </div>
+
+            <div class="empty-copy">
+              <span class="empty-label">
+                Your first step
+              </span>
+
+              <h2>Create your first workspace</h2>
+
+              <p>
+                Workspaces keep your team, projects, tasks, and
+                permissions organized in one place.
+              </p>
+
+              <button
+                type="button"
+                class="primary-button"
+                (click)="showCreateWorkspaceNotice()"
+              >
+                <ion-icon name="add-outline"></ion-icon>
+                <span>Create workspace</span>
+              </button>
+            </div>
+          </article>
+
+          <aside class="getting-started-card">
+            <div class="card-heading">
+              <div>
+                <span>Getting started</span>
+                <h2>Set up your account</h2>
+              </div>
+
+              <ion-icon name="rocket-outline"></ion-icon>
+            </div>
+
+            <div class="progress-track">
+              <span></span>
+            </div>
+
+            <p class="progress-label">
+              1 of 4 steps completed
+            </p>
+
+            <div class="setup-list">
+              <div class="setup-item setup-item-complete">
+                <span class="setup-check">
+                  <ion-icon name="checkmark-circle-outline"></ion-icon>
+                </span>
+
+                <div>
+                  <strong>Create your account</strong>
+                  <small>Your Konj account is ready</small>
+                </div>
+              </div>
+
+              <div class="setup-item">
+                <span class="setup-number">2</span>
+
+                <div>
+                  <strong>Create a workspace</strong>
+                  <small>Organize your team and work</small>
+                </div>
+              </div>
+
+              <div class="setup-item">
+                <span class="setup-number">3</span>
+
+                <div>
+                  <strong>Invite team members</strong>
+                  <small>Bring your team together</small>
+                </div>
+              </div>
+
+              <div class="setup-item">
+                <span class="setup-number">4</span>
+
+                <div>
+                  <strong>Create your first project</strong>
+                  <small>Start planning and assigning tasks</small>
+                </div>
+              </div>
+            </div>
+
+            <div class="setup-footer">
+              <ion-icon name="calendar-outline"></ion-icon>
+              <span>You can finish setup at any time.</span>
+            </div>
+          </aside>
+        </section>
+      </div>
+    </main>
   </div>
 </ion-content>

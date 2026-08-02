@@ -1,0 +1,192 @@
+<ion-content
+  [fullscreen]="true"
+  class="login-page"
+>
+  <main class="login-layout">
+    <section
+      class="login-card"
+      aria-labelledby="login-title"
+    >
+      <div class="brand">
+        <div class="brand-mark">
+          K
+        </div>
+
+        <div class="brand-copy">
+          <strong>Konj</strong>
+          <span>Task Manager</span>
+        </div>
+      </div>
+
+      <header class="login-header">
+        <span class="login-badge">
+          Welcome back
+        </span>
+
+        <h1 id="login-title">
+          Sign in to your account
+        </h1>
+
+        <p>
+          Enter your details to access your workspace.
+        </p>
+      </header>
+
+      <form
+        [formGroup]="loginForm"
+        (ngSubmit)="submit()"
+        novalidate
+        class="login-form"
+      >
+        <div class="form-group">
+          <label for="login-email">
+            Email address
+          </label>
+
+          <div
+            class="input-control"
+            [class.input-invalid]="
+              loginForm.controls.email.touched &&
+              loginForm.controls.email.invalid
+            "
+          >
+            <ion-icon
+              name="mail-outline"
+              aria-hidden="true"
+            ></ion-icon>
+
+            <ion-input
+              id="login-email"
+              formControlName="email"
+              type="email"
+              inputmode="email"
+              autocomplete="email"
+              placeholder="name@example.com"
+              class="email-input"
+              [clearInput]="true"
+            ></ion-input>
+          </div>
+
+          @if (
+          loginForm.controls.email.touched &&
+          loginForm.controls.email.hasError('required')
+          ) {
+          <p class="field-error">
+            Email address is required.
+          </p>
+          }
+
+          @if (
+          loginForm.controls.email.touched &&
+          loginForm.controls.email.hasError('email')
+          ) {
+          <p class="field-error">
+            Enter a valid email address.
+          </p>
+          }
+        </div>
+
+        <div class="form-group">
+          <label for="login-password">
+            Password
+          </label>
+
+          <div
+            class="input-control"
+            [class.input-invalid]="
+              loginForm.controls.password.touched &&
+              loginForm.controls.password.invalid
+            "
+          >
+            <ion-icon
+              name="lock-closed-outline"
+              aria-hidden="true"
+            ></ion-icon>
+
+            <ion-input
+              id="login-password"
+              formControlName="password"
+              [type]="isPasswordVisible ? 'text' : 'password'"
+              autocomplete="current-password"
+              placeholder="Enter your password"
+            ></ion-input>
+
+            <button
+              type="button"
+              class="password-toggle"
+              (click)="togglePasswordVisibility()"
+              [attr.aria-label]="
+                isPasswordVisible
+                  ? 'Hide password'
+                  : 'Show password'
+              "
+            >
+              <ion-icon
+                [name]="
+                  isPasswordVisible
+                    ? 'eye-off-outline'
+                    : 'eye-outline'
+                "
+              ></ion-icon>
+            </button>
+          </div>
+
+          @if (
+          loginForm.controls.password.touched &&
+          loginForm.controls.password.hasError('required')
+          ) {
+          <p class="field-error">
+            Password is required.
+          </p>
+          }
+        </div>
+
+        @if (errorMessage) {
+        <div
+          class="login-error"
+          role="alert"
+          aria-live="polite"
+        >
+        {{ errorMessage }}
+        </div>
+        }
+
+        <ion-button
+          type="submit"
+          expand="block"
+          class="login-submit"
+          [disabled]="loginForm.invalid || isSubmitting"
+        >
+          @if (isSubmitting) {
+          <ion-spinner name="crescent"></ion-spinner>
+          <span>Signing in...</span>
+          } @else {
+          <span>Sign in</span>
+          }
+        </ion-button>
+      </form>
+
+      <div class="register-hint">
+        <span>
+          Don’t have an account?
+        </span>
+
+        <strong>
+          Create account
+        </strong>
+      </div>
+
+      <footer class="login-footer">
+        <span>
+          Konj Task Manager
+        </span>
+
+        <span class="footer-dot"></span>
+
+        <span>
+          Work better together
+        </span>
+      </footer>
+    </section>
+  </main>
+</ion-content>
