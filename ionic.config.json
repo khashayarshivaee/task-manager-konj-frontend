@@ -1,0 +1,7 @@
+{
+  "name": "Task Manager Konj",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular-standalone"
+}
