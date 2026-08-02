@@ -26,6 +26,21 @@ export const routes: Routes = [
     pathMatch: 'full',
   },
   {
+    path: 'workspaces/:workspaceId/projects/:projectId',
+    title: 'Project | Konj Task Manager',
+    canActivate: [
+      authGuard,
+    ],
+    loadComponent: () =>
+      import(
+        './projects/pages/project-details/project-details.page'
+        ).then(
+        (module) => module.ProjectDetailsPage,
+      ),
+  },
+
+
+  {
     path: '**',
     redirectTo: 'home',
   },

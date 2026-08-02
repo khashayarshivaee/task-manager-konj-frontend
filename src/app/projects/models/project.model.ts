@@ -48,3 +48,25 @@ export interface CreateProjectResponse {
     project: Project;
   };
 }
+
+export interface GetProjectResponse {
+  data: {
+    project: Project;
+  };
+}
+
+export interface UpdateProjectPayload {
+  name: string;
+  description: string | null;
+  status: ProjectStatus;
+  color: string | null;
+  starts_at: string | null;
+  due_at: string | null;
+}
+
+export interface UpdateProjectResponse {
+  message: string;
+  data: {
+    project: Project;
+  };
+}

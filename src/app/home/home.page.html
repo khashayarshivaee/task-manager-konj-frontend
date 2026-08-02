@@ -598,16 +598,20 @@
             project of projects;
             track project.id
             ) {
-            <article class="project-row">
-              <span
-                class="project-color"
-                [style.background-color]="
-                  project.color || '#ff6b00'
-                "
-              ></span>
+            <button
+    type="button"
+    class="project-row"
+    (click)="openProject(project)"
+  >
+                <span
+                  class="project-color"
+                  [style.background-color]="
+                    project.color || '#ff6b00'
+                  "
+                ></span>
 
-              <div class="project-main">
-                <strong>
+                <div class="project-main">
+                  <strong>
             {{ project.name }}
             </strong>
 
@@ -635,7 +639,7 @@
             }}
             </small>
           </div>
-        </article>
+     </button>
             }
           </div>
           } @else {

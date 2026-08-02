@@ -1,0 +1,266 @@
+<ion-content
+  [fullscreen]="true"
+  class="project-details-page"
+>
+  <main class="project-details-shell">
+    <header class="details-topbar">
+      <button
+        type="button"
+        class="back-button"
+        (click)="goBack()"
+      >
+        <ion-icon
+          name="arrow-back-outline"
+        ></ion-icon>
+
+        <span>Back to dashboard</span>
+      </button>
+
+      <div class="brand-mark">
+        K
+      </div>
+    </header>
+
+    @if (isLoading) {
+    <section class="page-state">
+      <ion-spinner
+        name="crescent"
+      ></ion-spinner>
+
+      <strong>Loading project...</strong>
+
+      <span>
+        Getting the latest project information.
+      </span>
+    </section>
+    } @else if (errorMessage) {
+    <section class="page-state page-error">
+      <span class="state-icon">
+        <ion-icon
+          name="folder-open-outline"
+        ></ion-icon>
+      </span>
+
+      <strong>Project unavailable</strong>
+
+      <p>
+    {{ errorMessage }}
+    </p>
+
+    <div class="state-actions">
+      <button
+        type="button"
+        class="secondary-action"
+        (click)="goBack()"
+      >
+        Return home
+      </button>
+
+      <button
+        type="button"
+        class="primary-action"
+        (click)="loadProject()"
+      >
+        Try again
+      </button>
+    </div>
+  </section>
+    } @else if (project) {
+    <section class="project-hero">
+      <div
+        class="project-color"
+        [style.background-color]="
+          project.color || '#ff6b00'
+        "
+      ></div>
+
+      <div class="project-heading">
+        <span class="project-eyebrow">
+          Project overview
+        </span>
+
+        <h1>
+    {{ project.name }}
+    </h1>
+
+    <p>
+    {{
+    project.description ||
+    'No project description has been added yet.'
+    }}
+    </p>
+  </div>
+
+  <div class="project-actions">
+    <span class="status-badge">
+      <ion-icon
+        name="checkmark-circle-outline"
+      ></ion-icon>
+
+    {{ getStatusLabel(project.status) }}
+    </span>
+
+    <button
+      type="button"
+      class="edit-project-button"
+      (click)="openEditProjectModal()"
+    >
+      <ion-icon
+        name="create-outline"
+      ></ion-icon>
+
+      <span>Edit project</span>
+    </button>
+  </div>
+</section>
+
+@if (showUpdateNotice) {
+    <div
+      class="project-updated-notice"
+      role="status"
+    >
+      <ion-icon
+        name="checkmark-circle-outline"
+      ></ion-icon>
+
+      <div>
+        <strong>
+          Project updated successfully
+        </strong>
+
+        <span>
+              Your latest project changes have
+              been saved.
+            </span>
+      </div>
+
+      <button
+        type="button"
+        aria-label="Dismiss"
+        (click)="showUpdateNotice = false"
+      >
+        ×
+      </button>
+    </div>
+    }
+
+    <section class="details-grid">
+      <article class="detail-card">
+        <span class="detail-icon">
+          <ion-icon
+            name="calendar-outline"
+          ></ion-icon>
+        </span>
+
+        <div>
+          <small>Start date</small>
+
+          <strong>
+    {{ formatDate(project.starts_at) }}
+    </strong>
+  </div>
+</article>
+
+<article class="detail-card">
+  <span class="detail-icon">
+    <ion-icon
+      name="time-outline"
+    ></ion-icon>
+  </span>
+
+  <div>
+    <small>Due date</small>
+
+    <strong>
+    {{ formatDate(project.due_at) }}
+    </strong>
+  </div>
+</article>
+
+<article class="detail-card">
+  <span class="detail-icon">
+    <ion-icon
+      name="person-circle-outline"
+    ></ion-icon>
+  </span>
+
+  <div>
+    <small>Created by</small>
+
+    <strong>
+    {{
+    project.creator?.name ||
+    'Unknown user'
+    }}
+    </strong>
+  </div>
+</article>
+</section>
+
+<section class="project-workspace">
+<header>
+  <div>
+    <span class="project-eyebrow">
+      Project workspace
+    </span>
+
+    <h2>
+      Everything starts here
+    </h2>
+  </div>
+
+  <span class="project-code">
+    {{ project.slug }}
+    </span>
+  </header>
+
+  <div class="feature-grid">
+    <article class="feature-card">
+      <span>01</span>
+
+      <div>
+        <strong>Tasks</strong>
+
+        <small>
+          Plan and organize the work required
+          for this project.
+        </small>
+      </div>
+
+      <em>Coming next</em>
+    </article>
+
+    <article class="feature-card">
+      <span>02</span>
+
+      <div>
+        <strong>Members</strong>
+
+        <small>
+          Assign people and define project
+          responsibilities.
+        </small>
+      </div>
+
+      <em>Coming soon</em>
+    </article>
+
+    <article class="feature-card">
+      <span>03</span>
+
+      <div>
+        <strong>Activity</strong>
+
+        <small>
+          Review important project changes
+          and team actions.
+        </small>
+      </div>
+
+      <em>Coming soon</em>
+    </article>
+  </div>
+</section>
+    }
+  </main>
+</ion-content>

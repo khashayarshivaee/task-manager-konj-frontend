@@ -495,4 +495,25 @@ export class HomePage implements OnInit {
       membershipRole === 'admin'
     );
   }
+
+  openProject(
+    project: Project,
+  ): void {
+    const workspace =
+      this.workspaceService.getActiveWorkspace();
+
+    if (
+      !workspace ||
+      workspace.id !== project.workspace_id
+    ) {
+      return;
+    }
+
+    void this.router.navigate([
+      '/workspaces',
+      workspace.id,
+      'projects',
+      project.id,
+    ]);
+  }
 }
