@@ -19,6 +19,7 @@ import {
   ListProjectsResponse,
   UpdateProjectPayload,
   UpdateProjectResponse,
+  DeleteProjectResponse,
 } from '../models/project.model';
 
 @Injectable({
@@ -65,6 +66,15 @@ export class ProjectService {
     return this.http.put<UpdateProjectResponse>(
       `${this.workspacesUrl}/${workspaceId}/projects/${projectId}`,
       payload,
+    );
+  }
+
+  deleteProject(
+    workspaceId: number,
+    projectId: number,
+  ): Observable<DeleteProjectResponse> {
+    return this.http.delete<DeleteProjectResponse>(
+      `${this.workspacesUrl}/${workspaceId}/projects/${projectId}`,
     );
   }
 }

@@ -138,6 +138,18 @@ export class HomePage implements OnInit {
     this.loadWorkspaces();
   }
 
+  ionViewWillEnter(): void {
+    const workspace =
+      this.workspaceService.getActiveWorkspace();
+
+    if (
+      workspace &&
+      !this.isLoadingProjects
+    ) {
+      this.retryLoadProjects();
+    }
+  }
+
   private watchActiveWorkspace(): void {
     this.activeWorkspace$
       .pipe(

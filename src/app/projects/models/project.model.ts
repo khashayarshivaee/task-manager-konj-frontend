@@ -27,6 +27,10 @@ export interface Project {
   creator: ProjectCreator | null;
 }
 
+export interface DeleteProjectResponse {
+  message: string;
+}
+
 export interface CreateProjectPayload {
   name: string;
   description?: string | null;

@@ -471,3 +471,49 @@
     align-items: flex-start;
   }
 }
+.project-action-buttons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.delete-project-button {
+  display: flex;
+  min-height: 40px;
+  align-items: center;
+  gap: 8px;
+  padding: 0 14px;
+  color: #bd3232;
+  font-size: 10px;
+  font-weight: 800;
+  border: 1px solid
+  rgba(217, 67, 67, 0.2);
+  border-radius: 11px;
+  background: #fff7f7;
+  cursor: pointer;
+  transition:
+    border-color 150ms ease,
+    background 150ms ease;
+}
+
+.delete-project-button:hover {
+  border-color:
+    rgba(217, 67, 67, 0.4);
+  background: #fff0f0;
+}
+
+.delete-project-button ion-icon {
+  font-size: 16px;
+}
+
+@media (max-width: 760px) {
+  .project-action-buttons {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .edit-project-button,
+  .delete-project-button {
+    justify-content: center;
+  }
+}

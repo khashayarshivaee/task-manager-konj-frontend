@@ -1,0 +1,134 @@
+<ion-content
+  [fullscreen]="true"
+  class="delete-modal-page"
+>
+  <main class="delete-modal-shell">
+    <header class="modal-header">
+      <span class="warning-icon">
+        <ion-icon
+          name="alert-circle-outline"
+        ></ion-icon>
+      </span>
+
+      <button
+        type="button"
+        class="modal-close"
+        aria-label="Close"
+        [disabled]="isDeleting"
+        (click)="close()"
+      >
+        <ion-icon
+          name="close-outline"
+        ></ion-icon>
+      </button>
+    </header>
+
+    <section class="modal-copy">
+      <span class="modal-eyebrow">
+        Destructive action
+      </span>
+
+      <h1>Delete this project?</h1>
+
+      <p>
+        This action permanently deletes the
+        project and cannot be undone.
+      </p>
+    </section>
+
+    <div class="project-summary">
+      <span
+        class="project-color"
+        [style.background-color]="
+          project.color || '#ff6b00'
+        "
+      ></span>
+
+      <div>
+        <small>Project to delete</small>
+        <strong>{{ project.name }}</strong>
+        <span>{{ project.slug }}</span>
+      </div>
+    </div>
+
+    <form
+      [formGroup]="confirmationForm"
+      (ngSubmit)="submit()"
+      novalidate
+      class="delete-form"
+    >
+      <div class="confirmation-copy">
+        <p>
+          Type the project name exactly to confirm:
+        </p>
+
+        <strong>{{ project.name }}</strong>
+      </div>
+
+      <ion-input
+        formControlName="confirmation"
+        type="text"
+        fill="outline"
+        autocomplete="off"
+        placeholder="Enter the project name"
+        [clearInput]="true"
+      ></ion-input>
+
+      @if (
+      confirmationForm.controls
+      .confirmation.touched &&
+      confirmationForm.controls
+      .confirmation.value &&
+      !canDelete
+      ) {
+      <p class="field-error">
+        The project name does not match.
+      </p>
+      }
+
+      @if (errorMessage) {
+      <div
+        class="modal-error"
+        role="alert"
+        aria-live="polite"
+      >
+      {{ errorMessage }}
+      </div>
+      }
+
+      <footer class="modal-actions">
+        <button
+          type="button"
+          class="cancel-button"
+          [disabled]="isDeleting"
+          (click)="close()"
+        >
+          Keep project
+        </button>
+
+        <ion-button
+          type="submit"
+          class="delete-button"
+          [disabled]="
+            !canDelete ||
+            isDeleting
+          "
+        >
+          @if (isDeleting) {
+          <ion-spinner
+            name="crescent"
+          ></ion-spinner>
+
+          <span>Deleting...</span>
+          } @else {
+          <ion-icon
+            name="trash-outline"
+          ></ion-icon>
+
+          <span>Delete project</span>
+          }
+        </ion-button>
+      </footer>
+    </form>
+  </main>
+</ion-content>

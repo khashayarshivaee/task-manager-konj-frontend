@@ -91,30 +91,44 @@
     </p>
   </div>
 
-  <div class="project-actions">
-    <span class="status-badge">
-      <ion-icon
-        name="checkmark-circle-outline"
-      ></ion-icon>
+ <div class="project-actions">
+  <span class="status-badge">
+    <ion-icon
+      name="checkmark-circle-outline"
+    ></ion-icon>
 
     {{ getStatusLabel(project.status) }}
     </span>
 
-    <button
-      type="button"
-      class="edit-project-button"
-      (click)="openEditProjectModal()"
-    >
-      <ion-icon
-        name="create-outline"
-      ></ion-icon>
+    <div class="project-action-buttons">
+      <button
+        type="button"
+        class="edit-project-button"
+        (click)="openEditProjectModal()"
+      >
+        <ion-icon
+          name="create-outline"
+        ></ion-icon>
 
-      <span>Edit project</span>
-    </button>
+        <span>Edit project</span>
+      </button>
+
+      <button
+        type="button"
+        class="delete-project-button"
+        (click)="openDeleteProjectModal()"
+      >
+        <ion-icon
+          name="trash-outline"
+        ></ion-icon>
+
+        <span>Delete project</span>
+      </button>
+    </div>
   </div>
-</section>
+  </section>
 
-@if (showUpdateNotice) {
+  @if (showUpdateNotice) {
     <div
       class="project-updated-notice"
       role="status"

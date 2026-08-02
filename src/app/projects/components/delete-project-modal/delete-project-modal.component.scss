@@ -1,0 +1,258 @@
+:host {
+  --danger: #d94343;
+  --danger-dark: #bd3232;
+  --danger-soft: #fff0f0;
+  --text: #1c1c1a;
+  --muted: #777771;
+  --border: #e8e8e4;
+  --surface-soft: #f7f7f5;
+
+  display: block;
+  height: 100%;
+  font-family:
+    Inter,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    sans-serif;
+}
+
+.delete-modal-page {
+  --background: #ffffff;
+}
+
+.delete-modal-shell {
+  display: flex;
+  min-height: 100%;
+  flex-direction: column;
+  padding: 30px;
+  direction: ltr;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.warning-icon {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  color: var(--danger);
+  font-size: 23px;
+  border-radius: 15px;
+  background: var(--danger-soft);
+}
+
+.modal-close {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  place-items: center;
+  color: #85857f;
+  font-size: 20px;
+  border: 0;
+  border-radius: 11px;
+  background: var(--surface-soft);
+  cursor: pointer;
+}
+
+.modal-close:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.modal-copy {
+  margin-top: 23px;
+}
+
+.modal-eyebrow {
+  color: var(--danger);
+  font-size: 9px;
+  font-weight: 850;
+  text-transform: uppercase;
+  letter-spacing: 0.11em;
+}
+
+.modal-copy h1 {
+  margin: 7px 0 0;
+  color: var(--text);
+  font-size: 25px;
+  font-weight: 850;
+  letter-spacing: -0.04em;
+}
+
+.modal-copy p {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.8;
+}
+
+.project-summary {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  margin-top: 22px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 15px;
+  background: #ffffff;
+}
+
+.project-color {
+  width: 9px;
+  height: 45px;
+  flex: 0 0 auto;
+  border-radius: 8px;
+}
+
+.project-summary div {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.project-summary small,
+.project-summary span {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.project-summary strong {
+  overflow: hidden;
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.delete-form {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  margin-top: 22px;
+}
+
+.confirmation-copy p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.6;
+}
+
+.confirmation-copy strong {
+  display: block;
+  margin-top: 6px;
+  color: var(--text);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+ion-input {
+  --background: var(--surface-soft);
+  --border-color: transparent;
+  --border-color-focused:
+    rgba(217, 67, 67, 0.55);
+  --border-radius: 14px;
+  --color: var(--text);
+  --highlight-color-focused: var(--danger);
+  --padding-start: 15px;
+  --padding-end: 15px;
+
+  min-height: 54px;
+  margin-top: 13px;
+  font-size: 12px;
+}
+
+.field-error {
+  margin: 8px 3px 0;
+  color: var(--danger);
+  font-size: 10px;
+}
+
+.modal-error {
+  margin-top: 14px;
+  padding: 12px 14px;
+  color: #9d2d2d;
+  font-size: 10px;
+  line-height: 1.7;
+  border: 1px solid
+  rgba(217, 67, 67, 0.16);
+  border-radius: 12px;
+  background:
+    rgba(217, 67, 67, 0.06);
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: auto;
+  padding-top: 25px;
+}
+
+.cancel-button {
+  min-height: 44px;
+  padding: 0 18px;
+  color: #62625d;
+  font-size: 11px;
+  font-weight: 750;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #ffffff;
+  cursor: pointer;
+}
+
+.delete-button {
+  --background: var(--danger);
+  --background-activated: #a92828;
+  --background-hover: var(--danger-dark);
+  --border-radius: 12px;
+  --box-shadow:
+    0 12px 24px
+    rgba(217, 67, 67, 0.18);
+  --color: #ffffff;
+
+  min-height: 44px;
+  margin: 0;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: none;
+}
+
+.delete-button ion-icon,
+.delete-button ion-spinner {
+  width: 17px;
+  height: 17px;
+  margin-right: 7px;
+}
+
+.cancel-button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+@media (max-width: 560px) {
+  .delete-modal-shell {
+    padding: 24px 20px;
+  }
+
+  .modal-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .cancel-button,
+  .delete-button {
+    width: 100%;
+  }
+}

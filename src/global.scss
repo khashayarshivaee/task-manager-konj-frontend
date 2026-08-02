@@ -60,3 +60,27 @@ ion-modal.project-create-modal::part(content) {
     border-radius: 0;
   }
 }
+ion-modal.project-delete-modal {
+  --width: min(92vw, 520px);
+  --height: 560px;
+  --border-radius: 26px;
+  --box-shadow:
+    0 35px 100px rgba(30, 25, 20, 0.22);
+}
+
+ion-modal.project-delete-modal::part(content) {
+  overflow: hidden;
+  border-radius: 26px;
+}
+
+@media (max-width: 560px) {
+  ion-modal.project-delete-modal {
+    --width: 100%;
+    --height: 100%;
+    --border-radius: 0;
+  }
+
+  ion-modal.project-delete-modal::part(content) {
+    border-radius: 0;
+  }
+}

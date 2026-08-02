@@ -9,6 +9,10 @@ import {
 } from '@angular/common/http';
 
 import {
+  DeleteProjectModalComponent,
+} from '../../components/delete-project-modal/delete-project-modal.component';
+
+import {
   EditProjectModalComponent,
 } from '../../components/edit-project-modal/edit-project-modal.component';
 
@@ -31,6 +35,7 @@ import {
 } from 'ionicons';
 import {
   arrowBackOutline,
+  trashOutline,
   createOutline,
   calendarOutline,
   checkmarkCircleOutline,
@@ -94,6 +99,7 @@ export class ProjectDetailsPage implements OnInit {
       personCircleOutline,
       timeOutline,
       createOutline,
+      trashOutline,
     });
   }
 
@@ -207,6 +213,41 @@ export class ProjectDetailsPage implements OnInit {
     ) {
       this.project = result.data;
       this.showUpdateNotice = true;
+    }
+  }
+
+  async openDeleteProjectModal(): Promise<void> {
+    if (!this.project) {
+      return;
+    }
+
+
+    const modal =
+      await this.modalController.create({
+        component:
+        DeleteProjectModalComponent,
+
+        componentProps: {
+          workspaceId: this.workspaceId,
+          project: this.project,
+        },
+
+        cssClass: 'project-delete-modal',
+        backdropDismiss: false,
+      });
+
+    await modal.present();
+
+    const result =
+      await modal.onDidDismiss<number>();
+
+    if (result.role === 'deleted') {
+      await this.router.navigateByUrl(
+        '/home',
+        {
+          replaceUrl: true,
+        },
+      );
     }
   }
 
