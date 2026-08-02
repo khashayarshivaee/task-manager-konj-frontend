@@ -1,9 +1,13 @@
-import { AuthUser } from '../../core/models/auth.model';
-
 export type WorkspaceRole =
   | 'owner'
   | 'admin'
   | 'member';
+
+export interface WorkspaceOwner {
+  id: number;
+  name: string;
+  email: string;
+}
 
 export interface WorkspaceMembership {
   id: number;
@@ -22,8 +26,17 @@ export interface Workspace {
   slug: string;
   created_at: string;
   updated_at: string;
-  owner: AuthUser;
-  memberships: WorkspaceMembership[];
+  owner: WorkspaceOwner;
+
+  /**
+   * Returned by GET /api/workspaces.
+   */
+  membership?: WorkspaceMembership;
+
+  /**
+   * Returned after POST /api/workspaces.
+   */
+  memberships?: WorkspaceMembership[];
 }
 
 export interface CreateWorkspacePayload {
@@ -34,5 +47,11 @@ export interface CreateWorkspaceResponse {
   message: string;
   data: {
     workspace: Workspace;
+  };
+}
+
+export interface ListWorkspacesResponse {
+  data: {
+    workspaces: Workspace[];
   };
 }

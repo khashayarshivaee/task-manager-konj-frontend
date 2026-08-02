@@ -1,5 +1,12 @@
 import { AsyncPipe } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  HostListener,
+  inject,
+  OnInit,
+  ViewChild,
+} from '@angular/core';
 import { Router } from '@angular/router';
 import {
   IonContent,
@@ -34,6 +41,10 @@ import {
 } from '../workspaces/components/create-workspace-modal/create-workspace-modal.component';
 import { WorkspaceService } from '../workspaces/services/workspace.service';
 
+import {
+  Workspace,
+} from '../workspaces/models/workspace.model';
+
 @Component({
   selector: 'app-home',
   templateUrl: 'home.page.html',
@@ -45,7 +56,7 @@ import { WorkspaceService } from '../workspaces/services/workspace.service';
     IonSpinner,
   ],
 })
-export class HomePage {
+export class HomePage implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly workspaceService = inject(WorkspaceService);
   private readonly modalController = inject(ModalController);
@@ -55,9 +66,17 @@ export class HomePage {
   readonly activeWorkspace$ =
     this.workspaceService.activeWorkspace$;
 
+  readonly workspaces$ =
+    this.workspaceService.workspaces$;
+
   isSidebarOpen = false;
   isLoggingOut = false;
+  isLoadingWorkspaces = false;
+  workspaceLoadError = '';
   showWorkspaceNotice = false;
+  isWorkspaceMenuOpen = false;
+  @ViewChild('workspaceSwitcher')
+  private workspaceSwitcher?: ElementRef<HTMLElement>;
 
   constructor() {
     addIcons({
@@ -80,6 +99,29 @@ export class HomePage {
     });
   }
 
+  ngOnInit(): void {
+    this.loadWorkspaces();
+  }
+
+  private loadWorkspaces(): void {
+    this.isLoadingWorkspaces = true;
+    this.workspaceLoadError = '';
+
+    this.workspaceService
+      .loadWorkspaces()
+      .pipe(
+        finalize(() => {
+          this.isLoadingWorkspaces = false;
+        }),
+      )
+      .subscribe({
+        error: () => {
+          this.workspaceLoadError =
+            'Unable to load your workspaces. Please refresh the page.';
+        },
+      });
+  }
+
   toggleSidebar(): void {
     this.isSidebarOpen = !this.isSidebarOpen;
   }
@@ -87,8 +129,92 @@ export class HomePage {
   closeSidebar(): void {
     this.isSidebarOpen = false;
   }
+  toggleWorkspaceMenu(
+    event: MouseEvent,
+  ): void {
+    event.stopPropagation();
+
+    this.isWorkspaceMenuOpen =
+      !this.isWorkspaceMenuOpen;
+  }
+
+  closeWorkspaceMenu(): void {
+    this.isWorkspaceMenuOpen = false;
+  }
+
+  selectWorkspace(
+    workspace: Workspace,
+  ): void {
+    if (
+      this.workspaceService
+        .getActiveWorkspace()
+        ?.id === workspace.id
+    ) {
+      this.closeWorkspaceMenu();
+
+      return;
+    }
+
+    this.workspaceService
+      .setActiveWorkspace(workspace);
+
+    this.showWorkspaceNotice = false;
+    this.closeWorkspaceMenu();
+    this.closeSidebar();
+  }
+
+  isWorkspaceActive(
+    workspace: Workspace,
+  ): boolean {
+    return (
+      this.workspaceService
+        .getActiveWorkspace()
+        ?.id === workspace.id
+    );
+  }
+
+  getWorkspaceRole(
+    workspace: Workspace,
+  ): string {
+    const currentUser =
+      this.authService.getCurrentUser();
+
+    if (
+      currentUser &&
+      workspace.owner_id === currentUser.id
+    ) {
+      return 'Owner';
+    }
+
+    const membershipRole =
+      workspace.membership?.role ??
+      workspace.memberships?.find(
+        (membership) =>
+          membership.user_id === currentUser?.id,
+      )?.role;
+
+    if (!membershipRole) {
+      return 'Member';
+    }
+
+    return (
+      membershipRole.charAt(0).toUpperCase() +
+      membershipRole.slice(1)
+    );
+  }
+
+  openCreateWorkspaceFromMenu(): void {
+    this.closeWorkspaceMenu();
+
+    void this.showCreateWorkspaceNotice();
+  }
+
+  retryLoadWorkspaces(): void {
+    this.loadWorkspaces();
+  }
 
   async showCreateWorkspaceNotice(): Promise<void> {
+    this.closeWorkspaceMenu();
     const modal = await this.modalController.create({
       component: CreateWorkspaceModalComponent,
       cssClass: 'workspace-create-modal',
@@ -116,7 +242,7 @@ export class HomePage {
       .pipe(
         finalize(() => {
           this.isLoggingOut = false;
-          this.workspaceService.clearActiveWorkspace();
+          this.workspaceService.resetWorkspaceState();
         }),
       )
       .subscribe({
@@ -143,5 +269,36 @@ export class HomePage {
 
   getFirstName(name: string): string {
     return name.trim().split(/\s+/)[0] || 'there';
+  }
+
+  @HostListener(
+    'document:click',
+    ['$event'],
+  )
+  handleDocumentClick(
+    event: MouseEvent,
+  ): void {
+    const target = event.target;
+
+    if (!(target instanceof Node)) {
+      return;
+    }
+
+    if (
+      this.workspaceSwitcher
+        ?.nativeElement
+        .contains(target)
+    ) {
+      return;
+    }
+
+    this.closeWorkspaceMenu();
+  }
+
+  @HostListener(
+    'document:keydown.escape',
+  )
+  handleEscapeKey(): void {
+    this.closeWorkspaceMenu();
   }
 }

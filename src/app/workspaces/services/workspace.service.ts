@@ -11,6 +11,7 @@ import { environment } from '../../../environments/environment';
 import {
   CreateWorkspacePayload,
   CreateWorkspaceResponse,
+  ListWorkspacesResponse,
   Workspace,
 } from '../models/workspace.model';
 
@@ -21,8 +22,17 @@ export class WorkspaceService {
   private readonly workspacesUrl =
     `${environment.apiUrl}/workspaces`;
 
+  private readonly activeWorkspaceIdKey =
+    'konj_task_manager_active_workspace_id';
+
+  private readonly workspacesSubject =
+    new BehaviorSubject<Workspace[]>([]);
+
   private readonly activeWorkspaceSubject =
     new BehaviorSubject<Workspace | null>(null);
+
+  readonly workspaces$ =
+    this.workspacesSubject.asObservable();
 
   readonly activeWorkspace$ =
     this.activeWorkspaceSubject.asObservable();
@@ -30,6 +40,40 @@ export class WorkspaceService {
   constructor(
     private readonly http: HttpClient,
   ) {}
+
+  loadWorkspaces(): Observable<Workspace[]> {
+    return this.http
+      .get<ListWorkspacesResponse>(
+        this.workspacesUrl,
+      )
+      .pipe(
+        map((response) => response.data.workspaces),
+        tap((workspaces) => {
+          this.workspacesSubject.next(workspaces);
+
+          const savedWorkspaceId =
+            this.getSavedActiveWorkspaceId();
+
+          const selectedWorkspace =
+            workspaces.find(
+              (workspace) =>
+                workspace.id === savedWorkspaceId,
+            ) ??
+            workspaces[0] ??
+            null;
+
+          if (selectedWorkspace) {
+            this.setActiveWorkspace(
+              selectedWorkspace,
+            );
+
+            return;
+          }
+
+          this.clearActiveWorkspace();
+        }),
+      );
+  }
 
   createWorkspace(
     payload: CreateWorkspacePayload,
@@ -46,9 +90,21 @@ export class WorkspaceService {
       .pipe(
         map((response) => response.data.workspace),
         tap((workspace) => {
-          this.activeWorkspaceSubject.next(workspace);
+          const currentWorkspaces =
+            this.workspacesSubject.value;
+
+          this.workspacesSubject.next([
+            workspace,
+            ...currentWorkspaces,
+          ]);
+
+          this.setActiveWorkspace(workspace);
         }),
       );
+  }
+
+  getWorkspaces(): Workspace[] {
+    return this.workspacesSubject.value;
   }
 
   getActiveWorkspace(): Workspace | null {
@@ -58,10 +114,40 @@ export class WorkspaceService {
   setActiveWorkspace(
     workspace: Workspace,
   ): void {
+    localStorage.setItem(
+      this.activeWorkspaceIdKey,
+      String(workspace.id),
+    );
+
     this.activeWorkspaceSubject.next(workspace);
   }
 
   clearActiveWorkspace(): void {
+    localStorage.removeItem(
+      this.activeWorkspaceIdKey,
+    );
+
     this.activeWorkspaceSubject.next(null);
+  }
+
+  resetWorkspaceState(): void {
+    this.workspacesSubject.next([]);
+    this.clearActiveWorkspace();
+  }
+
+  private getSavedActiveWorkspaceId(): number | null {
+    const storedValue = localStorage.getItem(
+      this.activeWorkspaceIdKey,
+    );
+
+    if (!storedValue) {
+      return null;
+    }
+
+    const workspaceId = Number(storedValue);
+
+    return Number.isInteger(workspaceId)
+      ? workspaceId
+      : null;
   }
 }

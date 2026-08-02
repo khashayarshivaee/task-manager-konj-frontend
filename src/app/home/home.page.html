@@ -42,32 +42,168 @@
         </button>
       </div>
 
-      <button
-        type="button"
-        class="workspace-switcher"
+      <div
+        #workspaceSwitcher
+        class="workspace-switcher-shell"
       >
         @if (activeWorkspace$ | async; as workspace) {
-        <span class="workspace-avatar">
+        <button
+          type="button"
+          class="workspace-switcher"
+          aria-haspopup="menu"
+          aria-controls="workspace-switcher-menu"
+          [attr.aria-expanded]="isWorkspaceMenuOpen"
+          (click)="toggleWorkspaceMenu($event)"
+        >
+          <span class="workspace-avatar">
         {{ workspace.name.charAt(0).toUpperCase() }}
         </span>
 
         <span class="workspace-copy">
           <small>Active workspace</small>
           <strong>{{ workspace.name }}</strong>
-    </span>
-        } @else {
-        <span class="workspace-avatar">
-          K
-        </span>
+      </span>
 
-        <span class="workspace-copy">
-          <small>Workspace</small>
-          <strong>No workspace selected</strong>
-        </span>
+      <ion-icon
+        name="chevron-down-outline"
+        [class.switcher-chevron-open]="
+          isWorkspaceMenuOpen
+        "
+      ></ion-icon>
+    </button>
+        } @else {
+        <button
+          type="button"
+          class="workspace-switcher"
+          aria-haspopup="menu"
+          aria-controls="workspace-switcher-menu"
+          [attr.aria-expanded]="isWorkspaceMenuOpen"
+          (click)="toggleWorkspaceMenu($event)"
+        >
+          <span class="workspace-avatar">
+            K
+          </span>
+
+          <span class="workspace-copy">
+            <small>Workspace</small>
+            <strong>No workspace selected</strong>
+          </span>
+
+          <ion-icon
+            name="chevron-down-outline"
+            [class.switcher-chevron-open]="
+              isWorkspaceMenuOpen
+            "
+          ></ion-icon>
+        </button>
         }
 
-        <ion-icon name="chevron-down-outline"></ion-icon>
-      </button>
+        @if (isWorkspaceMenuOpen) {
+        <div
+          id="workspace-switcher-menu"
+          class="workspace-switcher-menu"
+          role="menu"
+          (click)="$event.stopPropagation()"
+        >
+          <header class="workspace-menu-header">
+            <div>
+              <strong>Your workspaces</strong>
+              <span>Select where you want to work</span>
+            </div>
+
+            @if (workspaces$ | async; as workspaces) {
+        <small>{{ workspaces.length }}</small>
+        }
+        </header>
+
+        <div class="workspace-menu-list">
+          @if (isLoadingWorkspaces) {
+        <div class="workspace-menu-state">
+          <ion-spinner name="crescent"></ion-spinner>
+          <span>Loading workspaces...</span>
+        </div>
+        } @else if (workspaceLoadError) {
+        <div class="workspace-menu-state workspace-menu-error">
+          <span>{{ workspaceLoadError }}</span>
+
+          <button
+            type="button"
+            (click)="retryLoadWorkspaces()"
+          >
+            Try again
+          </button>
+        </div>
+        } @else {
+        @if (workspaces$ | async; as workspaces) {
+        @if (workspaces.length) {
+        @for (
+        workspace of workspaces;
+        track workspace.id
+        ) {
+        <button
+          type="button"
+          role="menuitem"
+          class="workspace-option"
+          [class.workspace-option-active]="
+            isWorkspaceActive(workspace)
+          "
+          (click)="selectWorkspace(workspace)"
+        >
+          <span class="workspace-option-avatar">
+        {{
+        workspace.name
+          .charAt(0)
+          .toUpperCase()
+        }}
+        </span>
+
+        <span class="workspace-option-copy">
+          <strong>{{ workspace.name }}</strong>
+
+                    <small>
+        {{ getWorkspaceRole(workspace) }}
+        · {{ workspace.slug }}
+        </small>
+      </span>
+
+      @if (isWorkspaceActive(workspace)) {
+        <ion-icon
+          name="checkmark-circle-outline"
+          class="workspace-option-check"
+        ></ion-icon>
+        }
+        </button>
+        }
+        } @else {
+        <div class="workspace-menu-state">
+                <span>
+                  You don’t have a workspace yet.
+                </span>
+        </div>
+        }
+        }
+        }
+        </div>
+
+        <footer class="workspace-menu-footer">
+          <button
+            type="button"
+            class="create-workspace-menu-button"
+            (click)="openCreateWorkspaceFromMenu()"
+          >
+            <span>
+              <ion-icon name="add-outline"></ion-icon>
+            </span>
+
+            <div>
+              <strong>Create new workspace</strong>
+              <small>Set up another team space</small>
+            </div>
+          </button>
+        </footer>
+      </div>
+        }
+      </div>
 
       <nav
         class="sidebar-navigation"

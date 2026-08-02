@@ -141,6 +141,268 @@ button {
   background: var(--surface);
   cursor: pointer;
 }
+.workspace-switcher-shell {
+  position: relative;
+  width: 100%;
+}
+
+.workspace-switcher {
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    background 160ms ease;
+}
+
+.workspace-switcher:hover {
+  border-color: #ddd7d1;
+  background: #ffffff;
+  box-shadow: 0 8px 24px rgba(35, 31, 27, 0.05);
+}
+
+.workspace-switcher > ion-icon {
+  transition: transform 160ms ease;
+}
+
+.switcher-chevron-open {
+  transform: rotate(180deg);
+}
+
+.workspace-switcher-menu {
+  position: absolute;
+  top: calc(100% + 9px);
+  right: 0;
+  left: 0;
+  z-index: 60;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow:
+    0 24px 65px rgba(38, 33, 29, 0.15),
+    0 5px 18px rgba(38, 33, 29, 0.06);
+  animation: workspace-menu-in 150ms ease;
+}
+
+@keyframes workspace-menu-in {
+  from {
+    opacity: 0;
+    transform: translateY(-5px) scale(0.985);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.workspace-menu-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 15px;
+  border-bottom: 1px solid var(--border);
+}
+
+.workspace-menu-header > div {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.workspace-menu-header strong {
+  color: var(--text);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.workspace-menu-header span {
+  color: var(--muted);
+  font-size: 9px;
+}
+
+.workspace-menu-header > small {
+  display: grid;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 7px;
+  place-items: center;
+  color: var(--orange-dark);
+  font-size: 9px;
+  font-weight: 800;
+  border-radius: 8px;
+  background: var(--orange-soft);
+}
+
+.workspace-menu-list {
+  max-height: 248px;
+  padding: 7px;
+  overflow-y: auto;
+}
+
+.workspace-option {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) 20px;
+  width: 100%;
+  min-height: 54px;
+  align-items: center;
+  gap: 10px;
+  padding: 8px;
+  text-align: left;
+  border-radius: 11px;
+  background: transparent;
+  cursor: pointer;
+  transition:
+    background 140ms ease,
+    color 140ms ease;
+}
+
+.workspace-option:hover {
+  background: #f7f7f5;
+}
+
+.workspace-option-active {
+  background: var(--orange-soft);
+}
+
+.workspace-option-active:hover {
+  background: #ffeadb;
+}
+
+.workspace-option-avatar {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  color: #68635e;
+  font-size: 11px;
+  font-weight: 850;
+  border-radius: 11px;
+  background: #f0efec;
+}
+
+.workspace-option-active
+.workspace-option-avatar {
+  color: var(--orange-dark);
+  background: #ffffff;
+}
+
+.workspace-option-copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.workspace-option-copy strong,
+.workspace-option-copy small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.workspace-option-copy strong {
+  color: var(--text);
+  font-size: 10px;
+  font-weight: 760;
+}
+
+.workspace-option-copy small {
+  color: var(--muted);
+  font-size: 8px;
+}
+
+.workspace-option-check {
+  color: var(--orange);
+  font-size: 18px;
+}
+
+.workspace-menu-state {
+  display: flex;
+  min-height: 90px;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 9px;
+  padding: 15px;
+  color: var(--muted);
+  font-size: 9px;
+  text-align: center;
+}
+
+.workspace-menu-state ion-spinner {
+  width: 20px;
+  height: 20px;
+  color: var(--orange);
+}
+
+.workspace-menu-error {
+  color: #a44a3f;
+}
+
+.workspace-menu-error button {
+  padding: 6px 10px;
+  color: var(--orange-dark);
+  font-size: 9px;
+  font-weight: 750;
+  border-radius: 8px;
+  background: var(--orange-soft);
+  cursor: pointer;
+}
+
+.workspace-menu-footer {
+  padding: 7px;
+  border-top: 1px solid var(--border);
+}
+
+.create-workspace-menu-button {
+  display: flex;
+  width: 100%;
+  min-height: 52px;
+  align-items: center;
+  gap: 10px;
+  padding: 8px;
+  text-align: left;
+  border-radius: 11px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.create-workspace-menu-button:hover {
+  background: var(--orange-soft);
+}
+
+.create-workspace-menu-button > span {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  flex: 0 0 auto;
+  place-items: center;
+  color: var(--orange);
+  font-size: 18px;
+  border: 1px dashed rgba(255, 107, 0, 0.38);
+  border-radius: 11px;
+  background: #fffaf6;
+}
+
+.create-workspace-menu-button > div {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.create-workspace-menu-button strong {
+  color: var(--text);
+  font-size: 10px;
+  font-weight: 760;
+}
+
+.create-workspace-menu-button small {
+  color: var(--muted);
+  font-size: 8px;
+}
 
 .workspace-avatar {
   display: grid;
