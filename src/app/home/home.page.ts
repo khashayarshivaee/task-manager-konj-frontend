@@ -1,12 +1,17 @@
 import { AsyncPipe } from '@angular/common';
 import {
   Component,
+  DestroyRef,
   ElementRef,
   HostListener,
   inject,
   OnInit,
   ViewChild,
 } from '@angular/core';
+
+import {
+  takeUntilDestroyed,
+} from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import {
   IonContent,
@@ -33,13 +38,30 @@ import {
   searchOutline,
   settingsOutline,
 } from 'ionicons/icons';
-import { finalize } from 'rxjs';
+import {
+  catchError,
+  distinctUntilChanged,
+  finalize,
+  of,
+  switchMap,
+  tap,
+} from 'rxjs';
 
 import { AuthService } from '../core/services/auth.service';
 import {
   CreateWorkspaceModalComponent,
 } from '../workspaces/components/create-workspace-modal/create-workspace-modal.component';
 import { WorkspaceService } from '../workspaces/services/workspace.service';
+
+import {
+  CreateProjectModalComponent,
+} from '../projects/components/create-project-modal/create-project-modal.component';
+import {
+  Project,
+} from '../projects/models/project.model';
+import {
+  ProjectService,
+} from '../projects/services/project.service';
 
 import {
   Workspace,
@@ -59,6 +81,12 @@ import {
 export class HomePage implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly workspaceService = inject(WorkspaceService);
+
+  private readonly projectService =
+    inject(ProjectService);
+
+  private readonly destroyRef =
+    inject(DestroyRef);
   private readonly modalController = inject(ModalController);
   private readonly router = inject(Router);
 
@@ -68,6 +96,12 @@ export class HomePage implements OnInit {
 
   readonly workspaces$ =
     this.workspaceService.workspaces$;
+
+  projects: Project[] = [];
+
+  isLoadingProjects = false;
+  projectLoadError = '';
+  showProjectNotice = false;
 
   isSidebarOpen = false;
   isLoggingOut = false;
@@ -100,7 +134,60 @@ export class HomePage implements OnInit {
   }
 
   ngOnInit(): void {
+    this.watchActiveWorkspace();
     this.loadWorkspaces();
+  }
+
+  private watchActiveWorkspace(): void {
+    this.activeWorkspace$
+      .pipe(
+        distinctUntilChanged(
+          (previousWorkspace, currentWorkspace) =>
+            previousWorkspace?.id ===
+            currentWorkspace?.id,
+        ),
+
+        tap(() => {
+          this.projects = [];
+          this.projectLoadError = '';
+          this.showProjectNotice = false;
+        }),
+
+        switchMap((workspace) => {
+          if (!workspace) {
+            this.isLoadingProjects = false;
+
+            return of(null);
+          }
+
+          this.isLoadingProjects = true;
+
+          return this.projectService
+            .getProjects(workspace.id)
+            .pipe(
+              tap((response) => {
+                this.projects =
+                  response.data.projects;
+              }),
+
+              catchError(() => {
+                this.projects = [];
+
+                this.projectLoadError =
+                  'Unable to load projects for this workspace.';
+
+                return of(null);
+              }),
+
+              finalize(() => {
+                this.isLoadingProjects = false;
+              }),
+            );
+        }),
+
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
   }
 
   private loadWorkspaces(): void {
@@ -230,6 +317,45 @@ export class HomePage implements OnInit {
     }
   }
 
+  async showCreateProjectModal(): Promise<void> {
+    const workspace =
+      this.workspaceService.getActiveWorkspace();
+
+    if (!workspace) {
+      return;
+    }
+
+    const modal =
+      await this.modalController.create({
+        component:
+        CreateProjectModalComponent,
+
+        componentProps: {
+          workspaceId: workspace.id,
+        },
+
+        cssClass: 'project-create-modal',
+        backdropDismiss: false,
+      });
+
+    await modal.present();
+
+    const result =
+      await modal.onDidDismiss<Project>();
+
+    if (
+      result.role === 'created' &&
+      result.data
+    ) {
+      this.projects = [
+        result.data,
+        ...this.projects,
+      ];
+
+      this.showProjectNotice = true;
+    }
+  }
+
   logout(): void {
     if (this.isLoggingOut) {
       return;
@@ -300,5 +426,73 @@ export class HomePage implements OnInit {
   )
   handleEscapeKey(): void {
     this.closeWorkspaceMenu();
+  }
+
+  retryLoadProjects(): void {
+    const workspace =
+      this.workspaceService.getActiveWorkspace();
+
+    if (
+      !workspace ||
+      this.isLoadingProjects
+    ) {
+      return;
+    }
+
+    this.isLoadingProjects = true;
+    this.projectLoadError = '';
+
+    this.projectService
+      .getProjects(workspace.id)
+      .pipe(
+        finalize(() => {
+          this.isLoadingProjects = false;
+        }),
+
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: (response) => {
+          this.projects =
+            response.data.projects;
+        },
+
+        error: () => {
+          this.projects = [];
+
+          this.projectLoadError =
+            'Unable to load projects for this workspace.';
+        },
+      });
+  }
+
+  canManageProjects(
+    workspace: Workspace,
+  ): boolean {
+    const currentUser =
+      this.authService.getCurrentUser();
+
+    if (!currentUser) {
+      return false;
+    }
+
+    if (
+      workspace.owner_id === currentUser.id
+    ) {
+      return true;
+    }
+
+    const membershipRole =
+      workspace.membership?.role ??
+      workspace.memberships?.find(
+        (membership) =>
+          membership.user_id ===
+          currentUser.id,
+      )?.role;
+
+    return (
+      membershipRole === 'owner' ||
+      membershipRole === 'admin'
+    );
   }
 }

@@ -1144,3 +1144,239 @@ button {
     display: none;
   }
 }
+
+.projects-card {
+  min-width: 0;
+  min-height: 410px;
+  padding: 24px;
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  background: #ffffff;
+}
+
+.projects-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.projects-card-header h2 {
+  margin: 5px 0 0;
+  color: var(--text);
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+}
+
+.projects-card-header p {
+  margin: 7px 0 0;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.7;
+}
+
+.project-add-button {
+  display: flex;
+  min-height: 38px;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 7px;
+  padding: 0 13px;
+  color: var(--orange-dark);
+  font-size: 10px;
+  font-weight: 800;
+  border: 1px solid rgba(255, 107, 0, 0.18);
+  border-radius: 11px;
+  background: var(--orange-soft);
+  cursor: pointer;
+}
+
+.project-add-button ion-icon {
+  font-size: 16px;
+}
+
+.project-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.project-row {
+  display: grid;
+  grid-template-columns:
+    8px minmax(0, 1fr) auto;
+  min-width: 0;
+  align-items: center;
+  gap: 13px;
+  padding: 13px 14px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: #ffffff;
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease,
+    transform 150ms ease;
+}
+
+.project-row:hover {
+  border-color: rgba(255, 107, 0, 0.24);
+  box-shadow: 0 10px 28px rgba(36, 31, 27, 0.06);
+  transform: translateY(-1px);
+}
+
+.project-color {
+  width: 8px;
+  height: 38px;
+  border-radius: 8px;
+}
+
+.project-main {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.project-main strong,
+.project-main small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.project-main strong {
+  color: var(--text);
+  font-size: 11px;
+  font-weight: 780;
+}
+
+.project-main small {
+  color: var(--muted);
+  font-size: 9px;
+}
+
+.project-meta {
+  display: flex;
+  min-width: 100px;
+  align-items: flex-end;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.project-status {
+  padding: 5px 8px;
+  color: var(--orange-dark);
+  font-size: 8px;
+  font-weight: 800;
+  text-transform: capitalize;
+  border-radius: 7px;
+  background: var(--orange-soft);
+}
+
+.project-meta small {
+  color: var(--muted);
+  font-size: 8px;
+}
+
+.projects-state,
+.projects-empty {
+  display: flex;
+  min-height: 280px;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 10px;
+  text-align: center;
+}
+
+.projects-state {
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.projects-state ion-spinner {
+  width: 24px;
+  height: 24px;
+  color: var(--orange);
+}
+
+.projects-error > ion-icon {
+  color: #c85d51;
+  font-size: 28px;
+}
+
+.projects-error strong {
+  color: var(--text);
+  font-size: 12px;
+}
+
+.projects-error button {
+  min-height: 34px;
+  padding: 0 13px;
+  color: var(--orange-dark);
+  font-size: 9px;
+  font-weight: 800;
+  border-radius: 9px;
+  background: var(--orange-soft);
+  cursor: pointer;
+}
+
+.projects-empty-icon {
+  display: grid;
+  width: 52px;
+  height: 52px;
+  place-items: center;
+  color: var(--orange);
+  font-size: 23px;
+  border-radius: 17px;
+  background: var(--orange-soft);
+}
+
+.projects-empty h3 {
+  margin: 4px 0 0;
+  color: var(--text);
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.projects-empty p {
+  max-width: 330px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.7;
+}
+
+.projects-empty > small {
+  color: var(--muted);
+  font-size: 9px;
+}
+
+@media (max-width: 620px) {
+  .projects-card {
+    padding: 19px;
+  }
+
+  .projects-card-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .project-add-button {
+    justify-content: center;
+  }
+
+  .project-row {
+    grid-template-columns:
+      8px minmax(0, 1fr);
+  }
+
+  .project-meta {
+    grid-column: 2;
+    align-items: flex-start;
+  }
+}

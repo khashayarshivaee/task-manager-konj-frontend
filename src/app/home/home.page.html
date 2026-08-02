@@ -368,24 +368,57 @@
             </span>
 
             <h1>
-              Welcome back, {{ getFirstName(user.name) }}.
-              </h1>
+              Welcome back,
+        {{ getFirstName(user.name) }}.
+      </h1>
 
-              <p>
-                Start by creating a workspace for your team,
-                projects, and tasks.
-              </p>
-            </div>
+      @if (
+        activeWorkspace$ | async;
+        as workspace
+      ) {
+        <p>
+          Manage projects and keep work moving
+          inside {{ workspace.name }}.
+        </p>
+        } @else {
+        <p>
+          Start by creating a workspace for your
+          team, projects, and tasks.
+        </p>
+        }
+        </div>
 
-            <button
-              type="button"
-              class="primary-button"
-              (click)="showCreateWorkspaceNotice()"
-            >
-              <ion-icon name="add-outline"></ion-icon>
-              <span>Create workspace</span>
-            </button>
-          </section>
+        @if (
+          activeWorkspace$ | async;
+          as workspace
+        ) {
+        @if (canManageProjects(workspace)) {
+        <button
+          type="button"
+          class="primary-button"
+          (click)="showCreateProjectModal()"
+        >
+          <ion-icon
+            name="add-outline"
+          ></ion-icon>
+
+          <span>Create project</span>
+        </button>
+        }
+        } @else {
+        <button
+          type="button"
+          class="primary-button"
+          (click)="showCreateWorkspaceNotice()"
+        >
+          <ion-icon
+            name="add-outline"
+          ></ion-icon>
+
+          <span>Create workspace</span>
+        </button>
+        }
+        </section>
         }
 
         @if (showWorkspaceNotice) {
@@ -413,6 +446,38 @@
         </div>
         }
 
+        @if (showProjectNotice) {
+        <div
+          class="setup-notice"
+          role="status"
+        >
+          <ion-icon
+            name="checkmark-circle-outline"
+          ></ion-icon>
+
+          <div>
+            <strong>
+              Project created successfully
+            </strong>
+
+            <span>
+              Your new project is ready for
+              tasks, deadlines, and members.
+            </span>
+          </div>
+
+          <button
+            type="button"
+            aria-label="Dismiss"
+            (click)="showProjectNotice = false"
+          >
+            <ion-icon
+              name="close-outline"
+            ></ion-icon>
+          </button>
+        </div>
+        }
+
         <section class="stats-grid">
           <article class="stat-card">
             <div class="stat-icon">
@@ -421,8 +486,20 @@
 
             <div>
               <span>Projects</span>
-              <strong>0</strong>
-              <small>No active projects yet</small>
+
+              <strong>
+                {{ projects.length }}
+              </strong>
+
+              <small>
+                @if (isLoadingProjects) {
+                Loading projects...
+                } @else if (projects.length) {
+                Projects in this workspace
+                } @else {
+                No projects yet
+                }
+              </small>
             </div>
           </article>
 
@@ -452,14 +529,169 @@
         </section>
 
         <section class="dashboard-grid">
+          @if (
+          activeWorkspace$ | async;
+          as workspace
+          ) {
+          <article class="projects-card">
+            <header class="projects-card-header">
+              <div>
+                <span class="empty-label">
+                  Workspace projects
+                </span>
+
+                <h2>{{ workspace.name }}</h2>
+
+        <p>
+          Plan work, define deadlines, and keep
+          your team focused.
+        </p>
+      </div>
+
+      @if (canManageProjects(workspace)) {
+          <button
+            type="button"
+            class="project-add-button"
+            (click)="showCreateProjectModal()"
+          >
+            <ion-icon
+              name="add-outline"
+            ></ion-icon>
+
+            <span>New project</span>
+          </button>
+          }
+          </header>
+
+          @if (isLoadingProjects) {
+          <div class="projects-state">
+            <ion-spinner
+              name="crescent"
+            ></ion-spinner>
+
+            <span>Loading projects...</span>
+          </div>
+          } @else if (projectLoadError) {
+          <div class="projects-state projects-error">
+            <ion-icon
+              name="folder-open-outline"
+            ></ion-icon>
+
+            <strong>
+              Projects could not be loaded
+            </strong>
+
+            <span>
+          {{ projectLoadError }}
+        </span>
+
+            <button
+              type="button"
+              (click)="retryLoadProjects()"
+            >
+              Try again
+            </button>
+          </div>
+          } @else if (projects.length) {
+          <div class="project-list">
+            @for (
+            project of projects;
+            track project.id
+            ) {
+            <article class="project-row">
+              <span
+                class="project-color"
+                [style.background-color]="
+                  project.color || '#ff6b00'
+                "
+              ></span>
+
+              <div class="project-main">
+                <strong>
+            {{ project.name }}
+            </strong>
+
+            <small>
+            {{
+            project.description ||
+            'No description added yet.'
+            }}
+            </small>
+          </div>
+
+          <div class="project-meta">
+            <span class="project-status">
+            {{
+            project.status
+              .replace('_', ' ')
+            }}
+            </span>
+
+            <small>
+            {{
+            project.due_at
+              ? 'Due ' + project.due_at
+              : 'No due date'
+            }}
+            </small>
+          </div>
+        </article>
+            }
+          </div>
+          } @else {
+          <div class="projects-empty">
+        <span class="projects-empty-icon">
+          <ion-icon
+            name="folder-open-outline"
+          ></ion-icon>
+        </span>
+
+            <h3>Create your first project</h3>
+
+            <p>
+              Projects organize related tasks,
+              deadlines, and team activity.
+            </p>
+
+            @if (canManageProjects(workspace)) {
+            <button
+              type="button"
+              class="primary-button"
+              (click)="showCreateProjectModal()"
+            >
+              <ion-icon
+                name="add-outline"
+              ></ion-icon>
+
+              <span>Create project</span>
+            </button>
+            } @else {
+            <small>
+              Ask a workspace owner or admin to
+              create the first project.
+            </small>
+            }
+          </div>
+          }
+          </article>
+          } @else {
           <article class="empty-workspace-card">
             <div class="empty-visual">
-              <div class="visual-layer visual-layer-back"></div>
-              <div class="visual-layer visual-layer-middle"></div>
+              <div
+                class="visual-layer visual-layer-back"
+              ></div>
 
-              <div class="visual-layer visual-layer-front">
+              <div
+                class="visual-layer visual-layer-middle"
+              ></div>
+
+              <div
+                class="visual-layer visual-layer-front"
+              >
                 <span>
-                  <ion-icon name="grid-outline"></ion-icon>
+                  <ion-icon
+                    name="grid-outline"
+                  ></ion-icon>
                 </span>
 
                 <i></i>
@@ -476,8 +708,9 @@
               <h2>Create your first workspace</h2>
 
               <p>
-                Workspaces keep your team, projects, tasks, and
-                permissions organized in one place.
+                Workspaces keep your team, projects,
+                tasks, and permissions organized in
+                one place.
               </p>
 
               <button
@@ -485,11 +718,15 @@
                 class="primary-button"
                 (click)="showCreateWorkspaceNotice()"
               >
-                <ion-icon name="add-outline"></ion-icon>
+                <ion-icon
+                  name="add-outline"
+                ></ion-icon>
+
                 <span>Create workspace</span>
               </button>
             </div>
           </article>
+          }
 
           <aside class="getting-started-card">
             <div class="card-heading">

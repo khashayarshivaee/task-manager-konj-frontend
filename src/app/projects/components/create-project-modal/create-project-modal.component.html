@@ -1,0 +1,286 @@
+<ion-content
+  [fullscreen]="true"
+  class="project-modal-page"
+>
+  <main class="project-modal-shell">
+    <header class="modal-header">
+      <div class="modal-heading">
+        <span class="modal-icon">
+          <ion-icon
+            name="folder-open-outline"
+          ></ion-icon>
+        </span>
+
+        <div>
+          <span class="modal-eyebrow">
+            New project
+          </span>
+
+          <h1>
+            Create a project
+          </h1>
+        </div>
+      </div>
+
+      <button
+        type="button"
+        class="modal-close"
+        aria-label="Close"
+        [disabled]="isSubmitting"
+        (click)="close()"
+      >
+        <ion-icon
+          name="close-outline"
+        ></ion-icon>
+      </button>
+    </header>
+
+    <p class="modal-description">
+      Create a focused space for your tasks,
+      deadlines, and team progress.
+    </p>
+
+    <form
+      [formGroup]="projectForm"
+      (ngSubmit)="submit()"
+      novalidate
+      class="project-form"
+    >
+      <div class="form-group">
+        <label for="project-name">
+          Project name
+        </label>
+
+        <ion-input
+          id="project-name"
+          formControlName="name"
+          type="text"
+          autocomplete="off"
+          fill="outline"
+          placeholder="Example: Mobile application"
+          [clearInput]="true"
+          [counter]="true"
+          [maxlength]="120"
+        ></ion-input>
+
+        @if (
+        projectForm.controls.name.touched &&
+        projectForm.controls.name.hasError(
+        'required'
+        )
+        ) {
+        <p class="field-error">
+          Project name is required.
+        </p>
+        }
+
+        @if (
+        projectForm.controls.name.touched &&
+        projectForm.controls.name.hasError(
+        'minlength'
+        )
+        ) {
+        <p class="field-error">
+          Project name must contain at least
+          2 characters.
+        </p>
+        }
+
+        @if (
+        projectForm.controls.name.touched &&
+        projectForm.controls.name.hasError(
+        'maxlength'
+        )
+        ) {
+        <p class="field-error">
+          Project name cannot exceed
+          120 characters.
+        </p>
+        }
+      </div>
+
+      <div class="form-group">
+        <label for="project-description">
+          Description
+          <small>Optional</small>
+        </label>
+
+        <ion-textarea
+          id="project-description"
+          formControlName="description"
+          fill="outline"
+          placeholder="What is this project about?"
+          [autoGrow]="true"
+          [counter]="true"
+          [maxlength]="5000"
+          [rows]="3"
+        ></ion-textarea>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="project-status">
+            Status
+          </label>
+
+          <ion-select
+            id="project-status"
+            formControlName="status"
+            fill="outline"
+            interface="popover"
+          >
+            @for (
+            status of statuses;
+            track status.value
+            ) {
+            <ion-select-option
+              [value]="status.value"
+            >
+            {{ status.label }}
+            </ion-select-option>
+            }
+          </ion-select>
+        </div>
+
+        <div class="form-group">
+          <label for="project-color">
+            Project color
+          </label>
+
+          <div class="color-field">
+            <input
+              id="project-color"
+              type="color"
+              formControlName="color"
+              aria-label="Project color"
+            >
+
+            <span>
+              {{
+              projectForm.controls.color.value
+                .toUpperCase()
+              }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="project-start-date">
+            Start date
+            <small>Optional</small>
+          </label>
+
+          <ion-input
+            id="project-start-date"
+            formControlName="starts_at"
+            type="date"
+            fill="outline"
+          ></ion-input>
+        </div>
+
+        <div class="form-group">
+          <label for="project-due-date">
+            Due date
+            <small>Optional</small>
+          </label>
+
+          <ion-input
+            id="project-due-date"
+            formControlName="due_at"
+            type="date"
+            fill="outline"
+          ></ion-input>
+        </div>
+      </div>
+
+      @if (
+      projectForm.hasError(
+      'invalidDateRange'
+      ) &&
+      (
+      projectForm.controls.starts_at.touched ||
+      projectForm.controls.due_at.touched
+      )
+      ) {
+      <p class="field-error date-error">
+        Due date cannot be earlier than
+        the start date.
+      </p>
+      }
+
+      <div class="project-preview">
+        <span
+          class="preview-color"
+          [style.background-color]="
+            projectForm.controls.color.value
+          "
+        ></span>
+
+        <div>
+          <small>Project preview</small>
+
+          <strong>
+            {{
+            projectForm.controls.name.value
+              .trim() ||
+            'Your project'
+            }}
+          </strong>
+
+          <span>
+            {{
+            projectForm.controls.status.value
+              .replace('_', ' ')
+            }}
+          </span>
+        </div>
+      </div>
+
+      @if (errorMessage) {
+      <div
+        class="modal-error"
+        role="alert"
+        aria-live="polite"
+      >
+      {{ errorMessage }}
+      </div>
+      }
+
+      <footer class="modal-actions">
+        <button
+          type="button"
+          class="secondary-button"
+          [disabled]="isSubmitting"
+          (click)="close()"
+        >
+          Cancel
+        </button>
+
+        <ion-button
+          type="submit"
+          class="create-button"
+          [disabled]="
+            projectForm.invalid ||
+            isSubmitting
+          "
+        >
+          @if (isSubmitting) {
+          <ion-spinner
+            name="crescent"
+          ></ion-spinner>
+
+          <span>
+            Creating...
+          </span>
+          } @else {
+          <span>
+            Create project
+          </span>
+          }
+        </ion-button>
+      </footer>
+    </form>
+  </main>
+</ion-content>
