@@ -125,10 +125,22 @@
           </p>
         </div>
 
-        @if (!canManageMembers()) {
+    @if (canManageMembers()) {
+    <button
+      type="button"
+      class="add-member-button"
+      (click)="openAddMemberModal()"
+    >
+      <ion-icon
+        name="add-outline"
+      ></ion-icon>
+
+      <span>Add member</span>
+    </button>
+    } @else {
     <span class="view-only-badge">
-              View only
-            </span>
+    View only
+  </span>
     }
     </header>
 

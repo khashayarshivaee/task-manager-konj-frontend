@@ -23,17 +23,23 @@ import {
   IonContent,
   IonIcon,
   IonSpinner,
+  ModalController,
 } from '@ionic/angular/standalone';
 import {
   addIcons,
 } from 'ionicons';
 import {
+  addOutline,
   arrowBackOutline,
   peopleOutline,
   personRemoveOutline,
   refreshOutline,
   shieldCheckmarkOutline,
 } from 'ionicons/icons';
+import {
+  AddWorkspaceMemberModalComponent,
+} from '../../components/add-workspace-member-modal/add-workspace-member-modal.component';
+
 import {
   finalize,
   map,
@@ -81,6 +87,9 @@ export class WorkspaceMembersPage
   private readonly alertController =
     inject(AlertController);
 
+  private readonly modalController =
+    inject(ModalController);
+
   private readonly authService =
     inject(AuthService);
 
@@ -112,6 +121,7 @@ export class WorkspaceMembersPage
       personRemoveOutline,
       refreshOutline,
       shieldCheckmarkOutline,
+      addOutline,
     });
   }
 
@@ -221,6 +231,42 @@ export class WorkspaceMembersPage
             'Unable to load workspace members. Please try again.';
         },
       });
+  }
+
+  async openAddMemberModal(): Promise<void> {
+    if (!this.canManageMembers()) {
+      return;
+    }
+
+    const modal =
+      await this.modalController.create({
+        component:
+        AddWorkspaceMemberModalComponent,
+
+        componentProps: {
+          workspaceId: this.workspaceId,
+        },
+
+        cssClass: 'workspace-create-modal',
+        backdropDismiss: false,
+      });
+
+    await modal.present();
+
+    const result =
+      await modal.onDidDismiss<WorkspaceMember>();
+
+    if (
+      result.role === 'created' &&
+      result.data
+    ) {
+      this.members = this.sortMembers([
+        ...this.members,
+        result.data,
+      ]);
+
+      this.actionErrorMessage = '';
+    }
   }
 
   updateMemberRole(

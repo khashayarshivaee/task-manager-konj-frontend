@@ -466,3 +466,37 @@
     grid-row: 1 / span 2;
   }
 }
+.add-member-button {
+  display: flex;
+  min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 15px;
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 820;
+  border-radius: 12px;
+  background: var(--orange);
+  box-shadow:
+    0 12px 24px rgba(255, 107, 0, 0.17);
+  cursor: pointer;
+  transition:
+    background 150ms ease,
+    transform 150ms ease;
+}
+
+.add-member-button:hover {
+  background: var(--orange-dark);
+  transform: translateY(-1px);
+}
+
+.add-member-button ion-icon {
+  font-size: 17px;
+}
+
+@media (max-width: 720px) {
+  .add-member-button {
+    width: 100%;
+  }
+}

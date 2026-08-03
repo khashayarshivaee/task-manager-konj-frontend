@@ -1,0 +1,183 @@
+<ion-content class="member-modal-content">
+  <div class="member-modal-shell">
+    <header class="member-modal-header">
+      <span class="modal-icon">
+        <ion-icon
+          name="person-add-outline"
+        ></ion-icon>
+      </span>
+
+      <div class="modal-heading">
+        <span>Add workspace member</span>
+
+        <h2>Invite someone to the team</h2>
+
+        <p>
+          Enter the email address of an existing
+          active Konj account.
+        </p>
+      </div>
+
+      <button
+        type="button"
+        class="close-button"
+        aria-label="Close modal"
+        [disabled]="isSubmitting"
+        (click)="close()"
+      >
+        <ion-icon
+          name="close-outline"
+        ></ion-icon>
+      </button>
+    </header>
+
+    @if (errorMessage) {
+    <div
+      class="modal-error"
+      role="alert"
+    >
+    {{ errorMessage }}
+    </div>
+    }
+
+    <form
+      [formGroup]="memberForm"
+      (ngSubmit)="submit()"
+    >
+      <section class="form-section">
+        <label class="form-field">
+          <span>Email address</span>
+
+          <div class="input-shell">
+            <ion-icon
+              name="mail-outline"
+            ></ion-icon>
+
+            <input
+              type="email"
+              formControlName="email"
+              autocomplete="email"
+              placeholder="name@example.com"
+            />
+          </div>
+
+          @if (
+          emailControl.touched &&
+          emailControl.hasError('required')
+          ) {
+          <small class="field-error">
+            The member email address is required.
+          </small>
+          }
+
+          @if (
+          emailControl.touched &&
+          emailControl.hasError('email')
+          ) {
+          <small class="field-error">
+            Enter a valid email address.
+          </small>
+          }
+        </label>
+
+        <div class="form-field">
+          <span>Workspace role</span>
+
+          <div class="role-options">
+            <label
+              class="role-option"
+              [class.role-option-active]="
+                memberForm.controls.role.value ===
+                'member'
+              "
+            >
+              <input
+                type="radio"
+                formControlName="role"
+                value="member"
+              />
+
+              <span class="role-icon">
+                <ion-icon
+                  name="person-add-outline"
+                ></ion-icon>
+              </span>
+
+              <span class="role-copy">
+                <strong>Member</strong>
+
+                <small>
+                  Can view workspace projects and
+                  participate in assigned work.
+                </small>
+              </span>
+            </label>
+
+            <label
+              class="role-option"
+              [class.role-option-active]="
+                memberForm.controls.role.value ===
+                'admin'
+              "
+            >
+              <input
+                type="radio"
+                formControlName="role"
+                value="admin"
+              />
+
+              <span class="role-icon">
+                <ion-icon
+                  name="shield-checkmark-outline"
+                ></ion-icon>
+              </span>
+
+              <span class="role-copy">
+                <strong>Admin</strong>
+
+                <small>
+                  Can manage workspace members,
+                  roles, and projects.
+                </small>
+              </span>
+            </label>
+          </div>
+        </div>
+      </section>
+
+      <footer class="modal-actions">
+        <button
+          type="button"
+          class="cancel-button"
+          [disabled]="isSubmitting"
+          (click)="close()"
+        >
+          Cancel
+        </button>
+
+        <button
+          type="submit"
+          class="submit-button"
+          [disabled]="
+            isSubmitting ||
+            memberForm.invalid
+          "
+        >
+          @if (isSubmitting) {
+          <ion-spinner
+            name="crescent"
+          ></ion-spinner>
+
+          <span>Adding member...</span>
+          } @else {
+          <ion-icon
+            name="person-add-outline"
+          ></ion-icon>
+
+          <span>Add member</span>
+          }
+        </button>
+      </footer>
+    </form>
+  </div>
+</ion-content>
