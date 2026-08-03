@@ -34,7 +34,7 @@ export interface Workspace {
   membership?: WorkspaceMembership;
 
   /**
-   * Returned after POST /api/workspaces.
+   * Returned after creating or updating a workspace.
    */
   memberships?: WorkspaceMembership[];
 }
@@ -43,11 +43,30 @@ export interface CreateWorkspacePayload {
   name: string;
 }
 
+export interface UpdateWorkspacePayload {
+  name: string;
+}
+
+export interface DeleteWorkspacePayload {
+  confirmation_name: string;
+}
+
 export interface CreateWorkspaceResponse {
   message: string;
   data: {
     workspace: Workspace;
   };
+}
+
+export interface UpdateWorkspaceResponse {
+  message: string;
+  data: {
+    workspace: Workspace;
+  };
+}
+
+export interface DeleteWorkspaceResponse {
+  message: string;
 }
 
 export interface ListWorkspacesResponse {

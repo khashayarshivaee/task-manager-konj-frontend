@@ -1384,3 +1384,74 @@ button {
     align-items: flex-start;
   }
 }
+.workspace-management-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-bottom: 7px;
+  margin-bottom: 7px;
+  border-bottom: 1px solid var(--border);
+}
+
+.workspace-management-button {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  width: 100%;
+  min-height: 50px;
+  align-items: center;
+  gap: 10px;
+  padding: 8px;
+  color: var(--text);
+  text-align: left;
+  border-radius: 11px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.workspace-management-button:hover {
+  background: #f7f7f5;
+}
+
+.workspace-management-button > ion-icon {
+  //width: 34px;
+  //height: 34px;
+  padding: 8px;
+  color: var(--orange-dark);
+  font-size: 17px;
+  border-radius: 10px;
+  background: var(--orange-soft);
+}
+
+.workspace-management-button > span {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.workspace-management-button strong {
+  color: inherit;
+  font-size: 10px;
+  font-weight: 760;
+}
+
+.workspace-management-button small {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 8px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.workspace-management-button-danger {
+  color: #b83232;
+}
+
+.workspace-management-button-danger:hover {
+  background: #fff3f3;
+}
+
+.workspace-management-button-danger > ion-icon {
+  color: #d64343;
+  background: #fff0f0;
+}

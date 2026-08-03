@@ -13,6 +13,14 @@ import {
   takeUntilDestroyed,
 } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
+
+import {
+  DeleteWorkspaceModalComponent,
+} from '../workspaces/components/delete-workspace-modal/delete-workspace-modal.component';
+
+import {
+  EditWorkspaceModalComponent,
+} from '../workspaces/components/edit-workspace-modal/edit-workspace-modal.component';
 import {
   IonContent,
   IonIcon,
@@ -23,6 +31,8 @@ import { addIcons } from 'ionicons';
 import {
   addOutline,
   calendarOutline,
+  createOutline,
+  trashOutline,
   checkmarkCircleOutline,
   checkboxOutline,
   chevronDownOutline,
@@ -108,6 +118,8 @@ export class HomePage implements OnInit {
   isLoadingWorkspaces = false;
   workspaceLoadError = '';
   showWorkspaceNotice = false;
+  showWorkspaceUpdatedNotice = false;
+  showWorkspaceDeletedNotice = false;
   isWorkspaceMenuOpen = false;
   @ViewChild('workspaceSwitcher')
   private workspaceSwitcher?: ElementRef<HTMLElement>;
@@ -118,6 +130,8 @@ export class HomePage implements OnInit {
       calendarOutline,
       checkmarkCircleOutline,
       checkboxOutline,
+      createOutline,
+      trashOutline,
       chevronDownOutline,
       closeOutline,
       folderOpenOutline,
@@ -507,6 +521,22 @@ export class HomePage implements OnInit {
       membershipRole === 'admin'
     );
   }
+  canManageWorkspace(
+    workspace: Workspace,
+  ): boolean {
+    return this.canManageProjects(workspace);
+  }
+  canDeleteWorkspace(
+    workspace: Workspace,
+  ): boolean {
+    const currentUser =
+      this.authService.getCurrentUser();
+
+    return (
+      currentUser !== null &&
+      workspace.owner_id === currentUser.id
+    );
+  }
 
   openProject(
     project: Project,
@@ -527,5 +557,66 @@ export class HomePage implements OnInit {
       'projects',
       project.id,
     ]);
+  }
+
+  async showEditWorkspaceModal(
+    workspace: Workspace,
+  ): Promise<void> {
+    this.closeWorkspaceMenu();
+
+    const modal =
+      await this.modalController.create({
+        component: EditWorkspaceModalComponent,
+
+        componentProps: {
+          workspace,
+        },
+
+        cssClass: 'workspace-edit-modal',
+        backdropDismiss: false,
+      });
+
+    await modal.present();
+
+    const result =
+      await modal.onDidDismiss<Workspace>();
+
+    if (
+      result.role === 'updated' &&
+      result.data
+    ) {
+      this.showWorkspaceNotice = false;
+      this.showWorkspaceDeletedNotice = false;
+      this.showWorkspaceUpdatedNotice = true;
+    }
+  }
+
+  async showDeleteWorkspaceModal(
+    workspace: Workspace,
+  ): Promise<void> {
+    this.closeWorkspaceMenu();
+
+    const modal =
+      await this.modalController.create({
+        component: DeleteWorkspaceModalComponent,
+
+        componentProps: {
+          workspace,
+        },
+
+        cssClass: 'workspace-delete-modal',
+        backdropDismiss: false,
+      });
+
+    await modal.present();
+
+    const result =
+      await modal.onDidDismiss<Workspace>();
+
+    if (result.role === 'deleted') {
+      this.showWorkspaceNotice = false;
+      this.showWorkspaceUpdatedNotice = false;
+      this.showWorkspaceDeletedNotice = true;
+    }
   }
 }

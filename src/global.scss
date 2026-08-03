@@ -84,3 +84,37 @@ ion-modal.project-delete-modal::part(content) {
     border-radius: 0;
   }
 }
+ion-modal.workspace-create-modal,
+ion-modal.workspace-edit-modal {
+  --width: min(560px, calc(100vw - 32px));
+  --height: 610px;
+  --max-height: calc(100vh - 32px);
+  --border-radius: 22px;
+}
+
+ion-modal.workspace-delete-modal {
+  --width: min(540px, calc(100vw - 32px));
+  --height: 590px;
+  --max-height: calc(100vh - 32px);
+  --border-radius: 22px;
+}
+
+ion-modal.workspace-create-modal::part(content),
+ion-modal.workspace-edit-modal::part(content),
+ion-modal.workspace-delete-modal::part(content) {
+  overflow: hidden;
+  box-shadow:
+    0 28px 80px rgba(31, 27, 23, 0.18),
+    0 8px 24px rgba(31, 27, 23, 0.08);
+}
+
+@media (max-width: 560px) {
+  ion-modal.workspace-create-modal,
+  ion-modal.workspace-edit-modal,
+  ion-modal.workspace-delete-modal {
+    --width: 100%;
+    --height: 100%;
+    --max-height: 100%;
+    --border-radius: 0;
+  }
+}

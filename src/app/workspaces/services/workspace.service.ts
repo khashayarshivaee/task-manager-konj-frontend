@@ -11,7 +11,11 @@ import { environment } from '../../../environments/environment';
 import {
   CreateWorkspacePayload,
   CreateWorkspaceResponse,
+  DeleteWorkspacePayload,
+  DeleteWorkspaceResponse,
   ListWorkspacesResponse,
+  UpdateWorkspacePayload,
+  UpdateWorkspaceResponse,
   Workspace,
 } from '../models/workspace.model';
 
@@ -48,6 +52,7 @@ export class WorkspaceService {
       )
       .pipe(
         map((response) => response.data.workspaces),
+
         tap((workspaces) => {
           this.workspacesSubject.next(workspaces);
 
@@ -89,6 +94,7 @@ export class WorkspaceService {
       )
       .pipe(
         map((response) => response.data.workspace),
+
         tap((workspace) => {
           const currentWorkspaces =
             this.workspacesSubject.value;
@@ -100,6 +106,102 @@ export class WorkspaceService {
 
           this.setActiveWorkspace(workspace);
         }),
+      );
+  }
+
+  updateWorkspace(
+    workspaceId: number,
+    payload: UpdateWorkspacePayload,
+  ): Observable<Workspace> {
+    const requestPayload: UpdateWorkspacePayload = {
+      name: payload.name.trim(),
+    };
+
+    return this.http
+      .put<UpdateWorkspaceResponse>(
+        `${this.workspacesUrl}/${workspaceId}`,
+        requestPayload,
+      )
+      .pipe(
+        map((response) => response.data.workspace),
+
+        tap((updatedWorkspace) => {
+          const updatedWorkspaces =
+            this.workspacesSubject.value.map(
+              (workspace) =>
+                workspace.id === updatedWorkspace.id
+                  ? updatedWorkspace
+                  : workspace,
+            );
+
+          this.workspacesSubject.next(
+            updatedWorkspaces,
+          );
+
+          if (
+            this.activeWorkspaceSubject.value?.id ===
+            updatedWorkspace.id
+          ) {
+            this.setActiveWorkspace(
+              updatedWorkspace,
+            );
+          }
+        }),
+      );
+  }
+
+  deleteWorkspace(
+    workspaceId: number,
+    confirmationName: string,
+  ): Observable<void> {
+    const payload: DeleteWorkspacePayload = {
+      confirmation_name:
+        confirmationName.trim(),
+    };
+
+    return this.http
+      .delete<DeleteWorkspaceResponse>(
+        `${this.workspacesUrl}/${workspaceId}`,
+        {
+          body: payload,
+        },
+      )
+      .pipe(
+        tap(() => {
+          const remainingWorkspaces =
+            this.workspacesSubject.value.filter(
+              (workspace) =>
+                workspace.id !== workspaceId,
+            );
+
+          this.workspacesSubject.next(
+            remainingWorkspaces,
+          );
+
+          const activeWorkspace =
+            this.activeWorkspaceSubject.value;
+
+          if (
+            activeWorkspace?.id !== workspaceId
+          ) {
+            return;
+          }
+
+          const nextWorkspace =
+            remainingWorkspaces[0] ?? null;
+
+          if (nextWorkspace) {
+            this.setActiveWorkspace(
+              nextWorkspace,
+            );
+
+            return;
+          }
+
+          this.clearActiveWorkspace();
+        }),
+
+        map(() => undefined),
       );
   }
 

@@ -1,0 +1,108 @@
+@use '../create-workspace-modal/create-workspace-modal.component.scss';
+
+:host {
+  --danger: #d64343;
+  --danger-dark: #b92f2f;
+  --danger-soft: #fff0f0;
+}
+
+.danger-icon {
+  color: var(--danger);
+  background: var(--danger-soft);
+}
+
+.danger-eyebrow {
+  color: var(--danger);
+}
+
+.delete-warning {
+  display: flex;
+  gap: 13px;
+  margin-top: 24px;
+  padding: 15px;
+  color: #8f2929;
+  border: 1px solid rgba(214, 67, 67, 0.18);
+  border-radius: 14px;
+  background: var(--danger-soft);
+}
+
+.delete-warning > ion-icon {
+  flex: 0 0 auto;
+  margin-top: 2px;
+  font-size: 20px;
+}
+
+.delete-warning div {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.delete-warning strong {
+  font-size: 11px;
+}
+
+.delete-warning p {
+  margin: 0;
+  font-size: 10px;
+  line-height: 1.7;
+}
+
+.delete-form {
+  margin-top: 22px;
+}
+
+.confirmation-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-bottom: 20px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface-soft);
+}
+
+.confirmation-copy span {
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.confirmation-copy strong {
+  overflow-wrap: anywhere;
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.danger-button {
+  --background: var(--danger);
+  --background-activated: #a72727;
+  --background-hover: var(--danger-dark);
+  --border-radius: 12px;
+  --box-shadow: 0 12px 24px rgba(214, 67, 67, 0.18);
+  --color: #ffffff;
+
+  min-height: 44px;
+  margin: 0;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: none;
+}
+
+.danger-button ion-icon {
+  margin-right: 7px;
+  font-size: 17px;
+}
+
+.danger-button ion-spinner {
+  width: 17px;
+  height: 17px;
+  margin-right: 8px;
+}
+
+@media (max-width: 560px) {
+  .danger-button {
+    width: 100%;
+  }
+}

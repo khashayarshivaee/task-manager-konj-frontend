@@ -1284,6 +1284,7 @@ export class TaskCommentsComponent
       URL.revokeObjectURL(
         image.previewUrl,
       );
+
     }
   }
 

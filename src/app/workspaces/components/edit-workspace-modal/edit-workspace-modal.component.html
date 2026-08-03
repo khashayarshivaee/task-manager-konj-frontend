@@ -1,0 +1,147 @@
+<ion-content
+  [fullscreen]="true"
+  class="workspace-modal-page"
+>
+  <main class="workspace-modal-shell">
+    <header class="modal-header">
+      <div class="modal-heading">
+        <span class="modal-icon">
+          <ion-icon name="create-outline"></ion-icon>
+        </span>
+
+        <div>
+          <span class="modal-eyebrow">
+            Workspace settings
+          </span>
+
+          <h1>Edit workspace</h1>
+        </div>
+      </div>
+
+      <button
+        type="button"
+        class="modal-close"
+        aria-label="Close"
+        [disabled]="isSubmitting"
+        (click)="close()"
+      >
+        <ion-icon name="close-outline"></ion-icon>
+      </button>
+    </header>
+
+    <p class="modal-description">
+      Update the workspace name. Its URL slug will
+      also be regenerated when the name changes.
+    </p>
+
+    <form
+      [formGroup]="workspaceForm"
+      (ngSubmit)="submit()"
+      novalidate
+      class="workspace-form"
+    >
+      <div class="form-group">
+        <label for="edit-workspace-name">
+          Workspace name
+        </label>
+
+        <ion-input
+          id="edit-workspace-name"
+          formControlName="name"
+          type="text"
+          autocomplete="organization"
+          fill="outline"
+          placeholder="Example: Konj Product Team"
+          [clearInput]="true"
+          [counter]="true"
+          [maxlength]="120"
+        ></ion-input>
+
+        @if (
+        workspaceForm.controls.name.touched &&
+        workspaceForm.controls.name.hasError('required')
+        ) {
+        <p class="field-error">
+          Workspace name is required.
+        </p>
+        }
+
+        @if (
+        workspaceForm.controls.name.touched &&
+        workspaceForm.controls.name.hasError('minlength')
+        ) {
+        <p class="field-error">
+          Workspace name must contain at least 2 characters.
+        </p>
+        }
+
+        @if (
+        workspaceForm.controls.name.touched &&
+        workspaceForm.controls.name.hasError('maxlength')
+        ) {
+        <p class="field-error">
+          Workspace name cannot exceed 120 characters.
+        </p>
+        }
+      </div>
+
+      <div class="workspace-preview">
+        <span class="preview-avatar">
+          {{
+          workspaceForm.controls.name.value
+            .charAt(0)
+            .toUpperCase() || 'W'
+          }}
+        </span>
+
+        <div>
+          <small>Updated preview</small>
+
+          <strong>
+            {{
+            workspaceForm.controls.name.value.trim()
+            || workspace.name
+            }}
+          </strong>
+        </div>
+      </div>
+
+      @if (errorMessage) {
+      <div
+        class="modal-error"
+        role="alert"
+        aria-live="polite"
+      >
+      {{ errorMessage }}
+      </div>
+      }
+
+      <footer class="modal-actions">
+        <button
+          type="button"
+          class="secondary-button"
+          [disabled]="isSubmitting"
+          (click)="close()"
+        >
+          Cancel
+        </button>
+
+        <ion-button
+          type="submit"
+          class="save-button"
+          [disabled]="
+            workspaceForm.invalid ||
+            isSubmitting
+          "
+        >
+          @if (isSubmitting) {
+          <ion-spinner name="crescent"></ion-spinner>
+          <span>Saving...</span>
+          } @else {
+          <span>Save changes</span>
+          }
+        </ion-button>
+      </footer>
+    </form>
+  </main>
+</ion-content>

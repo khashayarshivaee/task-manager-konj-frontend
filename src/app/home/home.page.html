@@ -185,23 +185,63 @@
         }
         </div>
 
-        <footer class="workspace-menu-footer">
+     <footer class="workspace-menu-footer">
+  @if (
+    activeWorkspace$ | async;
+    as workspace
+  ) {
+        @if (canManageWorkspace(workspace)) {
+        <div class="workspace-management-actions">
           <button
             type="button"
-            class="create-workspace-menu-button"
-            (click)="openCreateWorkspaceFromMenu()"
+            class="workspace-management-button"
+            (click)="showEditWorkspaceModal(workspace)"
           >
-            <span>
-              <ion-icon name="add-outline"></ion-icon>
-            </span>
+            <ion-icon name="create-outline"></ion-icon>
 
-            <div>
-              <strong>Create new workspace</strong>
-              <small>Set up another team space</small>
-            </div>
+            <span>
+              <strong>Edit workspace</strong>
+              <small>Change name and workspace slug</small>
+            </span>
           </button>
-        </footer>
-      </div>
+
+          @if (canDeleteWorkspace(workspace)) {
+        <button
+          type="button"
+          class="
+              workspace-management-button
+              workspace-management-button-danger
+            "
+          (click)="showDeleteWorkspaceModal(workspace)"
+        >
+          <ion-icon name="trash-outline"></ion-icon>
+
+          <span>
+              <strong>Delete workspace</strong>
+              <small>Permanently remove workspace data</small>
+            </span>
+        </button>
+        }
+        </div>
+        }
+        }
+
+        <button
+          type="button"
+          class="create-workspace-menu-button"
+          (click)="openCreateWorkspaceFromMenu()"
+        >
+          <span>
+            <ion-icon name="add-outline"></ion-icon>
+          </span>
+
+          <div>
+            <strong>Create new workspace</strong>
+            <small>Set up another team space</small>
+          </div>
+        </button>
+      </footer>
+            </div>
         }
       </div>
 
@@ -440,6 +480,63 @@
             type="button"
             aria-label="Dismiss"
             (click)="showWorkspaceNotice = false"
+          >
+            <ion-icon name="close-outline"></ion-icon>
+          </button>
+        </div>
+        }
+        @if (showWorkspaceUpdatedNotice) {
+        <div
+          class="setup-notice"
+          role="status"
+        >
+          <ion-icon
+            name="checkmark-circle-outline"
+          ></ion-icon>
+
+          <div>
+            <strong>
+              Workspace updated successfully
+            </strong>
+
+            <span>
+              The workspace name and slug have been updated.
+            </span>
+          </div>
+
+          <button
+            type="button"
+            aria-label="Dismiss"
+            (click)="showWorkspaceUpdatedNotice = false"
+          >
+            <ion-icon name="close-outline"></ion-icon>
+          </button>
+        </div>
+        }
+
+        @if (showWorkspaceDeletedNotice) {
+        <div
+          class="setup-notice"
+          role="status"
+        >
+          <ion-icon
+            name="checkmark-circle-outline"
+          ></ion-icon>
+
+          <div>
+            <strong>
+              Workspace deleted successfully
+            </strong>
+
+            <span>
+              The workspace and all of its related data were removed.
+            </span>
+          </div>
+
+          <button
+            type="button"
+            aria-label="Dismiss"
+            (click)="showWorkspaceDeletedNotice = false"
           >
             <ion-icon name="close-outline"></ion-icon>
           </button>

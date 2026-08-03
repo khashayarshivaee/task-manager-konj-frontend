@@ -1,0 +1,133 @@
+<ion-content
+  [fullscreen]="true"
+  class="workspace-modal-page"
+>
+  <main class="workspace-modal-shell">
+    <header class="modal-header">
+      <div class="modal-heading">
+        <span class="modal-icon danger-icon">
+          <ion-icon name="trash-outline"></ion-icon>
+        </span>
+
+        <div>
+          <span class="modal-eyebrow danger-eyebrow">
+            Danger zone
+          </span>
+
+          <h1>Delete workspace</h1>
+        </div>
+      </div>
+
+      <button
+        type="button"
+        class="modal-close"
+        aria-label="Close"
+        [disabled]="isSubmitting"
+        (click)="close()"
+      >
+        <ion-icon name="close-outline"></ion-icon>
+      </button>
+    </header>
+
+    <div class="delete-warning">
+      <ion-icon name="warning-outline"></ion-icon>
+
+      <div>
+        <strong>This action cannot be undone</strong>
+
+        <p>
+          All projects, tasks, comments, memberships,
+          and uploaded images inside this workspace
+          will be permanently deleted.
+        </p>
+      </div>
+    </div>
+
+    <form
+      [formGroup]="deleteForm"
+      (ngSubmit)="submit()"
+      novalidate
+      class="workspace-form delete-form"
+    >
+      <div class="confirmation-copy">
+        <span>
+          Type the workspace name to confirm:
+        </span>
+
+        <strong>{{ workspace.name }}</strong>
+      </div>
+
+      <div class="form-group">
+        <label for="workspace-confirmation-name">
+          Workspace name
+        </label>
+
+        <ion-input
+          id="workspace-confirmation-name"
+          formControlName="confirmation_name"
+          type="text"
+          autocomplete="off"
+          fill="outline"
+          placeholder="Enter the exact workspace name"
+        ></ion-input>
+
+        @if (
+        deleteForm.controls.confirmation_name.touched &&
+        deleteForm.controls.confirmation_name.hasError('required')
+        ) {
+        <p class="field-error">
+          Workspace name confirmation is required.
+        </p>
+        }
+
+        @if (
+        deleteForm.controls.confirmation_name.value &&
+        !confirmationMatches
+        ) {
+        <p class="field-error">
+          The entered name does not match the workspace name.
+        </p>
+        }
+      </div>
+
+      @if (errorMessage) {
+      <div
+        class="modal-error"
+        role="alert"
+        aria-live="polite"
+      >
+      {{ errorMessage }}
+      </div>
+      }
+
+      <footer class="modal-actions">
+        <button
+          type="button"
+          class="secondary-button"
+          [disabled]="isSubmitting"
+          (click)="close()"
+        >
+          Cancel
+        </button>
+
+        <ion-button
+          type="submit"
+          class="danger-button"
+          [disabled]="
+            deleteForm.invalid ||
+            !confirmationMatches ||
+            isSubmitting
+          "
+        >
+          @if (isSubmitting) {
+          <ion-spinner name="crescent"></ion-spinner>
+          <span>Deleting...</span>
+          } @else {
+          <ion-icon name="trash-outline"></ion-icon>
+          <span>Delete workspace</span>
+          }
+        </ion-button>
+      </footer>
+    </form>
+  </main>
+</ion-content>
