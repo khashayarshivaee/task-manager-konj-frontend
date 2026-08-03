@@ -1,0 +1,19 @@
+<div
+  class="user-avatar"
+  [style.width.px]="size"
+  [style.height.px]="size"
+  [style.font-size.px]="fontSize"
+>
+  @if (avatarUrl) {
+  <img
+    [src]="avatarUrl"
+    [alt]="name + ' profile picture'"
+    loading="lazy"
+    (error)="handleImageError()"
+  />
+  } @else {
+  <span>
+  {{ initials }}
+  </span>
+  }
+</div>

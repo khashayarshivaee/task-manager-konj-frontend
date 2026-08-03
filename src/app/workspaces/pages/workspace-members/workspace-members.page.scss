@@ -1,0 +1,468 @@
+:host {
+  --orange: #ff6b00;
+  --orange-dark: #e85f00;
+  --orange-soft: #fff1e7;
+  --text: #1c1c1a;
+  --muted: #777771;
+  --border: #e8e8e4;
+  --surface: #ffffff;
+  --surface-soft: #f7f7f5;
+  --danger: #d64343;
+
+  display: block;
+  min-height: 100%;
+  font-family:
+    Inter,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    sans-serif;
+}
+
+.members-page {
+  --background: #f8f8f6;
+}
+
+.members-shell {
+  width: min(1040px, calc(100% - 48px));
+  min-height: 100%;
+  margin: 0 auto;
+  padding: 24px 0 70px;
+  direction: ltr;
+}
+
+.members-topbar,
+.members-hero,
+.members-card-header,
+.member-row,
+.member-name,
+.state-actions {
+  display: flex;
+  align-items: center;
+}
+
+.members-topbar {
+  justify-content: space-between;
+}
+
+.back-button {
+  display: flex;
+  min-height: 42px;
+  align-items: center;
+  gap: 9px;
+  padding: 0 14px;
+  color: #5f5f59;
+  font-size: 11px;
+  font-weight: 750;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  cursor: pointer;
+}
+
+.back-button:hover {
+  color: var(--orange-dark);
+  border-color: rgba(255, 107, 0, 0.26);
+}
+
+.back-button ion-icon {
+  font-size: 17px;
+}
+
+.brand-mark {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 900;
+  border-radius: 13px;
+  background: var(--orange);
+  box-shadow:
+    0 12px 25px rgba(255, 107, 0, 0.22);
+}
+
+.members-hero {
+  gap: 18px;
+  margin-top: 35px;
+  padding: 30px;
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  background: var(--surface);
+  box-shadow:
+    0 20px 65px rgba(32, 28, 25, 0.05);
+}
+
+.hero-icon {
+  display: grid;
+  width: 58px;
+  height: 58px;
+  flex: 0 0 auto;
+  place-items: center;
+  color: var(--orange);
+  font-size: 27px;
+  border-radius: 18px;
+  background: var(--orange-soft);
+}
+
+.hero-copy {
+  min-width: 0;
+  flex: 1;
+}
+
+.eyebrow {
+  color: var(--orange-dark);
+  font-size: 9px;
+  font-weight: 850;
+  text-transform: uppercase;
+  letter-spacing: 0.11em;
+}
+
+.hero-copy h1 {
+  margin: 7px 0 0;
+  color: var(--text);
+  font-size: clamp(27px, 4vw, 39px);
+  font-weight: 850;
+  letter-spacing: -0.045em;
+}
+
+.hero-copy p {
+  margin: 9px 0 0;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.member-count {
+  display: flex;
+  min-width: 92px;
+  align-items: center;
+  flex-direction: column;
+  gap: 3px;
+  padding: 14px;
+  border-radius: 15px;
+  background: var(--surface-soft);
+}
+
+.member-count strong {
+  color: var(--text);
+  font-size: 25px;
+  font-weight: 850;
+}
+
+.member-count span {
+  color: var(--muted);
+  font-size: 9px;
+}
+
+.action-error {
+  margin-top: 14px;
+  padding: 12px 15px;
+  color: #a52e2e;
+  font-size: 10px;
+  border: 1px solid rgba(214, 67, 67, 0.16);
+  border-radius: 13px;
+  background: rgba(214, 67, 67, 0.06);
+}
+
+.members-card {
+  margin-top: 16px;
+  padding: 26px;
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  background: var(--surface);
+}
+
+.members-card-header {
+  justify-content: space-between;
+  gap: 20px;
+  padding-bottom: 21px;
+  border-bottom: 1px solid var(--border);
+}
+
+.members-card-header h2 {
+  margin: 7px 0 0;
+  color: var(--text);
+  font-size: 20px;
+  font-weight: 820;
+}
+
+.members-card-header p {
+  margin: 7px 0 0;
+  color: var(--muted);
+  font-size: 9px;
+}
+
+.view-only-badge {
+  padding: 8px 11px;
+  color: #696963;
+  font-size: 9px;
+  font-weight: 800;
+  border-radius: 9px;
+  background: var(--surface-soft);
+}
+
+.member-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 17px;
+}
+
+.member-row {
+  display: grid;
+  grid-template-columns:
+    45px minmax(0, 1fr) 130px 42px;
+  min-height: 72px;
+  gap: 13px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 15px;
+  background: #ffffff;
+}
+
+.member-avatar {
+  align-self: center;
+}
+
+.member-identity {
+  display: flex;
+  min-width: 0;
+  justify-content: center;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.member-name {
+  min-width: 0;
+  gap: 7px;
+}
+
+.member-name strong {
+  overflow: hidden;
+  color: var(--text);
+  font-size: 11px;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.member-name span {
+  padding: 3px 6px;
+  color: var(--orange-dark);
+  font-size: 7px;
+  font-weight: 800;
+  border-radius: 6px;
+  background: var(--orange-soft);
+}
+
+.member-identity small {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.member-role {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.member-role select {
+  width: 112px;
+  min-height: 38px;
+  padding: 0 11px;
+  color: var(--text);
+  font-size: 9px;
+  font-weight: 750;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  outline: none;
+  background: var(--surface-soft);
+  cursor: pointer;
+}
+
+.member-role select:focus {
+  border-color: rgba(255, 107, 0, 0.55);
+}
+
+.owner-role,
+.role-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  font-size: 9px;
+  font-weight: 800;
+  border-radius: 9px;
+}
+
+.owner-role {
+  color: var(--orange-dark);
+  background: var(--orange-soft);
+}
+
+.owner-role ion-icon {
+  font-size: 15px;
+}
+
+.role-badge {
+  color: #666660;
+  background: var(--surface-soft);
+}
+
+.member-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.remove-member-button {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  color: var(--danger);
+  font-size: 17px;
+  border-radius: 10px;
+  background: #fff2f2;
+  cursor: pointer;
+}
+
+.remove-member-button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.remove-member-button ion-spinner {
+  width: 16px;
+  height: 16px;
+}
+
+.empty-members,
+.page-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  text-align: center;
+}
+
+.empty-members {
+  min-height: 260px;
+  gap: 9px;
+}
+
+.empty-members > ion-icon {
+  color: var(--orange);
+  font-size: 30px;
+}
+
+.empty-members strong,
+.page-state strong {
+  color: var(--text);
+  font-size: 13px;
+}
+
+.empty-members span,
+.page-state span,
+.page-state p {
+  max-width: 420px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.7;
+}
+
+.page-state {
+  min-height: 520px;
+  gap: 10px;
+}
+
+.page-state ion-spinner {
+  width: 28px;
+  height: 28px;
+  color: var(--orange);
+}
+
+.state-icon {
+  display: grid;
+  width: 58px;
+  height: 58px;
+  place-items: center;
+  color: var(--orange);
+  font-size: 25px;
+  border-radius: 18px;
+  background: var(--orange-soft);
+}
+
+.state-actions {
+  gap: 9px;
+  margin-top: 10px;
+}
+
+.state-actions button {
+  display: flex;
+  min-height: 39px;
+  align-items: center;
+  gap: 7px;
+  padding: 0 14px;
+  font-size: 10px;
+  font-weight: 800;
+  border-radius: 11px;
+  cursor: pointer;
+}
+
+.secondary-action {
+  color: var(--text);
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.primary-action {
+  color: #ffffff;
+  background: var(--orange);
+}
+
+@media (max-width: 720px) {
+  .members-shell {
+    width: min(100% - 28px, 1040px);
+  }
+
+  .members-hero {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    padding: 23px;
+  }
+
+  .member-count {
+    width: 100%;
+    align-items: flex-start;
+  }
+
+  .members-card {
+    padding: 20px;
+  }
+
+  .members-card-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .member-row {
+    grid-template-columns:
+      43px minmax(0, 1fr) 38px;
+  }
+
+  .member-role {
+    grid-column: 2;
+    justify-content: flex-start;
+  }
+
+  .member-actions {
+    grid-column: 3;
+    grid-row: 1 / span 2;
+  }
+}

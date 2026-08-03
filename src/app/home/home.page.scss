@@ -1455,3 +1455,77 @@ button {
   color: #d64343;
   background: #fff0f0;
 }
+.sidebar-account {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+}
+
+.account-profile-button {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  align-items: center;
+  gap: 10px;
+  padding: 4px;
+  color: inherit;
+  text-align: left;
+  border-radius: 12px;
+  background: transparent;
+  cursor: pointer;
+  transition:
+    background 150ms ease;
+}
+
+.account-profile-button:hover {
+  background: #f1f1ee;
+}
+
+.account-profile-button .account-copy {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.account-profile-button .account-copy strong {
+  overflow: hidden;
+  color: var(--text);
+  font-size: 10px;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account-profile-avatar,
+.topbar-profile-avatar {
+  flex: 0 0 auto;
+}
+
+.topbar-user {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 9px;
+  padding: 5px 8px;
+  color: inherit;
+  text-align: left;
+  border-radius: 12px;
+  background: transparent;
+  cursor: pointer;
+  transition:
+    background 150ms ease;
+}
+
+.topbar-user:hover {
+  background: #eeeeeb;
+}
+
+.account-profile-button:focus-visible,
+.topbar-user:focus-visible {
+  outline: 2px solid
+  rgba(255, 107, 0, 0.42);
+  outline-offset: 2px;
+}

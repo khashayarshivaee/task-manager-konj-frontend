@@ -2,6 +2,7 @@ export interface AuthUser {
   id: number;
   name: string;
   email: string;
+  avatar_path: string | null;
   role: string;
   is_active: boolean;
   email_verified_at: string | null;
@@ -9,6 +10,19 @@ export interface AuthUser {
   last_login_ip: string | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface UpdateProfilePayload {
+  name: string;
+  email: string;
+  avatar?: File | null;
+}
+
+export interface UpdateProfileResponse {
+  message: string;
+  data: {
+    user: AuthUser;
+  };
 }
 
 export interface LoginCredentials {

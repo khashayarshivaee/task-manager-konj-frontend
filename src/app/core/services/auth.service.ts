@@ -10,6 +10,8 @@ import {
   CurrentUserResponse,
   LoginCredentials,
   LoginRequestPayload,
+  UpdateProfilePayload,
+  UpdateProfileResponse,
   LogoutResponse,
 } from '../models/auth.model';
 import { TokenStorageService } from './token-storage.service';
@@ -19,6 +21,8 @@ import { TokenStorageService } from './token-storage.service';
 })
 export class AuthService {
   private readonly authUrl = `${environment.apiUrl}/auth`;
+  private readonly profileUrl =
+    `${environment.apiUrl}/profile`;
 
   private readonly currentUserSubject =
     new BehaviorSubject<AuthUser | null>(null);
@@ -57,7 +61,47 @@ export class AuthService {
         map((response) => response.data.user),
       );
   }
+  updateProfile(
+    payload: UpdateProfilePayload,
+  ): Observable<AuthUser> {
+    const formData = new FormData();
 
+    formData.append(
+      'name',
+      payload.name.trim(),
+    );
+
+    formData.append(
+      'email',
+      payload.email.trim().toLowerCase(),
+    );
+
+    if (payload.avatar) {
+      formData.append(
+        'avatar',
+        payload.avatar,
+        payload.avatar.name,
+      );
+    }
+
+    return this.http
+      .post<UpdateProfileResponse>(
+        this.profileUrl,
+        formData,
+      )
+      .pipe(
+        tap((response) => {
+          this.currentUserSubject.next(
+            response.data.user,
+          );
+        }),
+
+        map(
+          (response) =>
+            response.data.user,
+        ),
+      );
+  }
   logout(): Observable<LogoutResponse> {
     return this.http
       .post<LogoutResponse>(`${this.authUrl}/logout`, {})

@@ -20,11 +20,43 @@ export const routes: Routes = [
       import('./home/home.page')
         .then((module) => module.HomePage),
   },
+
+  {
+    path: 'profile',
+    title: 'Profile Settings | Konj Task Manager',
+    canActivate: [
+      authGuard,
+    ],
+    loadComponent: () =>
+      import(
+        './profile/pages/profile-settings/profile-settings.page'
+        ).then(
+        (module) =>
+          module.ProfileSettingsPage,
+      ),
+  },
+
   {
     path: '',
     redirectTo: 'home',
     pathMatch: 'full',
   },
+
+  {
+    path: 'workspaces/:workspaceId/members',
+    title: 'Workspace Members | Konj Task Manager',
+    canActivate: [
+      authGuard,
+    ],
+    loadComponent: () =>
+      import(
+        './workspaces/pages/workspace-members/workspace-members.page'
+        ).then(
+        (module) =>
+          module.WorkspaceMembersPage,
+      ),
+  },
+
   {
     path: 'workspaces/:workspaceId/projects/:projectId',
     title: 'Project | Konj Task Manager',

@@ -300,7 +300,8 @@
           <button
             type="button"
             class="navigation-item"
-            disabled
+            [disabled]="!(activeWorkspace$ | async)"
+            (click)="openWorkspaceMembers()"
           >
             <ion-icon name="people-outline"></ion-icon>
             <span>Members</span>
@@ -321,30 +322,46 @@
 
       @if (currentUser$ | async; as user) {
       <div class="sidebar-account">
-        <div class="account-avatar">
-      {{ getInitials(user.name) }}
-      </div>
+        <button
+          type="button"
+          class="account-profile-button"
+          aria-label="Open profile settings"
+          (click)="openProfile()"
+        >
+          <app-user-avatar
+            class="account-profile-avatar"
+            [name]="user.name"
+            [avatarPath]="user.avatar_path"
+            [size]="38"
+            [fontSize]="10"
+          ></app-user-avatar>
 
-      <div class="account-copy">
-        <strong>{{ user.name }}</strong>
-            <span>{{ user.email }}</span>
-          </div>
+          <span class="account-copy">
+            <strong>{{ user.name }}</strong>
+        <span>{{ user.email }}</span>
+      </span>
+    </button>
 
-          <button
-            type="button"
-            class="logout-button"
-            aria-label="Sign out"
-            [disabled]="isLoggingOut"
-            (click)="logout()"
-          >
-            @if (isLoggingOut) {
-      <ion-spinner name="crescent"></ion-spinner>
+    <button
+      type="button"
+      class="logout-button"
+      aria-label="Sign out"
+      [disabled]="isLoggingOut"
+      (click)="logout()"
+    >
+      @if (isLoggingOut) {
+      <ion-spinner
+        name="crescent"
+      ></ion-spinner>
       } @else {
-      <ion-icon name="log-out-outline"></ion-icon>
+      <ion-icon
+        name="log-out-outline"
+      ></ion-icon>
       }
       </button>
     </div>
       }
+
     </aside>
 
     <main class="main-area">
@@ -385,17 +402,26 @@
           </button>
 
           @if (currentUser$ | async; as user) {
-          <div class="topbar-user">
-            <span class="topbar-avatar">
-          {{ getInitials(user.name) }}
-          </span>
+      <button
+        type="button"
+        class="topbar-user"
+        aria-label="Open profile settings"
+        (click)="openProfile()"
+      >
+        <app-user-avatar
+          class="topbar-profile-avatar"
+          [name]="user.name"
+          [avatarPath]="user.avatar_path"
+          [size]="40"
+          [fontSize]="9"
+        ></app-user-avatar>
 
-          <span class="topbar-user-copy">
-            <strong>{{ user.name }}</strong>
-                <small>{{ user.role }}</small>
-              </span>
-            </div>
-          }
+        <span class="topbar-user-copy">
+      <strong>{{ user.name }}</strong>
+      <small>{{ user.role }}</small>
+    </span>
+      </button>
+      }
         </div>
       </header>
 

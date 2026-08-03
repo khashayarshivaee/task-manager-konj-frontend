@@ -21,6 +21,10 @@ import {
 import {
   EditWorkspaceModalComponent,
 } from '../workspaces/components/edit-workspace-modal/edit-workspace-modal.component';
+
+import {
+  UserAvatarComponent,
+} from '../shared/components/user-avatar/user-avatar.component';
 import {
   IonContent,
   IonIcon,
@@ -86,6 +90,7 @@ import {
     IonContent,
     IonIcon,
     IonSpinner,
+    UserAvatarComponent,
   ],
 })
 export class HomePage implements OnInit {
@@ -381,6 +386,14 @@ export class HomePage implements OnInit {
       this.showProjectNotice = true;
     }
   }
+  openProfile(): void {
+    this.closeWorkspaceMenu();
+    this.closeSidebar();
+
+    void this.router.navigateByUrl(
+      '/profile',
+    );
+  }
 
   logout(): void {
     if (this.isLoggingOut) {
@@ -407,17 +420,17 @@ export class HomePage implements OnInit {
       });
   }
 
-  getInitials(name: string): string {
-    const parts = name
-      .trim()
-      .split(/\s+/)
-      .filter(Boolean)
-      .slice(0, 2);
-
-    return parts
-      .map((part) => part.charAt(0).toUpperCase())
-      .join('');
-  }
+  // getInitials(name: string): string {
+  //   const parts = name
+  //     .trim()
+  //     .split(/\s+/)
+  //     .filter(Boolean)
+  //     .slice(0, 2);
+  //
+  //   return parts
+  //     .map((part) => part.charAt(0).toUpperCase())
+  //     .join('');
+  // }
 
   getFirstName(name: string): string {
     return name.trim().split(/\s+/)[0] || 'there';
@@ -536,6 +549,24 @@ export class HomePage implements OnInit {
       currentUser !== null &&
       workspace.owner_id === currentUser.id
     );
+  }
+
+  openWorkspaceMembers(): void {
+    const workspace =
+      this.workspaceService.getActiveWorkspace();
+
+    if (!workspace) {
+      return;
+    }
+
+    this.closeWorkspaceMenu();
+    this.closeSidebar();
+
+    void this.router.navigate([
+      '/workspaces',
+      workspace.id,
+      'members',
+    ]);
   }
 
   openProject(
