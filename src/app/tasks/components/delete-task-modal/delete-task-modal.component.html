@@ -1,0 +1,129 @@
+<ion-content
+  [fullscreen]="true"
+  class="delete-task-content"
+>
+  <main class="delete-task-shell">
+    <header class="delete-task-header">
+      <span class="warning-icon">
+        <ion-icon
+          name="alert-circle-outline"
+        ></ion-icon>
+      </span>
+
+      <button
+        type="button"
+        class="close-button"
+        aria-label="Close"
+        [disabled]="isDeleting"
+        (click)="close()"
+      >
+        <ion-icon
+          name="close-outline"
+        ></ion-icon>
+      </button>
+    </header>
+
+    <section class="delete-task-heading">
+      <span class="delete-eyebrow">
+        Delete task
+      </span>
+
+      <h2>
+        Permanently delete this task?
+      </h2>
+
+      <p>
+        This action cannot be undone. The task,
+        its attachments and future comments will
+        be removed permanently.
+      </p>
+    </section>
+
+    <section class="task-preview">
+      <small>Task to delete</small>
+
+      <strong>
+        {{ task.title }}
+      </strong>
+
+      <span>
+        {{
+        task.description ||
+        'No task description'
+        }}
+      </span>
+    </section>
+
+    <label class="confirmation-field">
+      <span>
+        Enter the exact task title to confirm:
+      </span>
+
+      <strong>
+        {{ task.title }}
+      </strong>
+
+      <input
+        type="text"
+        [(ngModel)]="confirmationValue"
+        [disabled]="isDeleting"
+        [placeholder]="task.title"
+        autocomplete="off"
+      />
+    </label>
+
+    @if (
+    confirmationValue.length > 0 &&
+    !canDelete
+    ) {
+    <div class="confirmation-hint">
+      The entered title does not match the
+      task title.
+    </div>
+    }
+
+    @if (errorMessage) {
+    <div
+      class="delete-error"
+      role="alert"
+    >
+    {{ errorMessage }}
+    </div>
+    }
+
+    <footer class="delete-task-footer">
+      <button
+        type="button"
+        class="cancel-button"
+        [disabled]="isDeleting"
+        (click)="close()"
+      >
+        Keep task
+      </button>
+
+      <button
+        type="button"
+        class="confirm-delete-button"
+        [disabled]="
+          !canDelete ||
+          isDeleting
+        "
+        (click)="deleteTask()"
+      >
+        @if (isDeleting) {
+        <ion-spinner
+          name="crescent"
+        ></ion-spinner>
+
+        <span>Deleting task...</span>
+        } @else {
+        <ion-icon
+          name="trash-outline"
+        ></ion-icon>
+
+        <span>Delete permanently</span>
+        }
+      </button>
+    </footer>
+  </main>
+</ion-content>

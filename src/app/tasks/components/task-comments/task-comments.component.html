@@ -1,0 +1,841 @@
+<section class="comments-shell">
+  <header class="comments-heading">
+    <div>
+      <span class="comments-eyebrow">
+        Task discussion
+      </span>
+
+      <h3>Comments</h3>
+
+      <p>
+        {{ commentCount }}
+        {{
+        commentCount === 1
+          ? 'comment'
+          : 'comments'
+        }}
+      </p>
+    </div>
+
+    <button
+      type="button"
+      class="refresh-comments-button"
+      [disabled]="isLoadingComments"
+      (click)="loadComments()"
+    >
+      <ion-icon
+        name="refresh-outline"
+      ></ion-icon>
+
+      <span>Refresh</span>
+    </button>
+  </header>
+
+  <form
+    class="comment-composer"
+    (ngSubmit)="createComment()"
+  >
+    <textarea
+      name="commentBody"
+      [(ngModel)]="commentBody"
+      rows="3"
+      maxlength="10000"
+      placeholder="Write a comment..."
+      [disabled]="isSubmittingComment"
+    ></textarea>
+
+    @if (
+    selectedCommentImages.length > 0
+    ) {
+    <div class="selected-image-grid">
+      @for (
+        image of selectedCommentImages;
+        track image.previewUrl;
+        let imageIndex = $index
+      ) {
+    <article class="selected-image-card">
+      <img
+        [src]="image.previewUrl"
+        [alt]="image.file.name"
+      />
+
+      <button
+        type="button"
+        aria-label="Remove image"
+        [disabled]="isSubmittingComment"
+        (click)="
+                removeCommentImage(
+                  imageIndex
+                )
+              "
+      >
+        <ion-icon
+          name="close-outline"
+        ></ion-icon>
+      </button>
+    </article>
+    }
+    </div>
+    }
+
+    <footer class="composer-footer">
+      <div>
+        <input
+          #commentImageInput
+          type="file"
+          class="hidden-file-input"
+          accept="image/jpeg,image/png,image/webp"
+          multiple
+          (change)="
+            onCommentImagesSelected($event)
+          "
+        />
+
+        <button
+          type="button"
+          class="attach-image-button"
+          [disabled]="
+            isSubmittingComment ||
+            selectedCommentImages.length >=
+              maximumImages
+          "
+          (click)="
+            commentImageInput.click()
+          "
+        >
+          <ion-icon
+            name="images-outline"
+          ></ion-icon>
+
+          <span>
+            Attach images
+          </span>
+        </button>
+
+        <small>
+          {{ selectedCommentImages.length }}/5
+        </small>
+      </div>
+
+      <button
+        type="submit"
+        class="send-comment-button"
+        [disabled]="isSubmittingComment"
+      >
+        @if (isSubmittingComment) {
+        <ion-spinner
+          name="crescent"
+        ></ion-spinner>
+
+        <span>Sending...</span>
+        } @else {
+        <ion-icon
+          name="send-outline"
+        ></ion-icon>
+
+        <span>Comment</span>
+        }
+      </button>
+    </footer>
+  </form>
+
+  @if (errorMessage) {
+  <div
+    class="comment-message error"
+    role="alert"
+  >
+  {{ errorMessage }}
+  </div>
+  }
+
+  @if (successMessage) {
+  <div
+    class="comment-message success"
+    role="status"
+  >
+  {{ successMessage }}
+  </div>
+  }
+
+  @if (isLoadingComments) {
+  <div class="comments-state">
+    <ion-spinner
+      name="crescent"
+    ></ion-spinner>
+
+    <strong>Loading comments...</strong>
+  </div>
+  } @else if (comments.length === 0) {
+  <div class="comments-state">
+    <ion-icon
+      name="image-outline"
+    ></ion-icon>
+
+    <strong>No comments yet</strong>
+
+    <span>
+      Start the discussion for this task.
+    </span>
+  </div>
+  } @else {
+  <div class="comments-thread">
+    @for (
+      view of comments;
+      track view.comment.id
+    ) {
+  <article
+    class="comment-card"
+    [class.is-deleted]="
+            view.comment.is_deleted
+          "
+  >
+    <header class="comment-header">
+            <span class="comment-avatar">
+              {{
+              getInitials(
+                view.comment.author?.name
+              )
+              }}
+            </span>
+
+      <div class="comment-author">
+        <strong>
+          {{
+          view.comment.author?.name ||
+          'Deleted user'
+          }}
+        </strong>
+
+        <span>
+                {{
+          formatDate(
+            view.comment.created_at
+          )
+          }}
+
+          @if (
+                  view.comment.is_edited &&
+                  !view.comment.is_deleted
+                ) {
+          · Edited
+                }
+              </span>
+      </div>
+
+      @if (
+      !view.comment.is_deleted
+      ) {
+      <div class="comment-actions">
+        <button
+          type="button"
+          aria-label="Edit comment"
+          (click)="
+            startEdit(view.comment)
+          "
+        >
+          <ion-icon
+            name="create-outline"
+          ></ion-icon>
+        </button>
+
+        <button
+          type="button"
+          class="danger"
+          aria-label="Delete comment"
+          [disabled]="
+            deletingCommentId ===
+            view.comment.id
+          "
+          (click)="
+            requestDeleteComment(view)
+          "
+        >
+          @if (
+            deletingCommentId ===
+            view.comment.id
+          ) {
+      <ion-spinner
+        name="crescent"
+      ></ion-spinner>
+      } @else {
+      <ion-icon
+        name="trash-outline"
+      ></ion-icon>
+      }
+      </button>
+    </div>
+      }
+    </header>
+
+    @if (view.comment.is_deleted) {
+    <div class="deleted-comment">
+      Comment deleted
+    </div>
+    } @else if (
+    editingCommentId ===
+    view.comment.id
+    ) {
+    <div class="edit-comment-form">
+      <textarea
+        name="editBody"
+        [(ngModel)]="editBody"
+        rows="3"
+        maxlength="10000"
+      ></textarea>
+
+      <div>
+        <button
+          type="button"
+          class="secondary-button"
+          [disabled]="isUpdatingComment"
+          (click)="cancelEdit()"
+        >
+          Cancel
+        </button>
+
+        <button
+          type="button"
+          class="primary-small-button"
+          [disabled]="isUpdatingComment"
+          (click)="saveEdit(view)"
+        >
+          @if (isUpdatingComment) {
+    <ion-spinner
+      name="crescent"
+    ></ion-spinner>
+    } @else {
+    <ion-icon
+      name="checkmark-outline"
+    ></ion-icon>
+    }
+
+    <span>Save</span>
+  </button>
+</div>
+</div>
+    } @else if (view.comment.body) {
+    <p class="comment-body">
+    {{ view.comment.body }}
+    </p>
+    }
+
+    @if (
+    view.attachments.length > 0
+    ) {
+    <div class="comment-attachment-grid">
+      @for (
+        attachmentView of
+          view.attachments;
+        track
+          attachmentView.attachment.id
+      ) {
+    <article
+      class="comment-attachment"
+    >
+      <button
+        type="button"
+        class="comment-attachment-preview"
+        [disabled]="
+                      !attachmentView.previewUrl
+                    "
+        (click)="
+                      openAttachment(
+                        attachmentView.previewUrl
+                      )
+                    "
+      >
+        @if (
+        attachmentView.isLoading
+        ) {
+        <ion-spinner
+          name="crescent"
+        ></ion-spinner>
+        } @else if (
+        attachmentView.previewUrl
+        ) {
+        <img
+          [src]="
+            attachmentView.previewUrl
+          "
+          [alt]="
+            attachmentView
+              .attachment
+              .original_name
+          "
+        />
+
+        <ion-icon
+          name="open-outline"
+        ></ion-icon>
+        } @else {
+        <span>
+          Preview unavailable
+        </span>
+        }
+      </button>
+
+      <footer>
+                    <span>
+                      {{
+                      formatFileSize(
+                        attachmentView
+                          .attachment.size
+                      )
+                      }}
+                    </span>
+
+        <button
+          type="button"
+          aria-label="Delete image"
+          [disabled]="
+                        deletingAttachmentId ===
+                        attachmentView
+                          .attachment.id
+                      "
+          (click)="
+                        requestDeleteAttachment(
+                          view,
+                          attachmentView
+                        )
+                      "
+        >
+          @if (
+          deletingAttachmentId ===
+          attachmentView
+          .attachment.id
+          ) {
+          <ion-spinner
+            name="crescent"
+          ></ion-spinner>
+          } @else {
+          <ion-icon
+            name="trash-outline"
+          ></ion-icon>
+          }
+        </button>
+      </footer>
+    </article>
+    }
+    </div>
+    }
+
+    @if (
+    !view.comment.is_deleted
+    ) {
+    <button
+      type="button"
+      class="reply-button"
+      (click)="
+        startReply(view.comment)
+      "
+    >
+      <ion-icon
+        name="return-down-forward-outline"
+      ></ion-icon>
+
+      <span>Reply</span>
+    </button>
+    }
+
+    @if (
+    replyToCommentId ===
+    view.comment.id
+    ) {
+    <ng-container
+      *ngTemplateOutlet="
+        replyComposer
+      "
+    ></ng-container>
+    }
+
+    @if (view.replies.length > 0) {
+    <div class="comment-replies">
+      @for (
+        replyView of view.replies;
+        track replyView.comment.id
+      ) {
+    <article
+      class="comment-card reply-card"
+      [class.is-deleted]="
+                    replyView.comment
+                      .is_deleted
+                  "
+    >
+      <header class="comment-header">
+                    <span class="comment-avatar">
+                      {{
+                      getInitials(
+                        replyView.comment
+                          .author?.name
+                      )
+                      }}
+                    </span>
+
+        <div class="comment-author">
+          <strong>
+            {{
+            replyView.comment
+              .author?.name ||
+            'Deleted user'
+            }}
+          </strong>
+
+          <span>
+                        {{
+            formatDate(
+              replyView.comment
+                .created_at
+            )
+            }}
+
+            @if (
+                          replyView.comment
+                            .is_edited &&
+                          !replyView.comment
+                            .is_deleted
+                        ) {
+            · Edited
+                        }
+                      </span>
+        </div>
+
+        @if (
+        !replyView.comment
+        .is_deleted
+        ) {
+        <div class="comment-actions">
+          <button
+            type="button"
+            aria-label="Edit reply"
+            (click)="
+              startEdit(
+                replyView.comment
+              )
+            "
+          >
+            <ion-icon
+              name="create-outline"
+            ></ion-icon>
+          </button>
+
+          <button
+            type="button"
+            class="danger"
+            aria-label="Delete reply"
+            [disabled]="
+              deletingCommentId ===
+              replyView.comment.id
+            "
+            (click)="
+              requestDeleteComment(
+                replyView
+              )
+            "
+          >
+            @if (
+              deletingCommentId ===
+              replyView.comment.id
+            ) {
+        <ion-spinner
+          name="crescent"
+        ></ion-spinner>
+        } @else {
+        <ion-icon
+          name="trash-outline"
+        ></ion-icon>
+        }
+        </button>
+      </div>
+        }
+      </header>
+
+      @if (
+      replyView.comment.is_deleted
+      ) {
+      <div class="deleted-comment">
+        Comment deleted
+      </div>
+      } @else if (
+      editingCommentId ===
+      replyView.comment.id
+      ) {
+      <div class="edit-comment-form">
+        <textarea
+          name="replyEditBody"
+          [(ngModel)]="editBody"
+          rows="3"
+        ></textarea>
+
+        <div>
+          <button
+            type="button"
+            class="secondary-button"
+            (click)="cancelEdit()"
+          >
+            Cancel
+          </button>
+
+          <button
+            type="button"
+            class="primary-small-button"
+            [disabled]="
+              isUpdatingComment
+            "
+            (click)="
+              saveEdit(replyView)
+            "
+          >
+            <span>Save</span>
+          </button>
+        </div>
+      </div>
+      } @else if (
+      replyView.comment.body
+      ) {
+      <p class="comment-body">
+      {{
+      replyView.comment.body
+      }}
+      </p>
+      }
+
+      @if (
+      replyView.attachments
+      .length > 0
+      ) {
+      <div
+        class="comment-attachment-grid"
+      >
+        @for (
+          attachmentView of
+            replyView.attachments;
+          track
+            attachmentView
+              .attachment.id
+        ) {
+      <article
+        class="comment-attachment"
+      >
+        <button
+          type="button"
+          class="comment-attachment-preview"
+          [disabled]="
+                              !attachmentView
+                                .previewUrl
+                            "
+          (click)="
+                              openAttachment(
+                                attachmentView
+                                  .previewUrl
+                              )
+                            "
+        >
+          @if (
+          attachmentView
+          .isLoading
+          ) {
+          <ion-spinner
+            name="crescent"
+          ></ion-spinner>
+          } @else if (
+          attachmentView
+          .previewUrl
+          ) {
+          <img
+            [src]="
+              attachmentView
+                .previewUrl
+            "
+            [alt]="
+              attachmentView
+                .attachment
+                .original_name
+            "
+          />
+          } @else {
+          <span>
+            Preview unavailable
+          </span>
+          }
+        </button>
+
+        <footer>
+                            <span>
+                              {{
+                              formatFileSize(
+                                attachmentView
+                                  .attachment
+                                  .size
+                              )
+                              }}
+                            </span>
+
+          <button
+            type="button"
+            (click)="
+                                requestDeleteAttachment(
+                                  replyView,
+                                  attachmentView
+                                )
+                              "
+          >
+            <ion-icon
+              name="trash-outline"
+            ></ion-icon>
+          </button>
+        </footer>
+      </article>
+      }
+      </div>
+      }
+
+      @if (
+      !replyView.comment
+      .is_deleted
+      ) {
+      <button
+        type="button"
+        class="reply-button"
+        (click)="
+          startReply(
+            replyView.comment
+          )
+        "
+      >
+        <ion-icon
+          name="return-down-forward-outline"
+        ></ion-icon>
+
+        <span>Reply</span>
+      </button>
+      }
+
+      @if (
+      replyToCommentId ===
+      replyView.comment.id
+      ) {
+      <ng-container
+        *ngTemplateOutlet="
+          replyComposer
+        "
+      ></ng-container>
+      }
+    </article>
+    }
+    </div>
+    }
+  </article>
+  }
+  </div>
+  }
+</section>
+
+<ng-template #replyComposer>
+  <form
+    class="reply-composer"
+    (ngSubmit)="submitReply()"
+  >
+    <header>
+      <span>
+        Replying to
+        <strong>
+          {{ replyToAuthorName }}
+        </strong>
+      </span>
+
+      <button
+        type="button"
+        (click)="cancelReply()"
+      >
+        <ion-icon
+          name="close-outline"
+        ></ion-icon>
+      </button>
+    </header>
+
+    <textarea
+      name="replyBody"
+      [(ngModel)]="replyBody"
+      rows="3"
+      maxlength="10000"
+      placeholder="Write a reply..."
+    ></textarea>
+
+    @if (
+    selectedReplyImages.length > 0
+    ) {
+    <div class="selected-image-grid">
+      @for (
+        image of selectedReplyImages;
+        track image.previewUrl;
+        let imageIndex = $index
+      ) {
+    <article class="selected-image-card">
+      <img
+        [src]="image.previewUrl"
+        [alt]="image.file.name"
+      />
+
+      <button
+        type="button"
+        (click)="
+                removeReplyImage(imageIndex)
+              "
+      >
+        <ion-icon
+          name="close-outline"
+        ></ion-icon>
+      </button>
+    </article>
+    }
+    </div>
+    }
+
+    <footer class="composer-footer">
+      <div>
+        <input
+          #replyImageInput
+          type="file"
+          class="hidden-file-input"
+          accept="image/jpeg,image/png,image/webp"
+          multiple
+          (change)="
+            onReplyImagesSelected($event)
+          "
+        />
+
+        <button
+          type="button"
+          class="attach-image-button"
+          (click)="
+            replyImageInput.click()
+          "
+        >
+          <ion-icon
+            name="images-outline"
+          ></ion-icon>
+
+          <span>Attach images</span>
+        </button>
+      </div>
+
+      <button
+        type="submit"
+        class="send-comment-button"
+        [disabled]="isSubmittingReply"
+      >
+        @if (isSubmittingReply) {
+        <ion-spinner
+          name="crescent"
+        ></ion-spinner>
+        } @else {
+        <ion-icon
+          name="send-outline"
+        ></ion-icon>
+        }
+
+        <span>Reply</span>
+      </button>
+    </footer>
+  </form>
+</ng-template>

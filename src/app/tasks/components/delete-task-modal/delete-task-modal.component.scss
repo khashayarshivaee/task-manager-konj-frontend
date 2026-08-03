@@ -1,0 +1,247 @@
+:host {
+  --text: #1c1c1a;
+  --muted: #777771;
+  --border: #e8e8e4;
+  --surface: #ffffff;
+  --surface-soft: #f7f7f5;
+  --danger: #bd3232;
+  --danger-dark: #a92626;
+  --danger-soft: #fff2f2;
+
+  display: block;
+  height: 100%;
+  font-family:
+    Inter,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    sans-serif;
+}
+
+.delete-task-content {
+  --background: var(--surface);
+}
+
+.delete-task-shell {
+  width: min(100%, 570px);
+  margin: 0 auto;
+  padding: 28px;
+  direction: ltr;
+}
+
+.delete-task-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.warning-icon {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  color: var(--danger);
+  font-size: 24px;
+  border-radius: 15px;
+  background: var(--danger-soft);
+}
+
+.close-button {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  color: var(--muted);
+  font-size: 20px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  cursor: pointer;
+}
+
+.delete-task-heading {
+  margin-top: 23px;
+}
+
+.delete-eyebrow {
+  color: var(--danger);
+  font-size: 9px;
+  font-weight: 850;
+  text-transform: uppercase;
+  letter-spacing: 0.11em;
+}
+
+.delete-task-heading h2 {
+  margin: 8px 0 0;
+  color: var(--text);
+  font-size: 25px;
+  font-weight: 850;
+  letter-spacing: -0.04em;
+}
+
+.delete-task-heading p {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.8;
+}
+
+.task-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-top: 22px;
+  padding: 15px;
+  border: 1px solid
+  rgba(189, 50, 50, 0.13);
+  border-radius: 14px;
+  background: var(--danger-soft);
+}
+
+.task-preview small {
+  color: var(--danger);
+  font-size: 8px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.task-preview strong {
+  margin-top: 3px;
+  color: var(--text);
+  font-size: 11px;
+  font-weight: 820;
+}
+
+.task-preview span {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.confirmation-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.confirmation-field > span {
+  color: var(--muted);
+  font-size: 9px;
+  line-height: 1.6;
+}
+
+.confirmation-field > strong {
+  color: var(--text);
+  font-size: 10px;
+  font-weight: 820;
+}
+
+.confirmation-field input {
+  width: 100%;
+  min-height: 46px;
+  padding: 0 13px;
+  color: var(--text);
+  font: inherit;
+  font-size: 11px;
+  outline: none;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-soft);
+}
+
+.confirmation-field input:focus {
+  border-color:
+    rgba(189, 50, 50, 0.42);
+  background: var(--surface);
+  box-shadow:
+    0 0 0 4px
+    rgba(189, 50, 50, 0.07);
+}
+
+.confirmation-hint {
+  margin-top: 8px;
+  color: var(--danger);
+  font-size: 8px;
+}
+
+.delete-error {
+  margin-top: 14px;
+  padding: 12px 13px;
+  color: var(--danger-dark);
+  font-size: 9px;
+  line-height: 1.6;
+  border: 1px solid
+  rgba(189, 50, 50, 0.17);
+  border-radius: 12px;
+  background: var(--danger-soft);
+}
+
+.delete-task-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 9px;
+  margin-top: 24px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+}
+
+.delete-task-footer button {
+  display: flex;
+  min-height: 43px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 15px;
+  font-size: 9px;
+  font-weight: 820;
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.delete-task-footer button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.cancel-button {
+  color: var(--text);
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.confirm-delete-button {
+  color: #ffffff;
+  background: var(--danger);
+}
+
+.confirm-delete-button:hover:not(:disabled) {
+  background: var(--danger-dark);
+}
+
+.confirm-delete-button ion-icon {
+  font-size: 16px;
+}
+
+.confirm-delete-button ion-spinner {
+  width: 16px;
+  height: 16px;
+  color: #ffffff;
+}
+
+@media (max-width: 520px) {
+  .delete-task-shell {
+    padding: 22px 18px;
+  }
+
+  .delete-task-footer {
+    flex-direction: column-reverse;
+  }
+
+  .delete-task-footer button {
+    width: 100%;
+  }
+}

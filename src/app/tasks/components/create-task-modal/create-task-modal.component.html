@@ -1,0 +1,352 @@
+<ion-content
+  [fullscreen]="true"
+  class="task-modal-content"
+>
+  <main class="task-modal-shell">
+    <header class="task-modal-header">
+      <div>
+        <span class="task-modal-eyebrow">
+          New task
+        </span>
+
+        <h2>Create a task</h2>
+
+        <p>
+          Add the task details and optional
+          visual references.
+        </p>
+      </div>
+
+      <button
+        type="button"
+        class="task-modal-close"
+        aria-label="Close"
+        [disabled]="isBusy"
+        (click)="close()"
+      >
+        <ion-icon
+          name="close-outline"
+        ></ion-icon>
+      </button>
+    </header>
+
+    <form
+      class="task-form"
+      [formGroup]="form"
+      (ngSubmit)="submit()"
+    >
+      <fieldset
+        class="task-form-fields"
+        [disabled]="
+          isBusy ||
+          createdTask !== null
+        "
+      >
+        <label class="task-field">
+          <span>
+            Task title
+            <em>Required</em>
+          </span>
+
+          <input
+            type="text"
+            formControlName="title"
+            maxlength="180"
+            placeholder="What needs to be done?"
+            autocomplete="off"
+          />
+
+          @if (
+          form.controls.title.touched &&
+          form.controls.title.invalid
+          ) {
+          <small class="field-error">
+            Enter a task title with at least
+            2 characters.
+          </small>
+          }
+        </label>
+
+        <label class="task-field">
+          <span>Description</span>
+
+          <textarea
+            formControlName="description"
+            rows="5"
+            maxlength="10000"
+            placeholder="Add useful details, requirements or notes..."
+          ></textarea>
+        </label>
+
+        <div class="task-form-grid">
+          <label class="task-field">
+            <span>Status</span>
+
+            <select formControlName="status">
+              <option value="backlog">
+                Backlog
+              </option>
+
+              <option value="todo">
+                Todo
+              </option>
+
+              <option value="in_progress">
+                In progress
+              </option>
+
+              <option value="in_review">
+                In review
+              </option>
+
+              <option value="completed">
+                Completed
+              </option>
+            </select>
+          </label>
+
+          <label class="task-field">
+            <span>Priority</span>
+
+            <select formControlName="priority">
+              <option value="low">
+                Low
+              </option>
+
+              <option value="medium">
+                Medium
+              </option>
+
+              <option value="high">
+                High
+              </option>
+
+              <option value="urgent">
+                Urgent
+              </option>
+            </select>
+          </label>
+        </div>
+
+        <div class="task-form-grid">
+          <label class="task-field">
+            <span>Start date</span>
+
+            <input
+              type="date"
+              formControlName="starts_at"
+            />
+          </label>
+
+          <label class="task-field">
+            <span>Due date</span>
+
+            <input
+              type="date"
+              formControlName="due_at"
+            />
+          </label>
+        </div>
+
+        <div class="assignee-notice">
+          <strong>Assignee</strong>
+
+          <span>
+            The task will be unassigned for now.
+            Workspace member selection will be
+            added in the members phase.
+          </span>
+        </div>
+
+        <section class="initial-images-section">
+          <header>
+            <div>
+              <span>Task images</span>
+
+              <small>
+                Optional ·
+                {{ selectedImages.length }}/5
+              </small>
+            </div>
+
+            <input
+              #imageInput
+              type="file"
+              class="initial-image-input"
+              accept="
+                image/jpeg,
+                image/png,
+                image/webp
+              "
+              multiple
+              (change)="
+                onFilesSelected($event)
+              "
+            />
+
+            <button
+              type="button"
+              class="select-images-button"
+              [disabled]="
+                selectedImages.length >=
+                maximumImages
+              "
+              (click)="imageInput.click()"
+            >
+              <ion-icon
+                name="cloud-upload-outline"
+              ></ion-icon>
+
+              <span>Select images</span>
+            </button>
+          </header>
+
+          @if (
+          selectedImages.length === 0
+          ) {
+          <div class="initial-images-empty">
+            <ion-icon
+              name="image-outline"
+            ></ion-icon>
+
+            <div>
+              <strong>
+                No images selected
+              </strong>
+
+              <span>
+                Add screenshots, designs or
+                other visual references.
+              </span>
+            </div>
+          </div>
+          } @else {
+          <div class="initial-image-grid">
+            @for (
+              selectedImage of
+                selectedImages;
+              track selectedImage.previewUrl;
+              let imageIndex = $index
+            ) {
+          <article
+            class="initial-image-card"
+          >
+            <img
+              [src]="
+                      selectedImage.previewUrl
+                    "
+              [alt]="
+                      selectedImage.file.name
+                    "
+            />
+
+            <button
+              type="button"
+              aria-label="Remove image"
+              (click)="
+                      removeSelectedImage(
+                        imageIndex
+                      )
+                    "
+            >
+              <ion-icon
+                name="trash-outline"
+              ></ion-icon>
+            </button>
+
+            <span
+              [title]="
+                      selectedImage.file.name
+                    "
+            >
+                    {{ selectedImage.file.name }}
+                  </span>
+          </article>
+          }
+          </div>
+          }
+        </section>
+      </fieldset>
+
+      @if (createdTask) {
+      <div
+        class="task-created-warning"
+        role="status"
+      >
+        <strong>
+          Task created successfully
+        </strong>
+
+        <span>
+          The task already exists. Only its
+          images are waiting to be uploaded.
+        </span>
+      </div>
+      }
+
+      @if (errorMessage) {
+      <div
+        class="task-form-error"
+        role="alert"
+      >
+      {{ errorMessage }}
+      </div>
+      }
+
+      <footer class="task-modal-footer">
+        <button
+          type="button"
+          class="task-cancel-button"
+          [disabled]="isBusy"
+          (click)="close()"
+        >
+          {{
+          createdTask
+            ? 'Finish without images'
+            : 'Cancel'
+          }}
+        </button>
+
+        <button
+          type="submit"
+          class="task-submit-button"
+          [disabled]="isBusy"
+        >
+          @if (isCreatingTask) {
+          <ion-spinner
+            name="crescent"
+          ></ion-spinner>
+
+          <span>Creating task...</span>
+          } @else if (
+          isUploadingImages
+          ) {
+          <ion-spinner
+            name="crescent"
+          ></ion-spinner>
+
+          <span>Uploading images...</span>
+          } @else if (createdTask) {
+          <ion-icon
+            name="cloud-upload-outline"
+          ></ion-icon>
+
+          <span>Retry image upload</span>
+          } @else {
+          <ion-icon
+            name="add-outline"
+          ></ion-icon>
+
+          <span>
+          {{
+          selectedImages.length > 0
+            ? 'Create task with images'
+            : 'Create task'
+          }}
+          </span>
+          }
+        </button>
+      </footer>
+    </form>
+  </main>
+</ion-content>

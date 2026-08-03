@@ -1,0 +1,268 @@
+<ion-content
+  [fullscreen]="true"
+  class="task-details-content"
+>
+  <main class="task-details-shell">
+    <header class="task-details-topbar">
+      <div>
+        <span class="task-eyebrow">
+          Task details
+        </span>
+
+        <h2>
+          {{ task?.title || 'Loading task' }}
+        </h2>
+
+        <p>
+          Review the task information,
+          responsibility and timeline.
+        </p>
+      </div>
+
+      <button
+        type="button"
+        class="close-button"
+        aria-label="Close task details"
+        (click)="close()"
+      >
+        <ion-icon
+          name="close-outline"
+        ></ion-icon>
+      </button>
+    </header>
+
+    @if (isLoading) {
+    <section class="task-details-state">
+      <ion-spinner
+        name="crescent"
+      ></ion-spinner>
+
+      <strong>Loading task...</strong>
+
+      <span>
+        Getting the latest task information.
+      </span>
+    </section>
+    } @else if (errorMessage) {
+    <section class="task-details-state error-state">
+      <strong>Task unavailable</strong>
+
+      <span>
+    {{ errorMessage }}
+    </span>
+
+    <button
+      type="button"
+      class="retry-button"
+      (click)="loadTask()"
+    >
+      Try again
+    </button>
+  </section>
+    } @else if (task) {
+    <section class="task-summary">
+      <div class="task-title-group">
+        <div class="task-badges">
+          <span
+            class="status-badge"
+            [attr.data-status]="task.status"
+          >
+            <ion-icon
+              name="checkmark-circle-outline"
+            ></ion-icon>
+
+    {{ getStatusLabel(task.status) }}
+    </span>
+
+    <span
+      class="priority-badge"
+      [attr.data-priority]="task.priority"
+    >
+      <ion-icon
+        name="flag-outline"
+      ></ion-icon>
+
+    {{ getPriorityLabel(task.priority) }}
+    </span>
+  </div>
+
+  <h1>
+    {{ task.title }}
+    </h1>
+
+    <p>
+    {{
+    task.description ||
+    'No description has been added to this task.'
+    }}
+    </p>
+  </div>
+
+  <div class="task-action-buttons">
+    <button
+      type="button"
+      class="edit-task-button"
+      (click)="requestEdit()"
+    >
+      <ion-icon
+        name="create-outline"
+      ></ion-icon>
+
+      <span>Edit task</span>
+    </button>
+
+    <button
+      type="button"
+      class="delete-task-button"
+      (click)="requestDelete()"
+    >
+      <ion-icon
+        name="trash-outline"
+      ></ion-icon>
+
+      <span>Delete task</span>
+    </button>
+  </div>
+</section>
+
+<section class="task-information-grid">
+  <article class="task-information-card">
+    <span class="information-icon">
+      <ion-icon
+        name="person-circle-outline"
+      ></ion-icon>
+    </span>
+
+    <div>
+      <small>Assigned to</small>
+
+      <strong>
+    {{
+    task.assignee?.name ||
+    'Unassigned'
+    }}
+    </strong>
+
+    <span>
+    {{
+    task.assignee?.email ||
+    'No member assigned'
+    }}
+    </span>
+  </div>
+</article>
+
+<article class="task-information-card">
+  <span class="information-icon">
+    <ion-icon
+      name="person-circle-outline"
+    ></ion-icon>
+  </span>
+
+  <div>
+    <small>Created by</small>
+
+    <strong>
+    {{
+    task.creator?.name ||
+    'Unknown user'
+    }}
+    </strong>
+
+    <span>
+    {{
+    task.creator?.email ||
+    'Creator information unavailable'
+    }}
+    </span>
+  </div>
+</article>
+
+<article class="task-information-card">
+  <span class="information-icon">
+    <ion-icon
+      name="calendar-outline"
+    ></ion-icon>
+  </span>
+
+  <div>
+    <small>Start date</small>
+
+    <strong>
+    {{ formatDate(task.starts_at) }}
+    </strong>
+  </div>
+</article>
+
+<article class="task-information-card">
+  <span class="information-icon">
+    <ion-icon
+      name="time-outline"
+    ></ion-icon>
+  </span>
+
+  <div>
+    <small>Due date</small>
+
+    <strong>
+    {{ formatDate(task.due_at) }}
+    </strong>
+  </div>
+</article>
+</section>
+
+<section class="task-future-section">
+<header>
+  <div>
+    <span class="task-eyebrow">
+      Task attachments
+    </span>
+
+    <h3>Images and files</h3>
+  </div>
+
+  <ion-icon
+    name="image-outline"
+  ></ion-icon>
+</header>
+
+<div class="future-placeholder">
+  <strong>No attachments loaded yet</strong>
+
+  <span>
+    Image upload and private previews
+    will be connected in the next step.
+  </span>
+</div>
+</section>
+@if (task) {
+    <app-task-comments
+      [workspaceId]="workspaceId"
+      [projectId]="projectId"
+      [taskId]="task.id"
+    ></app-task-comments>
+    }
+
+<section class="task-future-section">
+<header>
+  <div>
+    <span class="task-eyebrow">
+      Task discussion
+    </span>
+
+    <h3>Comments</h3>
+  </div>
+</header>
+
+<div class="future-placeholder">
+  <strong>Comments are coming next</strong>
+
+  <span>
+    Team discussions will appear here
+    after the attachment flow is complete.
+  </span>
+</div>
+</section>
+    }
+  </main>
+</ion-content>

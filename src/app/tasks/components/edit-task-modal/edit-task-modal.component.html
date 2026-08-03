@@ -1,0 +1,196 @@
+<ion-content
+  [fullscreen]="true"
+  class="task-modal-content"
+>
+  <main class="task-modal-shell">
+    <header class="task-modal-header">
+      <div>
+        <span class="task-modal-eyebrow">
+          Edit task
+        </span>
+
+        <h2>Update task</h2>
+
+        <p>
+          Update the task details, status,
+          priority and timeline.
+        </p>
+      </div>
+
+      <button
+        type="button"
+        class="task-modal-close"
+        aria-label="Close"
+        [disabled]="isSubmitting"
+        (click)="close()"
+      >
+        <ion-icon
+          name="close-outline"
+        ></ion-icon>
+      </button>
+    </header>
+
+    <form
+      class="task-form"
+      [formGroup]="form"
+      (ngSubmit)="submit()"
+    >
+      <label class="task-field">
+        <span>
+          Task title
+          <em>Required</em>
+        </span>
+
+        <input
+          type="text"
+          formControlName="title"
+          maxlength="180"
+          placeholder="What needs to be done?"
+          autocomplete="off"
+        />
+
+        @if (
+        form.controls.title.touched &&
+        form.controls.title.invalid
+        ) {
+        <small class="field-error">
+          Enter a task title with at least 2
+          characters.
+        </small>
+        }
+      </label>
+
+      <label class="task-field">
+        <span>Description</span>
+
+        <textarea
+          formControlName="description"
+          rows="5"
+          maxlength="10000"
+          placeholder="Add useful details, requirements or notes..."
+        ></textarea>
+      </label>
+
+      <div class="task-form-grid">
+        <label class="task-field">
+          <span>Status</span>
+
+          <select formControlName="status">
+            <option value="backlog">
+              Backlog
+            </option>
+
+            <option value="todo">
+              Todo
+            </option>
+
+            <option value="in_progress">
+              In progress
+            </option>
+
+            <option value="in_review">
+              In review
+            </option>
+
+            <option value="completed">
+              Completed
+            </option>
+          </select>
+        </label>
+
+        <label class="task-field">
+          <span>Priority</span>
+
+          <select formControlName="priority">
+            <option value="low">
+              Low
+            </option>
+
+            <option value="medium">
+              Medium
+            </option>
+
+            <option value="high">
+              High
+            </option>
+
+            <option value="urgent">
+              Urgent
+            </option>
+          </select>
+        </label>
+      </div>
+
+      <div class="task-form-grid">
+        <label class="task-field">
+          <span>Start date</span>
+
+          <input
+            type="date"
+            formControlName="starts_at"
+          />
+        </label>
+
+        <label class="task-field">
+          <span>Due date</span>
+
+          <input
+            type="date"
+            formControlName="due_at"
+          />
+        </label>
+      </div>
+
+      <div class="assignee-notice">
+        <strong>Current assignee</strong>
+
+        <span>
+          {{
+          task.assignee?.name ||
+          'This task is currently unassigned.'
+          }}
+        </span>
+      </div>
+
+      @if (errorMessage) {
+      <div
+        class="task-form-error"
+        role="alert"
+      >
+      {{ errorMessage }}
+      </div>
+      }
+
+      <footer class="task-modal-footer">
+        <button
+          type="button"
+          class="task-cancel-button"
+          [disabled]="isSubmitting"
+          (click)="close()"
+        >
+          Cancel
+        </button>
+
+        <button
+          type="submit"
+          class="task-submit-button"
+          [disabled]="isSubmitting"
+        >
+          @if (isSubmitting) {
+          <ion-spinner
+            name="crescent"
+          ></ion-spinner>
+
+          <span>Saving changes...</span>
+          } @else {
+          <ion-icon
+            name="checkmark-outline"
+          ></ion-icon>
+
+          <span>Save changes</span>
+          }
+        </button>
+      </footer>
+    </form>
+  </main>
+</ion-content>

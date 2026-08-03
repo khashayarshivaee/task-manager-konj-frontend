@@ -91,11 +91,11 @@
     </p>
   </div>
 
- <div class="project-actions">
-  <span class="status-badge">
-    <ion-icon
-      name="checkmark-circle-outline"
-    ></ion-icon>
+  <div class="project-actions">
+    <span class="status-badge">
+      <ion-icon
+        name="checkmark-circle-outline"
+      ></ion-icon>
 
     {{ getStatusLabel(project.status) }}
     </span>
@@ -126,9 +126,9 @@
       </button>
     </div>
   </div>
-  </section>
+</section>
 
-  @if (showUpdateNotice) {
+@if (showUpdateNotice) {
     <div
       class="project-updated-notice"
       role="status"
@@ -152,6 +152,38 @@
         type="button"
         aria-label="Dismiss"
         (click)="showUpdateNotice = false"
+      >
+        ×
+      </button>
+    </div>
+    }
+
+    @if (showTaskCreatedNotice) {
+    <div
+      class="project-updated-notice"
+      role="status"
+    >
+      <ion-icon
+        name="checkmark-circle-outline"
+      ></ion-icon>
+
+      <div>
+        <strong>
+          Task created successfully
+        </strong>
+
+        <span>
+              The new task is now part of this
+              project.
+            </span>
+      </div>
+
+      <button
+        type="button"
+        aria-label="Dismiss"
+        (click)="
+              showTaskCreatedNotice = false
+            "
       >
         ×
       </button>
@@ -211,19 +243,198 @@
 </article>
 </section>
 
-<section class="project-workspace">
-<header>
+<section class="tasks-section">
+<header class="tasks-header">
   <div>
     <span class="project-eyebrow">
-      Project workspace
+      Project tasks
     </span>
 
     <h2>
-      Everything starts here
+      Plan and track the work
     </h2>
-  </div>
 
-  <span class="project-code">
+    <p>
+    {{ tasks.length }}
+    {{
+    tasks.length === 1
+      ? 'task'
+      : 'tasks'
+    }}
+    in this project
+  </p>
+</div>
+
+<button
+  type="button"
+  class="new-task-button"
+  (click)="openCreateTaskModal()"
+>
+  <ion-icon
+    name="add-outline"
+  ></ion-icon>
+
+  <span>New task</span>
+</button>
+</header>
+
+@if (isLoadingTasks) {
+    <div class="tasks-state">
+      <ion-spinner
+        name="crescent"
+      ></ion-spinner>
+
+      <strong>Loading tasks...</strong>
+
+      <span>
+              Getting the latest project work.
+            </span>
+    </div>
+    } @else if (taskErrorMessage) {
+    <div class="tasks-state tasks-error">
+            <span class="tasks-state-icon">
+              <ion-icon
+                name="list-outline"
+              ></ion-icon>
+            </span>
+
+      <strong>Tasks unavailable</strong>
+
+      <span>
+              {{ taskErrorMessage }}
+            </span>
+
+      <button
+        type="button"
+        class="secondary-action"
+        (click)="loadTasks()"
+      >
+        Try again
+      </button>
+    </div>
+    } @else if (tasks.length === 0) {
+    <div class="tasks-state tasks-empty">
+            <span class="tasks-state-icon">
+              <ion-icon
+                name="list-outline"
+              ></ion-icon>
+            </span>
+
+      <strong>No tasks yet</strong>
+
+      <span>
+              Create the first task and start
+              organizing this project.
+            </span>
+
+      <button
+        type="button"
+        class="new-task-button"
+        (click)="openCreateTaskModal()"
+      >
+        <ion-icon
+          name="add-outline"
+        ></ion-icon>
+
+        <span>Create first task</span>
+      </button>
+    </div>
+    } @else {
+    <div class="task-list">
+      @for (task of tasks; track task.id) {
+      <button
+   type="button"
+   class="task-row"
+   (click)="openTaskDetails(task)"
+ >
+         <span
+           class="task-status-line"
+           [attr.data-status]="task.status"
+         ></span>
+
+         <div class="task-row-main">
+           <div class="task-title-line">
+             <strong>
+      {{ task.title }}
+      </strong>
+
+      <span
+        class="task-status-pill"
+        [attr.data-status]="task.status"
+      >
+      {{
+      getTaskStatusLabel(
+        task.status
+      )
+      }}
+      </span>
+    </div>
+
+    <p>
+      {{
+      task.description ||
+      'No description has been added.'
+      }}
+      </p>
+
+      <div class="task-meta">
+        <span
+          class="task-priority"
+          [attr.data-priority]="
+            task.priority
+          "
+        >
+          <ion-icon
+            name="flag-outline"
+          ></ion-icon>
+
+      {{
+      getTaskPriorityLabel(
+        task.priority
+      )
+      }}
+      </span>
+
+      <span>
+        <ion-icon
+          name="person-circle-outline"
+        ></ion-icon>
+
+      {{
+      task.assignee?.name ||
+      'Unassigned'
+      }}
+      </span>
+
+      <span>
+        <ion-icon
+          name="calendar-outline"
+        ></ion-icon>
+
+        Due
+      {{ formatDate(task.due_at) }}
+      </span>
+    </div>
+  </div>
+</button>
+      }
+    </div>
+    }
+    </section>
+
+    <section class="project-workspace">
+      <header>
+        <div>
+          <span class="project-eyebrow">
+            More project tools
+          </span>
+
+          <h2>
+            Continue building the workspace
+          </h2>
+        </div>
+
+        <span class="project-code">
     {{ project.slug }}
     </span>
   </header>
@@ -231,21 +442,6 @@
   <div class="feature-grid">
     <article class="feature-card">
       <span>01</span>
-
-      <div>
-        <strong>Tasks</strong>
-
-        <small>
-          Plan and organize the work required
-          for this project.
-        </small>
-      </div>
-
-      <em>Coming next</em>
-    </article>
-
-    <article class="feature-card">
-      <span>02</span>
 
       <div>
         <strong>Members</strong>
@@ -260,7 +456,7 @@
     </article>
 
     <article class="feature-card">
-      <span>03</span>
+      <span>02</span>
 
       <div>
         <strong>Activity</strong>
