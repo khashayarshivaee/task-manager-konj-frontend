@@ -11,6 +11,10 @@ import {
 } from '@angular/common/http';
 
 import {
+  UserAvatarComponent,
+} from '../../../shared/components/user-avatar/user-avatar.component';
+
+import {
   TaskCommentsComponent,
 } from '../task-comments/task-comments.component';
 
@@ -38,6 +42,10 @@ import {
   openOutline,
   personCircleOutline,
   timeOutline,
+  eyeOffOutline,
+  eyeOutline,
+  lockClosedOutline,
+  refreshOutline,
   trashOutline,
 } from 'ionicons/icons';
 import {
@@ -47,6 +55,8 @@ import {
 import {
   ProjectTask,
   TaskAttachment,
+  TaskUser,
+  TaskWatcherState,
 } from '../../models/task.model';
 import {
   TaskService,
@@ -77,6 +87,7 @@ interface TaskAttachmentView {
     IonIcon,
     IonSpinner,
     TaskCommentsComponent,
+    UserAvatarComponent,
   ],
 })
 export class TaskDetailsModalComponent
@@ -118,6 +129,17 @@ export class TaskDetailsModalComponent
     10 * 1024 * 1024;
 
   task: ProjectTask | null = null;
+  watchers: TaskUser[] = [];
+
+  isWatching = false;
+  canComment = false;
+  canUnwatch = false;
+
+  isLoadingWatcherState = false;
+  isUpdatingWatchState = false;
+
+  watcherErrorMessage = '';
+  watcherSuccessMessage = '';
 
   attachmentItems: TaskAttachmentView[] = [];
 
@@ -136,6 +158,10 @@ export class TaskDetailsModalComponent
       calendarOutline,
       checkmarkCircleOutline,
       closeOutline,
+      eyeOffOutline,
+      eyeOutline,
+      lockClosedOutline,
+      refreshOutline,
       cloudUploadOutline,
       createOutline,
       flagOutline,
@@ -190,6 +216,8 @@ export class TaskDetailsModalComponent
       .subscribe({
         next: (response) => {
           this.task = response.data.task;
+
+          this.loadWatcherState();
           this.loadAttachments();
         },
 
@@ -214,6 +242,149 @@ export class TaskDetailsModalComponent
 
           this.errorMessage =
             'Unable to load the task. Please try again.';
+        },
+      });
+  }
+
+  loadWatcherState(): void {
+    if (
+      !this.task ||
+      this.isLoadingWatcherState
+    ) {
+      return;
+    }
+
+    this.isLoadingWatcherState = true;
+    this.watcherErrorMessage = '';
+
+    this.taskService
+      .getTaskWatchers(
+        this.workspaceId,
+        this.projectId,
+        this.task.id,
+      )
+      .pipe(
+        finalize(() => {
+          this.isLoadingWatcherState = false;
+        }),
+
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: (response) => {
+          this.applyWatcherState(
+            response.data,
+          );
+        },
+
+        error: (
+          error: HttpErrorResponse,
+        ) => {
+          if (error.status === 403) {
+            this.watcherErrorMessage =
+              'You do not have access to this task discussion.';
+
+            return;
+          }
+
+          if (error.status === 404) {
+            this.watcherErrorMessage =
+              'The watcher information could not be found.';
+
+            return;
+          }
+
+          this.watcherErrorMessage =
+            'Unable to load watcher information.';
+        },
+      });
+  }
+  watchTask(): void {
+    if (
+      !this.task ||
+      this.isUpdatingWatchState
+    ) {
+      return;
+    }
+
+    this.isUpdatingWatchState = true;
+    this.watcherErrorMessage = '';
+    this.watcherSuccessMessage = '';
+
+    this.taskService
+      .watchTask(
+        this.workspaceId,
+        this.projectId,
+        this.task.id,
+      )
+      .pipe(
+        finalize(() => {
+          this.isUpdatingWatchState = false;
+        }),
+
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: (response) => {
+          this.applyWatcherState(
+            response.data,
+          );
+
+          this.watcherSuccessMessage =
+            response.message;
+        },
+
+        error: (
+          error: HttpErrorResponse,
+        ) => {
+          this.watcherErrorMessage =
+            error.error?.message ||
+            'Unable to watch this task.';
+        },
+      });
+  }
+  unwatchTask(): void {
+    if (
+      !this.task ||
+      this.isUpdatingWatchState ||
+      !this.canUnwatch
+    ) {
+      return;
+    }
+
+    this.isUpdatingWatchState = true;
+    this.watcherErrorMessage = '';
+    this.watcherSuccessMessage = '';
+
+    this.taskService
+      .unwatchTask(
+        this.workspaceId,
+        this.projectId,
+        this.task.id,
+      )
+      .pipe(
+        finalize(() => {
+          this.isUpdatingWatchState = false;
+        }),
+
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: (response) => {
+          this.applyWatcherState(
+            response.data,
+          );
+
+          this.watcherSuccessMessage =
+            response.message;
+        },
+
+        error: (
+          error: HttpErrorResponse,
+        ) => {
+          this.watcherErrorMessage =
+            error.error?.message ||
+            'Unable to stop watching this task.';
         },
       });
   }
@@ -504,6 +675,7 @@ export class TaskDetailsModalComponent
       result.data
     ) {
       this.task = result.data;
+      this.loadWatcherState();
     }
   }
 
@@ -543,6 +715,42 @@ export class TaskDetailsModalComponent
         'deleted',
       );
     }
+  }
+
+  get visibleWatchers(): TaskUser[] {
+    return this.watchers.slice(0, 5);
+  }
+
+  get hiddenWatcherCount(): number {
+    return Math.max(
+      this.watchers.length - 5,
+      0,
+    );
+  }
+
+  get watcherNames(): string {
+    if (this.watchers.length === 0) {
+      return 'No watchers';
+    }
+
+    return this.watchers
+      .map((watcher) => watcher.name)
+      .join(', ');
+  }
+
+  getTaskAssignees(
+    task: ProjectTask,
+  ): TaskUser[] {
+    if (
+      task.assignees &&
+      task.assignees.length > 0
+    ) {
+      return task.assignees;
+    }
+
+    return task.assignee
+      ? [task.assignee]
+      : [];
   }
 
   getStatusLabel(
@@ -784,6 +992,22 @@ export class TaskDetailsModalComponent
             'Unable to delete the image.';
         },
       });
+  }
+
+  private applyWatcherState(
+    state: TaskWatcherState,
+  ): void {
+    this.watchers = state.watchers;
+    this.isWatching = state.is_watching;
+    this.canComment = state.can_comment;
+    this.canUnwatch = state.can_unwatch;
+
+    if (this.task) {
+      this.task = {
+        ...this.task,
+        watchers: state.watchers,
+      };
+    }
   }
 
   private revokeAttachmentUrls(): void {

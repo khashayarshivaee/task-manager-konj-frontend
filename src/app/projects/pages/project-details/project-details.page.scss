@@ -816,3 +816,50 @@
     grid-template-columns: 1fr;
   }
 }
+.task-assignees-meta {
+  min-width: 0;
+}
+
+.task-assignee-stack {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  padding-left: 6px;
+}
+
+.task-card-avatar {
+  position: relative;
+  display: block;
+  flex: 0 0 auto;
+  margin-left: -6px;
+  overflow: hidden;
+  border: 2px solid #ffffff;
+  border-radius: 35%;
+  background: #ffffff;
+}
+
+.task-card-avatar:first-child {
+  margin-left: 0;
+}
+
+.task-assignee-more {
+  display: grid !important;
+  width: 26px;
+  height: 26px;
+  flex: 0 0 auto;
+  margin-left: -6px;
+  place-items: center;
+  color: var(--orange-dark) !important;
+  font-size: 7px !important;
+  font-weight: 850 !important;
+  border: 2px solid #ffffff;
+  border-radius: 35%;
+  background: var(--orange-soft);
+}
+
+.task-assignee-summary {
+  max-width: 115px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

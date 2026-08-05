@@ -1,9 +1,11 @@
 import {
   Component,
   DestroyRef,
+  EventEmitter,
   Input,
   OnDestroy,
   OnInit,
+  Output,
   inject,
 } from '@angular/core';
 import {
@@ -99,6 +101,10 @@ export class TaskCommentsComponent
     required: true,
   })
   taskId!: number;
+
+  @Output()
+  readonly commentCreated =
+    new EventEmitter<void>();
 
   private readonly commentService =
     inject(TaskCommentService);
@@ -393,6 +399,7 @@ export class TaskCommentsComponent
 
           this.successMessage =
             'Comment added successfully.';
+          this.commentCreated.emit();
         },
 
         error: (
@@ -500,6 +507,7 @@ export class TaskCommentsComponent
 
           this.successMessage =
             'Reply added successfully.';
+          this.commentCreated.emit();
         },
 
         error: (

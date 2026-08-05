@@ -11,6 +11,8 @@ import {
   GetTaskResponse,
   ListTaskAttachmentsResponse,
   ListTasksResponse,
+  GetTaskWatchersResponse,
+  UpdateTaskWatcherResponse,
   UpdateTaskPayload,
   UpdateTaskResponse,
   UploadTaskAttachmentsResponse,
@@ -31,6 +33,46 @@ export class TaskService {
         workspaceId,
         projectId,
       ),
+    );
+  }
+
+  getTaskWatchers(
+    workspaceId: number,
+    projectId: number,
+    taskId: number,
+  ): Observable<GetTaskWatchersResponse> {
+    return this.http.get<GetTaskWatchersResponse>(
+      `${this.tasksUrl(
+        workspaceId,
+        projectId,
+      )}/${taskId}/watchers`,
+    );
+  }
+
+  watchTask(
+    workspaceId: number,
+    projectId: number,
+    taskId: number,
+  ): Observable<UpdateTaskWatcherResponse> {
+    return this.http.post<UpdateTaskWatcherResponse>(
+      `${this.tasksUrl(
+        workspaceId,
+        projectId,
+      )}/${taskId}/watch`,
+      {},
+    );
+  }
+
+  unwatchTask(
+    workspaceId: number,
+    projectId: number,
+    taskId: number,
+  ): Observable<UpdateTaskWatcherResponse> {
+    return this.http.delete<UpdateTaskWatcherResponse>(
+      `${this.tasksUrl(
+        workspaceId,
+        projectId,
+      )}/${taskId}/watch`,
     );
   }
 

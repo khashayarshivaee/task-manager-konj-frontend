@@ -125,7 +125,243 @@
   </div>
 </section>
 
-<section class="task-information-grid">
+<section class="task-watchers-panel">
+  <header class="task-watchers-header">
+    <div>
+      <span class="task-eyebrow">
+        Task followers
+      </span>
+
+      <h3>Watchers</h3>
+
+      <p>
+        Watch this task to follow its
+        discussion and participate in comments.
+      </p>
+    </div>
+
+    @if (isLoadingWatcherState) {
+    <div class="watcher-action-loading">
+      <ion-spinner
+        name="crescent"
+      ></ion-spinner>
+    </div>
+    } @else if (!isWatching) {
+    <button
+      type="button"
+      class="watch-task-button"
+      [disabled]="isUpdatingWatchState"
+      (click)="watchTask()"
+    >
+      @if (isUpdatingWatchState) {
+      <ion-spinner
+        name="crescent"
+      ></ion-spinner>
+      } @else {
+      <ion-icon
+        name="eye-outline"
+      ></ion-icon>
+      }
+
+      <span>Watch task</span>
+    </button>
+    } @else if (canUnwatch) {
+    <button
+      type="button"
+      class="unwatch-task-button"
+      [disabled]="isUpdatingWatchState"
+      (click)="unwatchTask()"
+    >
+      @if (isUpdatingWatchState) {
+      <ion-spinner
+        name="crescent"
+      ></ion-spinner>
+      } @else {
+      <ion-icon
+        name="eye-off-outline"
+      ></ion-icon>
+      }
+
+      <span>Stop watching</span>
+    </button>
+    } @else {
+    <button
+      type="button"
+      class="required-watcher-button"
+      disabled
+    >
+      <ion-icon
+        name="lock-closed-outline"
+      ></ion-icon>
+
+      <span>Watching</span>
+    </button>
+    }
+    </header>
+
+    @if (watcherErrorMessage) {
+    <div class="watcher-message error">
+      <span>
+        {{ watcherErrorMessage }}
+      </span>
+
+      <button
+        type="button"
+        (click)="loadWatcherState()"
+      >
+        <ion-icon
+          name="refresh-outline"
+        ></ion-icon>
+
+        Retry
+      </button>
+    </div>
+    }
+
+    @if (watcherSuccessMessage) {
+    <div class="watcher-message success">
+      {{ watcherSuccessMessage }}
+    </div>
+    }
+
+    @if (
+      !isLoadingWatcherState &&
+      !watcherErrorMessage
+    ) {
+    <div
+      class="watcher-summary"
+      [title]="watcherNames"
+    >
+      @if (watchers.length === 0) {
+      <span class="watcher-empty-icon">
+        <ion-icon
+          name="eye-outline"
+        ></ion-icon>
+      </span>
+
+      <div>
+        <strong>No watchers yet</strong>
+
+        <span>
+          Be the first member to follow
+          this task.
+        </span>
+      </div>
+      } @else {
+      <div class="watcher-avatar-stack">
+        @for (
+          watcher of visibleWatchers;
+          track watcher.id
+        ) {
+      <span class="watcher-avatar">
+              <app-user-avatar
+                [name]="watcher.name"
+                [avatarPath]="
+                  watcher.avatar_path ?? null
+                "
+                [size]="34"
+                [fontSize]="8"
+              ></app-user-avatar>
+            </span>
+      }
+
+      @if (hiddenWatcherCount > 0) {
+      <span class="watcher-more">
+              +{{ hiddenWatcherCount }}
+            </span>
+      }
+      </div>
+
+      <div>
+        <strong>
+      {{ watchers.length }}
+      {{
+      watchers.length === 1
+        ? 'watcher'
+        : 'watchers'
+      }}
+      </strong>
+
+      <span>
+        Following task activity and
+        discussion.
+      </span>
+    </div>
+      }
+    </div>
+
+    @if (isWatching && !canUnwatch) {
+    <div class="mandatory-watcher-note">
+      <ion-icon
+        name="lock-closed-outline"
+      ></ion-icon>
+
+      <span>
+        Task creators and assigned members
+        must continue watching this task.
+      </span>
+    </div>
+    }
+    }
+    </section>
+
+
+    <section class="task-information-grid">
+      <article
+      class="
+        task-information-card
+        task-assignees-information-card
+      "
+    >
+      <span class="information-icon">
+        <ion-icon
+          name="person-circle-outline"
+        ></ion-icon>
+      </span>
+
+      <div class="task-assignees-information">
+        <small>Assigned to</small>
+
+        @if (
+          getTaskAssignees(task).length === 0
+        ) {
+    <strong>Unassigned</strong>
+
+    <span>
+        No workspace member is currently
+        responsible for this task.
+      </span>
+    } @else {
+    <div class="task-assignee-list">
+      @for (
+      assignee of
+      getTaskAssignees(task);
+      track assignee.id
+      ) {
+      <article class="task-assignee-person">
+  <app-user-avatar
+  [name]="assignee.name"
+  [avatarPath]="assignee.avatar_path ?? null"
+  [size]="38"
+  [fontSize]="9"
+></app-user-avatar>
+
+        <div>
+          <strong>
+      {{ assignee.name }}
+      </strong>
+
+      <span>
+      {{ assignee.email }}
+      </span>
+    </div>
+  </article>
+      }
+    </div>
+    }
+    </div>
+  </article>
+
   <article class="task-information-card">
     <span class="information-icon">
       <ion-icon
@@ -134,35 +370,9 @@
     </span>
 
     <div>
-      <small>Assigned to</small>
+      <small>Created by</small>
 
       <strong>
-    {{
-    task.assignee?.name ||
-    'Unassigned'
-    }}
-    </strong>
-
-    <span>
-    {{
-    task.assignee?.email ||
-    'No member assigned'
-    }}
-    </span>
-  </div>
-</article>
-
-<article class="task-information-card">
-  <span class="information-icon">
-    <ion-icon
-      name="person-circle-outline"
-    ></ion-icon>
-  </span>
-
-  <div>
-    <small>Created by</small>
-
-    <strong>
     {{
     task.creator?.name ||
     'Unknown user'
@@ -235,34 +445,87 @@
   </span>
 </div>
 </section>
-@if (task) {
+@if (isLoadingWatcherState) {
+    <section class="comments-access-card">
+      <ion-spinner
+        name="crescent"
+      ></ion-spinner>
+
+      <strong>
+        Checking discussion access...
+      </strong>
+    </section>
+    } @else if (watcherErrorMessage) {
+    <section class="comments-access-card">
+      <ion-icon
+        name="lock-closed-outline"
+      ></ion-icon>
+
+      <strong>
+        Discussion access unavailable
+      </strong>
+
+      <span>
+      Watcher information could not be loaded.
+    </span>
+
+      <button
+        type="button"
+        class="watch-task-button"
+        (click)="loadWatcherState()"
+      >
+        <ion-icon
+          name="refresh-outline"
+        ></ion-icon>
+
+        <span>Try again</span>
+      </button>
+    </section>
+    } @else if (canComment && task) {
     <app-task-comments
       [workspaceId]="workspaceId"
       [projectId]="projectId"
       [taskId]="task.id"
+      (commentCreated)="loadWatcherState()"
     ></app-task-comments>
-    }
-
-<section class="task-future-section">
-<header>
-  <div>
-    <span class="task-eyebrow">
-      Task discussion
+    } @else {
+    <section class="comments-access-card">
+    <span class="comments-lock-icon">
+      <ion-icon
+        name="lock-closed-outline"
+      ></ion-icon>
     </span>
 
-    <h3>Comments</h3>
-  </div>
-</header>
+      <strong>
+        Watch this task to join the discussion
+      </strong>
 
-<div class="future-placeholder">
-  <strong>Comments are coming next</strong>
+      <span>
+      Workspace members can view task details,
+      but must watch the task before reading
+      or writing comments.
+    </span>
 
-  <span>
-    Team discussions will appear here
-    after the attachment flow is complete.
-  </span>
-</div>
-</section>
+      <button
+        type="button"
+        class="watch-task-button"
+        [disabled]="isUpdatingWatchState"
+        (click)="watchTask()"
+      >
+        @if (isUpdatingWatchState) {
+        <ion-spinner
+          name="crescent"
+        ></ion-spinner>
+        } @else {
+        <ion-icon
+          name="eye-outline"
+        ></ion-icon>
+        }
+
+        <span>Watch and open comments</span>
+      </button>
+    </section>
+    }
     }
   </main>
 </ion-content>

@@ -395,23 +395,66 @@
       }}
       </span>
 
-      <span>
-        <ion-icon
-          name="person-circle-outline"
-        ></ion-icon>
+      <span
+  class="task-assignees-meta"
+  [title]="
+    getTaskAssigneeTitle(task)
+  "
+>
+  @if (
+    getTaskAssignees(task).length === 0
+  ) {
+      <ion-icon
+        name="person-circle-outline"
+      ></ion-icon>
 
+      <span>Unassigned</span>
+      } @else {
+      <span class="task-assignee-stack">
+      @for (
+        assignee of
+          getVisibleTaskAssignees(task);
+        track assignee.id
+      ) {
+        <span class="task-card-avatar">
+       <app-user-avatar
+  [name]="assignee.name"
+  [avatarPath]="assignee.avatar_path ?? null"
+  [size]="26"
+  [fontSize]="7"
+></app-user-avatar>
+        </span>
+      }
+
+      @if (
+        getHiddenTaskAssigneeCount(
+          task
+        ) > 0
+      ) {
+        <span class="task-assignee-more">
+          +{{
+        getHiddenTaskAssigneeCount(
+          task
+        )
+          }}
+        </span>
+      }
+    </span>
+
+      <span class="task-assignee-summary">
       {{
-      task.assignee?.name ||
-      'Unassigned'
-      }}
+        getTaskAssigneeSummary(task)
+        }}
+    </span>
+      }
       </span>
 
-      <span>
-        <ion-icon
-          name="calendar-outline"
-        ></ion-icon>
+            <span>
+              <ion-icon
+                name="calendar-outline"
+              ></ion-icon>
 
-        Due
+              Due
       {{ formatDate(task.due_at) }}
       </span>
     </div>

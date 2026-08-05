@@ -141,16 +141,137 @@
         </label>
       </div>
 
-      <div class="assignee-notice">
-        <strong>Current assignee</strong>
+      <section class="assignee-selector">
+        <header class="assignee-selector-header">
+          <div>
+            <strong>Assignees</strong>
 
-        <span>
-          {{
-          task.assignee?.name ||
-          'This task is currently unassigned.'
-          }}
-        </span>
-      </div>
+            <span>
+        Select one or more workspace
+        members responsible for this task.
+      </span>
+          </div>
+
+          <span class="assignee-count">
+      {{ selectedAssigneeCount }}
+            selected
+    </span>
+        </header>
+
+        @if (isLoadingMembers) {
+        <div class="assignee-state">
+          <ion-spinner
+            name="crescent"
+          ></ion-spinner>
+
+          <span>
+            Loading workspace members...
+          </span>
+        </div>
+        } @else if (memberLoadError) {
+        <div
+          class="
+            assignee-state
+            assignee-state-error
+          "
+        >
+          <span>{{ memberLoadError }}</span>
+
+      <button
+        type="button"
+        (click)="loadWorkspaceMembers()"
+      >
+        Try again
+      </button>
+    </div>
+        } @else if (members.length === 0) {
+        <div class="assignee-state">
+          <span>
+            This workspace has no active
+            members available for assignment.
+          </span>
+        </div>
+        } @else {
+        <div class="assignee-options">
+          @for (
+            member of members;
+            track member.id
+          ) {
+        <button
+          type="button"
+          class="assignee-option"
+          [class.assignee-option-selected]="
+            isAssigneeSelected(
+              member.user_id
+            )
+          "
+          [attr.aria-pressed]="
+            isAssigneeSelected(
+              member.user_id
+            )
+          "
+          (click)="
+            toggleAssignee(
+              member.user_id
+            )
+          "
+        >
+          <app-user-avatar
+            [name]="member.user.name"
+            [avatarPath]="
+              member.user.avatar_path
+            "
+            [size]="40"
+            [fontSize]="10"
+          ></app-user-avatar>
+
+          <span class="assignee-option-copy">
+            <strong>
+              {{ member.user.name }}
+            </strong>
+
+            <small>
+              {{ member.user.email }}
+              ·
+              {{
+              getMemberRoleLabel(
+                member
+              )
+              }}
+            </small>
+          </span>
+
+          <span
+            class="assignee-check"
+            aria-hidden="true"
+          >
+            @if (
+              isAssigneeSelected(
+                member.user_id
+              )
+            ) {
+            <ion-icon
+              name="checkmark-outline"
+            ></ion-icon>
+            }
+          </span>
+        </button>
+        }
+        </div>
+
+        @if (selectedAssigneeCount === 0) {
+        <div class="assignee-selection-note">
+          Saving will leave this task
+          without an assignee.
+        </div>
+        } @else {
+        <div class="assignee-selection-note">
+          Selected assignees will also
+          automatically watch this task.
+        </div>
+        }
+        }
+      </section>
 
       @if (errorMessage) {
       <div

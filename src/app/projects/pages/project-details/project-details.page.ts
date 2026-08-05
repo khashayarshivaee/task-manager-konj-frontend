@@ -11,6 +11,10 @@ import {
 import {
   TaskDetailsModalComponent,
 } from '../../../tasks/components/task-details-modal/task-details-modal.component';
+
+import {
+  UserAvatarComponent,
+} from '../../../shared/components/user-avatar/user-avatar.component';
 import {
   takeUntilDestroyed,
 } from '@angular/core/rxjs-interop';
@@ -49,6 +53,7 @@ import {
 } from '../../../tasks/components/create-task-modal/create-task-modal.component';
 import {
   ProjectTask,
+  TaskUser,
 } from '../../../tasks/models/task.model';
 import {
   TaskService,
@@ -75,6 +80,7 @@ import {
     IonContent,
     IonIcon,
     IonSpinner,
+    UserAvatarComponent,
   ],
 })
 export class ProjectDetailsPage implements OnInit {
@@ -469,6 +475,69 @@ export class ProjectDetailsPage implements OnInit {
         .charAt(0)
         .toUpperCase() +
       priority.slice(1);
+  }
+  getTaskAssignees(
+    task: ProjectTask,
+  ): TaskUser[] {
+    if (
+      task.assignees &&
+      task.assignees.length > 0
+    ) {
+      return task.assignees;
+    }
+
+    return task.assignee
+      ? [task.assignee]
+      : [];
+  }
+
+  getVisibleTaskAssignees(
+    task: ProjectTask,
+  ): TaskUser[] {
+    return this.getTaskAssignees(
+      task,
+    ).slice(0, 3);
+  }
+
+  getHiddenTaskAssigneeCount(
+    task: ProjectTask,
+  ): number {
+    return Math.max(
+      this.getTaskAssignees(task).length - 3,
+      0,
+    );
+  }
+
+  getTaskAssigneeSummary(
+    task: ProjectTask,
+  ): string {
+    const assignees =
+      this.getTaskAssignees(task);
+
+    if (assignees.length === 0) {
+      return 'Unassigned';
+    }
+
+    if (assignees.length === 1) {
+      return assignees[0].name;
+    }
+
+    return `${assignees.length} assignees`;
+  }
+
+  getTaskAssigneeTitle(
+    task: ProjectTask,
+  ): string {
+    const assignees =
+      this.getTaskAssignees(task);
+
+    if (assignees.length === 0) {
+      return 'Unassigned';
+    }
+
+    return assignees
+      .map((assignee) => assignee.name)
+      .join(', ');
   }
 
   formatDate(

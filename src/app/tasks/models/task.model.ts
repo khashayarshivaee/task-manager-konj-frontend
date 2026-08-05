@@ -15,6 +15,7 @@ export interface TaskUser {
   id: number;
   name: string;
   email: string;
+  avatar_path?: string | null;
 }
 
 export interface TaskAttachment {
@@ -46,7 +47,16 @@ export interface ProjectTask {
   updated_at: string;
   creator: TaskUser | null;
   assignee: TaskUser | null;
+  assignees?: TaskUser[];
+  watchers?: TaskUser[];
   attachments?: TaskAttachment[];
+}
+
+export interface TaskWatcherState {
+  watchers: TaskUser[];
+  is_watching: boolean;
+  can_comment: boolean;
+  can_unwatch: boolean;
 }
 
 export interface CreateTaskPayload {
@@ -54,7 +64,7 @@ export interface CreateTaskPayload {
   description?: string | null;
   status?: TaskStatus;
   priority?: TaskPriority;
-  assigned_to?: number | null;
+  assignee_ids?: number[];
   starts_at?: string | null;
   due_at?: string | null;
 }
@@ -64,7 +74,7 @@ export interface UpdateTaskPayload {
   description: string | null;
   status: TaskStatus;
   priority: TaskPriority;
-  assigned_to: number | null;
+  assignee_ids: number[];
   starts_at: string | null;
   due_at: string | null;
 }
@@ -117,4 +127,13 @@ export interface UploadTaskAttachmentsResponse {
 
 export interface DeleteTaskAttachmentResponse {
   message: string;
+}
+
+export interface GetTaskWatchersResponse {
+  data: TaskWatcherState;
+}
+
+export interface UpdateTaskWatcherResponse {
+  message: string;
+  data: TaskWatcherState;
 }
