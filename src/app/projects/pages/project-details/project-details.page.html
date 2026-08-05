@@ -257,42 +257,74 @@
       </p>
     </div>
 
-    <div class="project-progress-score">
-      <strong>
-    {{ projectProgressPercentage }}%
-      </strong>
+    <div class="project-progress-actions">
+  <label class="project-progress-filter">
+    <span>Time range</span>
 
-      @if (totalTaskCount > 0) {
+    <select
+      [value]="projectProgressPeriod"
+      aria-label="Project progress time range"
+      (change)="
+        changeProjectProgressPeriod(
+          $event
+        )
+      "
+    >
+      @for (
+        option of
+          projectProgressPeriodOptions;
+        track option.value
+      ) {
+    <option [value]="option.value">
+      {{ option.label }}
+    </option>
+    }
+    </select>
+  </label>
+
+  <div class="project-progress-score">
+    <strong>
+    {{ projectProgressPercentage }}%
+    </strong>
+
+    @if (totalTaskCount > 0) {
     <span>
-          {{ completedTaskCount }}
+        {{ completedTaskCount }}
       of
       {{ totalTaskCount }}
       tasks completed
-        </span>
+      </span>
     } @else {
-    <span>No tasks created yet</span>
+    <span>
+        No tasks in
+      {{
+      selectedProgressPeriodLabel
+        .toLowerCase()
+      }}
+      </span>
     }
     </div>
-  </header>
+  </div>
+    </header>
 
-  <div
-    class="project-progress-track"
-    role="progressbar"
-    aria-label="Project task progress"
-    aria-valuemin="0"
-    aria-valuemax="100"
-    [attr.aria-valuenow]="
-      projectProgressPercentage
-    "
-  >
-    <span
-      [style.width.%]="
+    <div
+      class="project-progress-track"
+      role="progressbar"
+      aria-label="Project task progress"
+      aria-valuemin="0"
+      aria-valuemax="100"
+      [attr.aria-valuenow]="
         projectProgressPercentage
       "
-    ></span>
-  </div>
+    >
+      <span
+        [style.width.%]="
+          projectProgressPercentage
+        "
+      ></span>
+    </div>
 
-  @if (totalTaskCount > 0) {
+    @if (totalTaskCount > 0) {
     <div class="project-progress-summary">
       <span>
         <strong>
@@ -310,6 +342,26 @@
         remaining
       </span>
     </div>
+    @if (
+    projectProgressPeriod !== 'all' &&
+    tasksWithoutDueDateCount > 0
+    ) {
+    <p class="project-progress-note">
+    {{ tasksWithoutDueDateCount }}
+    {{
+    tasksWithoutDueDateCount === 1
+      ? 'task has'
+      : 'tasks have'
+    }}
+    no due date and
+    {{
+    tasksWithoutDueDateCount === 1
+      ? 'is'
+      : 'are'
+    }}
+    not included in this time range.
+  </p>
+    }
 
     <div class="project-status-breakdown">
       <article data-status="backlog">
@@ -346,51 +398,79 @@
     } @else {
     <div class="project-progress-empty">
       <strong>
-        Progress will appear here
+        No tasks in this time range
       </strong>
 
       <span>
-        Create the first task to start tracking
-        this project.
-      </span>
+      No tasks have a due date inside
+        {{
+        selectedProgressPeriodLabel
+          .toLowerCase()
+        }}.
+    </span>
     </div>
     }
     </section>
     <section class="tasks-section">
     <header class="tasks-header">
-      <div>
-        <span class="project-eyebrow">
-          Project tasks
-        </span>
+  <div>
+    <span class="project-eyebrow">
+      Project tasks
+    </span>
 
-        <h2>
-          Plan and track the work
-        </h2>
+    <h2>
+      Plan and track the work
+    </h2>
 
-        <p>
-    {{ tasks.length }}
+    <p>
+    {{ visibleTasks.length }}
     {{
-    tasks.length === 1
+    visibleTasks.length === 1
       ? 'task'
       : 'tasks'
     }}
+
+    @if (
+      projectProgressPeriod === 'all'
+    ) {
     in this project
-  </p>
-</div>
+    } @else {
+    in
+    {{
+    selectedProgressPeriodLabel
+      .toLowerCase()
+    }}
+    }
+    </p>
+  </div>
 
-<button
-  type="button"
-  class="new-task-button"
-  (click)="openCreateTaskModal()"
->
-  <ion-icon
-    name="add-outline"
-  ></ion-icon>
+  <div class="tasks-header-actions">
+    <button
+      type="button"
+      class="calendar-view-button"
+      (click)="openTaskCalendar()"
+    >
+      <ion-icon
+        name="calendar-outline"
+      ></ion-icon>
 
-  <span>New task</span>
-</button>
+      <span>Calendar</span>
+    </button>
+
+    <button
+      type="button"
+      class="new-task-button"
+      (click)="openCreateTaskModal()"
+    >
+      <ion-icon
+        name="add-outline"
+      ></ion-icon>
+
+      <span>New task</span>
+    </button>
+  </div>
 </header>
-@if (taskStatusErrorMessage) {
+    @if (taskStatusErrorMessage) {
     <div
       class="task-status-error"
       role="alert"
@@ -448,20 +528,23 @@
         Try again
       </button>
     </div>
-    } @else if (tasks.length === 0) {
+    } @else if (visibleTasks.length === 0) {
     <div class="tasks-state tasks-empty">
-            <span class="tasks-state-icon">
-              <ion-icon
-                name="list-outline"
-              ></ion-icon>
-            </span>
+  <span class="tasks-state-icon">
+    <ion-icon
+      name="list-outline"
+    ></ion-icon>
+  </span>
 
+      @if (
+      tasks.length === 0
+      ) {
       <strong>No tasks yet</strong>
 
       <span>
-              Create the first task and start
-              organizing this project.
-            </span>
+        Create the first task and start
+        organizing this project.
+      </span>
 
       <button
         type="button"
@@ -474,11 +557,26 @@
 
         <span>Create first task</span>
       </button>
+      } @else {
+      <strong>
+        No tasks in this time range
+      </strong>
+
+      <span>
+        No tasks have a due date inside
+      {{
+      selectedProgressPeriodLabel
+        .toLowerCase()
+      }}.
+    </span>
+      }
     </div>
     } @else {
     <div class="task-list">
-      @for (task of tasks; track task.id) {
-      <article
+      @for (
+      task of visibleTasks;
+      track task.id
+      ) {      <article
   class="task-row"
   [class.task-row-completed]="
     task.status === 'completed'

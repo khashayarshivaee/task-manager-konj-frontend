@@ -9,6 +9,10 @@ import {
 } from '@angular/common/http';
 
 import {
+  TaskCalendarModalComponent,
+} from '../../../tasks/components/task-calendar-modal/task-calendar-modal.component';
+
+import {
   TaskDetailsModalComponent,
 } from '../../../tasks/components/task-details-modal/task-details-modal.component';
 
@@ -72,6 +76,12 @@ import {
 import {
   ProjectService,
 } from '../../services/project.service';
+
+type ProjectProgressPeriod =
+  | 'all'
+  | 'this_week'
+  | 'this_month'
+  | 'this_year';
 
 @Component({
   selector: 'app-project-details',
@@ -139,6 +149,32 @@ export class ProjectDetailsPage implements OnInit {
       label: 'Completed',
     },
   ];
+
+  readonly projectProgressPeriodOptions:
+    ReadonlyArray<{
+      value: ProjectProgressPeriod;
+      label: string;
+    }> = [
+    {
+      value: 'all',
+      label: 'All time',
+    },
+    {
+      value: 'this_week',
+      label: 'This week',
+    },
+    {
+      value: 'this_month',
+      label: 'This month',
+    },
+    {
+      value: 'this_year',
+      label: 'This year',
+    },
+  ];
+
+  projectProgressPeriod:
+    ProjectProgressPeriod = 'all';
 
   project: Project | null = null;
   tasks: ProjectTask[] = [];
@@ -410,6 +446,37 @@ export class ProjectDetailsPage implements OnInit {
     }
   }
 
+  async openTaskCalendar(): Promise<void> {
+    const modal =
+      await this.modalController.create({
+        component:
+        TaskCalendarModalComponent,
+
+        componentProps: {
+          tasks: this.tasks,
+        },
+
+        cssClass:
+          'task-calendar-modal',
+
+        backdropDismiss: true,
+      });
+
+    await modal.present();
+
+    const result =
+      await modal.onDidDismiss<ProjectTask>();
+
+    if (
+      result.role === 'task' &&
+      result.data
+    ) {
+      await this.openTaskDetails(
+        result.data,
+      );
+    }
+  }
+
   async openEditProjectModal(): Promise<void> {
     if (!this.project) {
       return;
@@ -503,36 +570,68 @@ export class ProjectDetailsPage implements OnInit {
       );
   }
 
+  get progressTasks(): ProjectTask[] {
+    if (
+      this.projectProgressPeriod === 'all'
+    ) {
+      return this.tasks;
+    }
+
+    const range =
+      this.getProjectProgressDateRange();
+
+    if (!range) {
+      return this.tasks;
+    }
+
+    return this.tasks.filter((task) => {
+      const dueDate =
+        this.parseTaskDate(task.due_at);
+
+      if (!dueDate) {
+        return false;
+      }
+
+      return (
+        dueDate >= range.start &&
+        dueDate <= range.end
+      );
+    });
+  }
+  get visibleTasks(): ProjectTask[] {
+    return this.progressTasks;
+  }
+
   get totalTaskCount(): number {
-    return this.tasks.length;
+    return this.progressTasks.length;
   }
 
   get completedTaskCount(): number {
-    return this.countTasksByStatus(
+    return this.countProgressTasksByStatus(
       'completed',
     );
   }
 
   get backlogTaskCount(): number {
-    return this.countTasksByStatus(
+    return this.countProgressTasksByStatus(
       'backlog',
     );
   }
 
   get todoTaskCount(): number {
-    return this.countTasksByStatus(
+    return this.countProgressTasksByStatus(
       'todo',
     );
   }
 
   get inProgressTaskCount(): number {
-    return this.countTasksByStatus(
+    return this.countProgressTasksByStatus(
       'in_progress',
     );
   }
 
   get inReviewTaskCount(): number {
-    return this.countTasksByStatus(
+    return this.countProgressTasksByStatus(
       'in_review',
     );
   }
@@ -556,6 +655,37 @@ export class ProjectDetailsPage implements OnInit {
         this.totalTaskCount
       ) * 100,
     );
+  }
+
+  get tasksWithoutDueDateCount(): number {
+    return this.tasks.filter(
+      (task) => !task.due_at,
+    ).length;
+  }
+
+  get selectedProgressPeriodLabel(): string {
+    return (
+      this.projectProgressPeriodOptions.find(
+        (option) =>
+          option.value ===
+          this.projectProgressPeriod,
+      )?.label ?? 'All time'
+    );
+  }
+
+  changeProjectProgressPeriod(
+    event: Event,
+  ): void {
+    const select = event.target;
+
+    if (
+      !(select instanceof HTMLSelectElement)
+    ) {
+      return;
+    }
+
+    this.projectProgressPeriod =
+      select.value as ProjectProgressPeriod;
   }
 
   isTaskStatusUpdating(
@@ -828,11 +958,107 @@ export class ProjectDetailsPage implements OnInit {
     );
   }
 
-  private countTasksByStatus(
+  private countProgressTasksByStatus(
     status: TaskStatus,
   ): number {
-    return this.tasks.filter(
+    return this.progressTasks.filter(
       (task) => task.status === status,
     ).length;
+  }
+
+  private parseTaskDate(
+    value: string | null,
+  ): Date | null {
+    if (!value) {
+      return null;
+    }
+
+    const date = new Date(
+      `${value.substring(0, 10)}T00:00:00`,
+    );
+
+    return Number.isNaN(date.getTime())
+      ? null
+      : date;
+  }
+
+  private getProjectProgressDateRange(): {
+    start: Date;
+    end: Date;
+  } | null {
+    const now = new Date();
+
+    const start = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+    );
+
+    const end = new Date(start);
+
+    if (
+      this.projectProgressPeriod ===
+      'this_week'
+    ) {
+      const day =
+        start.getDay() === 0
+          ? 7
+          : start.getDay();
+
+      start.setDate(
+        start.getDate() - day + 1,
+      );
+
+      end.setTime(start.getTime());
+      end.setDate(end.getDate() + 6);
+      end.setHours(23, 59, 59, 999);
+
+      return {
+        start,
+        end,
+      };
+    }
+
+    if (
+      this.projectProgressPeriod ===
+      'this_month'
+    ) {
+      start.setDate(1);
+
+      end.setFullYear(
+        start.getFullYear(),
+        start.getMonth() + 1,
+        0,
+      );
+
+      end.setHours(23, 59, 59, 999);
+
+      return {
+        start,
+        end,
+      };
+    }
+
+    if (
+      this.projectProgressPeriod ===
+      'this_year'
+    ) {
+      start.setMonth(0, 1);
+
+      end.setFullYear(
+        start.getFullYear(),
+        11,
+        31,
+      );
+
+      end.setHours(23, 59, 59, 999);
+
+      return {
+        start,
+        end,
+      };
+    }
+
+    return null;
   }
 }

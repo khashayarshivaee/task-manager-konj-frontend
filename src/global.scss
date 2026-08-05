@@ -139,3 +139,38 @@ ion-modal.workspace-delete-modal::part(content) {
     --border-radius: 0;
   }
 }
+
+ion-modal.task-calendar-modal {
+  --width: min(
+    940px,
+    calc(100vw - 32px)
+  );
+
+  --height: min(
+    760px,
+    calc(100vh - 32px)
+  );
+
+  --border-radius: 24px;
+}
+
+ion-modal.task-calendar-modal::part(
+  content
+) {
+  overflow: hidden;
+  border-radius: 24px;
+}
+
+@media (max-width: 700px) {
+  ion-modal.task-calendar-modal {
+    --width: 100%;
+    --height: 100%;
+    --border-radius: 0;
+  }
+
+  ion-modal.task-calendar-modal::part(
+    content
+  ) {
+    border-radius: 0;
+  }
+}

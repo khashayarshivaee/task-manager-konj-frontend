@@ -1,0 +1,233 @@
+<ion-content class="task-calendar-content">
+  <div class="calendar-modal-shell">
+    <header class="calendar-modal-header">
+      <div class="calendar-modal-heading">
+        <span class="calendar-heading-icon">
+          <ion-icon
+            name="calendar-outline"
+          ></ion-icon>
+        </span>
+
+        <div>
+          <span>Project schedule</span>
+          <h2>Task calendar</h2>
+
+          <p>
+            View project tasks by their due date.
+          </p>
+        </div>
+      </div>
+
+      <button
+        type="button"
+        class="calendar-close-button"
+        aria-label="Close task calendar"
+        (click)="dismiss()"
+      >
+        <ion-icon
+          name="close-outline"
+        ></ion-icon>
+      </button>
+    </header>
+
+    <section class="calendar-toolbar">
+      <button
+        type="button"
+        class="calendar-navigation-button"
+        aria-label="Previous month"
+        (click)="previousMonth()"
+      >
+        <ion-icon
+          name="chevron-back-outline"
+        ></ion-icon>
+      </button>
+
+      <div class="calendar-month-title">
+        <strong>{{ monthLabel }}</strong>
+
+        <span>
+          {{ dueTaskCount }}
+          {{
+          dueTaskCount === 1
+            ? 'scheduled task'
+            : 'scheduled tasks'
+          }}
+        </span>
+      </div>
+
+      <button
+        type="button"
+        class="calendar-navigation-button"
+        aria-label="Next month"
+        (click)="nextMonth()"
+      >
+        <ion-icon
+          name="chevron-forward-outline"
+        ></ion-icon>
+      </button>
+
+      <button
+        type="button"
+        class="calendar-today-button"
+        (click)="goToToday()"
+      >
+        Today
+      </button>
+    </section>
+
+    <div class="calendar-layout">
+      <section class="calendar-panel">
+        <div class="calendar-weekdays">
+          @for (
+          weekDay of weekDays;
+          track weekDay
+          ) {
+          <span>{{ weekDay }}</span>
+          }
+        </div>
+
+        <div class="calendar-grid">
+          @for (
+          day of calendarDays;
+          track day.key
+          ) {
+          <button
+            type="button"
+            class="calendar-day"
+            [class.calendar-day-muted]="
+              !day.isCurrentMonth
+            "
+            [class.calendar-day-today]="
+              day.isToday
+            "
+            [class.calendar-day-selected]="
+              selectedDateKey === day.key
+            "
+            [class.calendar-day-has-tasks]="
+              day.tasks.length > 0
+            "
+            (click)="selectDay(day)"
+          >
+            <span class="calendar-day-number">
+          {{ day.dayNumber }}
+          </span>
+
+          @if (day.tasks.length > 0) {
+          <span class="calendar-task-count">
+                  {{ day.tasks.length }}
+                </span>
+
+          <span class="calendar-task-dots">
+                  @for (
+                    task of day.tasks.slice(0, 3);
+                    track task.id
+                  ) {
+            <i
+              [attr.data-status]="
+                task.status
+              "
+            ></i>
+                  }
+                </span>
+          }
+          </button>
+          }
+        </div>
+      </section>
+
+      <aside class="calendar-day-panel">
+        <header>
+          <span>Selected date</span>
+          <h3>{{ selectedDateLabel }}</h3>
+
+          <small>
+            {{ selectedTasks.length }}
+            {{
+            selectedTasks.length === 1
+              ? 'task'
+              : 'tasks'
+            }}
+          </small>
+        </header>
+
+        @if (selectedTasks.length > 0) {
+        <div class="calendar-selected-tasks">
+          @for (
+            task of selectedTasks;
+            track task.id
+          ) {
+        <button
+          type="button"
+          class="calendar-task-card"
+          [attr.data-status]="
+                  task.status
+                "
+          (click)="openTask(task)"
+        >
+                <span
+                  class="calendar-task-status-line"
+                ></span>
+
+          <div>
+            <strong>
+              {{ task.title }}
+            </strong>
+
+            <span>
+                    {{
+              getTaskStatusLabel(task)
+              }}
+              ·
+              {{
+              getTaskPriorityLabel(task)
+              }}
+                  </span>
+          </div>
+        </button>
+        }
+        </div>
+        } @else {
+        <div class="calendar-no-tasks">
+          <span>
+            <ion-icon
+              name="calendar-outline"
+            ></ion-icon>
+          </span>
+
+          <strong>
+            No tasks due on this date
+          </strong>
+
+          <small>
+            Choose another day to review
+            scheduled project work.
+          </small>
+        </div>
+        }
+
+        @if (
+        tasksWithoutDueDateCount > 0
+        ) {
+        <div class="calendar-unscheduled-note">
+          <strong>
+        {{ tasksWithoutDueDateCount }}
+        </strong>
+
+        {{
+        tasksWithoutDueDateCount === 1
+          ? 'task has'
+          : 'tasks have'
+        }}
+        no due date and
+        {{
+        tasksWithoutDueDateCount === 1
+          ? 'is'
+          : 'are'
+        }}
+        not shown in the calendar.
+      </div>
+        }
+      </aside>
+    </div>
+  </div>
+</ion-content>
