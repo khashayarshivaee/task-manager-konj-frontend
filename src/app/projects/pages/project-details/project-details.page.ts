@@ -58,6 +58,8 @@ import {
 } from '../../../tasks/components/create-task-modal/create-task-modal.component';
 import {
   ProjectTask,
+  ProjectTaskSummary,
+  TaskPaginationMeta,
   TaskStatus,
   TaskUser,
 } from '../../../tasks/models/task.model';
@@ -179,22 +181,52 @@ export class ProjectDetailsPage implements OnInit {
   project: Project | null = null;
   tasks: ProjectTask[] = [];
 
+  taskSummary: ProjectTaskSummary | null =
+    null;
+
+  taskPagination: TaskPaginationMeta | null =
+    null;
+
+  readonly tasksPerPage = 20;
+
   workspaceId = 0;
   projectId = 0;
 
   isLoading = true;
   isLoadingTasks = false;
+  isLoadingMoreTasks = false;
+  isLoadingTaskSummary = false;
 
   errorMessage = '';
   taskErrorMessage = '';
 
   taskStatusErrorMessage = '';
 
+  taskSummaryErrorMessage = '';
+
   private readonly updatingTaskStatusIds =
     new Set<number>();
 
   showUpdateNotice = false;
   showTaskCreatedNotice = false;
+
+  get hasMoreTasks(): boolean {
+    return (
+      this.taskPagination
+        ?.has_more_pages ?? false
+    );
+  }
+
+  get loadedTaskCount(): number {
+    return this.tasks.length;
+  }
+
+  get filteredTaskTotal(): number {
+    return (
+      this.taskPagination?.total ??
+      this.tasks.length
+    );
+  }
 
   constructor() {
     addIcons({
@@ -267,7 +299,8 @@ export class ProjectDetailsPage implements OnInit {
           this.project =
             response.data.project;
 
-          this.loadTasks();
+          this.loadTasks(true);
+          this.loadTaskSummary();
         },
 
         error: (
@@ -296,40 +329,112 @@ export class ProjectDetailsPage implements OnInit {
       });
   }
 
-  loadTasks(): void {
+  loadTasks(
+    reset: boolean = true,
+  ): void {
     if (
+      !this.project ||
       this.isLoadingTasks ||
-      !this.project
+      this.isLoadingMoreTasks
     ) {
       return;
     }
 
-    this.isLoadingTasks = true;
-    this.taskErrorMessage = '';
+    if (
+      !reset &&
+      !this.hasMoreTasks
+    ) {
+      return;
+    }
+
+    const page = reset
+      ? 1
+      : (
+      this.taskPagination
+        ?.current_page ?? 0
+    ) + 1;
+
+    if (reset) {
+      this.isLoadingTasks = true;
+      this.taskErrorMessage = '';
+    } else {
+      this.isLoadingMoreTasks = true;
+    }
 
     this.taskService
       .getTasks(
         this.workspaceId,
         this.projectId,
+        {
+          page,
+          per_page: this.tasksPerPage,
+
+          due:
+            this.projectProgressPeriod ===
+            'all'
+              ? undefined
+              : this.projectProgressPeriod,
+
+          sort: 'workflow',
+          direction: 'asc',
+        },
       )
       .pipe(
         finalize(() => {
-          this.isLoadingTasks = false;
+          if (reset) {
+            this.isLoadingTasks = false;
+          } else {
+            this.isLoadingMoreTasks =
+              false;
+          }
         }),
 
-        takeUntilDestroyed(this.destroyRef),
+        takeUntilDestroyed(
+          this.destroyRef,
+        ),
       )
       .subscribe({
         next: (response) => {
-          this.tasks = this.sortTasks(
-            response.data.tasks,
-          );
+          const receivedTasks =
+            response.data.tasks;
+
+          if (reset) {
+            this.tasks = this.sortTasks(
+              receivedTasks,
+            );
+          } else {
+            const existingTaskIds =
+              new Set(
+                this.tasks.map(
+                  (task) => task.id,
+                ),
+              );
+
+            const newTasks =
+              receivedTasks.filter(
+                (task) =>
+                  !existingTaskIds.has(
+                    task.id,
+                  ),
+              );
+
+            this.tasks = this.sortTasks([
+              ...this.tasks,
+              ...newTasks,
+            ]);
+          }
+
+          this.taskPagination =
+            response.meta;
         },
 
         error: (
           error: HttpErrorResponse,
         ) => {
-          this.tasks = [];
+          if (reset) {
+            this.tasks = [];
+            this.taskPagination = null;
+          }
 
           if (error.status === 403) {
             this.taskErrorMessage =
@@ -345,8 +450,75 @@ export class ProjectDetailsPage implements OnInit {
             return;
           }
 
+          if (error.status === 422) {
+            this.taskErrorMessage =
+              'The selected task filters are invalid.';
+
+            return;
+          }
+
           this.taskErrorMessage =
-            'Unable to load project tasks. Please try again.';
+            reset
+              ? 'Unable to load project tasks. Please try again.'
+              : 'Unable to load more tasks. Please try again.';
+        },
+      });
+  }
+  loadMoreTasks(): void {
+    this.loadTasks(false);
+  }
+  loadTaskSummary(): void {
+    if (
+      !this.project ||
+      this.isLoadingTaskSummary
+    ) {
+      return;
+    }
+
+    this.isLoadingTaskSummary = true;
+    this.taskSummaryErrorMessage = '';
+
+    this.taskService
+      .getTaskSummary(
+        this.workspaceId,
+        this.projectId,
+        this.projectProgressPeriod,
+      )
+      .pipe(
+        finalize(() => {
+          this.isLoadingTaskSummary =
+            false;
+        }),
+
+        takeUntilDestroyed(
+          this.destroyRef,
+        ),
+      )
+      .subscribe({
+        next: (response) => {
+          this.taskSummary =
+            response.data;
+        },
+
+        error: (
+          error: HttpErrorResponse,
+        ) => {
+          if (error.status === 403) {
+            this.taskSummaryErrorMessage =
+              'You do not have access to the project task summary.';
+
+            return;
+          }
+
+          if (error.status === 404) {
+            this.taskSummaryErrorMessage =
+              'The project task summary could not be found.';
+
+            return;
+          }
+
+          this.taskSummaryErrorMessage =
+            'Unable to load project progress.';
         },
       });
   }
@@ -378,14 +550,8 @@ export class ProjectDetailsPage implements OnInit {
       result.role === 'closed' &&
       result.data
     ) {
-      this.tasks = this.sortTasks(
-        this.tasks.map(
-          (currentTask) =>
-            currentTask.id === result.data?.id
-              ? result.data
-              : currentTask,
-        ),
-      );
+      this.loadTasks(true);
+      this.loadTaskSummary();
     }
 
     if (
@@ -402,10 +568,8 @@ export class ProjectDetailsPage implements OnInit {
       result.role === 'deleted' &&
       result.data
     ) {
-      this.tasks = this.tasks.filter(
-        (currentTask) =>
-          currentTask.id !== result.data?.id,
-      );
+      this.loadTasks(true);
+      this.loadTaskSummary();
     }
   }
 
@@ -437,12 +601,10 @@ export class ProjectDetailsPage implements OnInit {
       result.role === 'created' &&
       result.data
     ) {
-      this.tasks = this.sortTasks([
-        ...this.tasks,
-        result.data,
-      ]);
-
       this.showTaskCreatedNotice = true;
+
+      this.loadTasks(true);
+      this.loadTaskSummary();
     }
   }
 
@@ -453,7 +615,8 @@ export class ProjectDetailsPage implements OnInit {
         TaskCalendarModalComponent,
 
         componentProps: {
-          tasks: this.tasks,
+          workspaceId: this.workspaceId,
+          projectId: this.projectId,
         },
 
         cssClass:
@@ -570,97 +733,94 @@ export class ProjectDetailsPage implements OnInit {
       );
   }
 
-  get progressTasks(): ProjectTask[] {
-    if (
-      this.projectProgressPeriod === 'all'
-    ) {
-      return this.tasks;
-    }
-
-    const range =
-      this.getProjectProgressDateRange();
-
-    if (!range) {
-      return this.tasks;
-    }
-
-    return this.tasks.filter((task) => {
-      const dueDate =
-        this.parseTaskDate(task.due_at);
-
-      if (!dueDate) {
-        return false;
-      }
-
-      return (
-        dueDate >= range.start &&
-        dueDate <= range.end
-      );
-    });
-  }
+  // get progressTasks(): ProjectTask[] {
+  //   if (
+  //     this.projectProgressPeriod === 'all'
+  //   ) {
+  //     return this.tasks;
+  //   }
+  //
+  //   const range =
+  //     this.getProjectProgressDateRange();
+  //
+  //   if (!range) {
+  //     return this.tasks;
+  //   }
+  //
+  //   return this.tasks.filter((task) => {
+  //     const dueDate =
+  //       this.parseTaskDate(task.due_at);
+  //
+  //     if (!dueDate) {
+  //       return false;
+  //     }
+  //
+  //     return (
+  //       dueDate >= range.start &&
+  //       dueDate <= range.end
+  //     );
+  //   });
+  // }
   get visibleTasks(): ProjectTask[] {
-    return this.progressTasks;
+    return this.tasks;
   }
 
   get totalTaskCount(): number {
-    return this.progressTasks.length;
+    return this.taskSummary?.total ?? 0;
   }
 
   get completedTaskCount(): number {
-    return this.countProgressTasksByStatus(
-      'completed',
+    return (
+      this.taskSummary?.completed ?? 0
     );
   }
 
   get backlogTaskCount(): number {
-    return this.countProgressTasksByStatus(
-      'backlog',
+    return (
+      this.taskSummary
+        ?.by_status.backlog ?? 0
     );
   }
 
   get todoTaskCount(): number {
-    return this.countProgressTasksByStatus(
-      'todo',
+    return (
+      this.taskSummary
+        ?.by_status.todo ?? 0
     );
   }
 
   get inProgressTaskCount(): number {
-    return this.countProgressTasksByStatus(
-      'in_progress',
+    return (
+      this.taskSummary
+        ?.by_status.in_progress ?? 0
     );
   }
 
   get inReviewTaskCount(): number {
-    return this.countProgressTasksByStatus(
-      'in_review',
+    return (
+      this.taskSummary
+        ?.by_status.in_review ?? 0
     );
   }
 
   get remainingTaskCount(): number {
-    return Math.max(
-      this.totalTaskCount -
-      this.completedTaskCount,
-      0,
+    return (
+      this.taskSummary?.remaining ?? 0
     );
   }
 
   get projectProgressPercentage(): number {
-    if (this.totalTaskCount === 0) {
-      return 0;
-    }
-
-    return Math.round(
-      (
-        this.completedTaskCount /
-        this.totalTaskCount
-      ) * 100,
+    return (
+      this.taskSummary
+        ?.completion_percentage ?? 0
     );
   }
 
   get tasksWithoutDueDateCount(): number {
-    return this.tasks.filter(
-      (task) => !task.due_at,
-    ).length;
+    return (
+      this.taskSummary
+        ?.without_due_date ?? 0
+    );
   }
 
   get selectedProgressPeriodLabel(): string {
@@ -679,13 +839,20 @@ export class ProjectDetailsPage implements OnInit {
     const select = event.target;
 
     if (
-      !(select instanceof HTMLSelectElement)
+      !(select instanceof
+        HTMLSelectElement)
     ) {
       return;
     }
 
     this.projectProgressPeriod =
       select.value as ProjectProgressPeriod;
+
+    this.tasks = [];
+    this.taskPagination = null;
+
+    this.loadTasks(true);
+    this.loadTaskSummary();
   }
 
   isTaskStatusUpdating(
@@ -888,6 +1055,7 @@ export class ProjectDetailsPage implements OnInit {
                   : currentTask,
             ),
           );
+          this.loadTaskSummary();
         },
 
         error: (
@@ -958,107 +1126,107 @@ export class ProjectDetailsPage implements OnInit {
     );
   }
 
-  private countProgressTasksByStatus(
-    status: TaskStatus,
-  ): number {
-    return this.progressTasks.filter(
-      (task) => task.status === status,
-    ).length;
-  }
+  // private countProgressTasksByStatus(
+  //   status: TaskStatus,
+  // ): number {
+  //   return this.progressTasks.filter(
+  //     (task) => task.status === status,
+  //   ).length;
+  // }
 
-  private parseTaskDate(
-    value: string | null,
-  ): Date | null {
-    if (!value) {
-      return null;
-    }
+  // private parseTaskDate(
+  //   value: string | null,
+  // ): Date | null {
+  //   if (!value) {
+  //     return null;
+  //   }
+  //
+  //   const date = new Date(
+  //     `${value.substring(0, 10)}T00:00:00`,
+  //   );
+  //
+  //   return Number.isNaN(date.getTime())
+  //     ? null
+  //     : date;
+  // }
 
-    const date = new Date(
-      `${value.substring(0, 10)}T00:00:00`,
-    );
-
-    return Number.isNaN(date.getTime())
-      ? null
-      : date;
-  }
-
-  private getProjectProgressDateRange(): {
-    start: Date;
-    end: Date;
-  } | null {
-    const now = new Date();
-
-    const start = new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      now.getDate(),
-    );
-
-    const end = new Date(start);
-
-    if (
-      this.projectProgressPeriod ===
-      'this_week'
-    ) {
-      const day =
-        start.getDay() === 0
-          ? 7
-          : start.getDay();
-
-      start.setDate(
-        start.getDate() - day + 1,
-      );
-
-      end.setTime(start.getTime());
-      end.setDate(end.getDate() + 6);
-      end.setHours(23, 59, 59, 999);
-
-      return {
-        start,
-        end,
-      };
-    }
-
-    if (
-      this.projectProgressPeriod ===
-      'this_month'
-    ) {
-      start.setDate(1);
-
-      end.setFullYear(
-        start.getFullYear(),
-        start.getMonth() + 1,
-        0,
-      );
-
-      end.setHours(23, 59, 59, 999);
-
-      return {
-        start,
-        end,
-      };
-    }
-
-    if (
-      this.projectProgressPeriod ===
-      'this_year'
-    ) {
-      start.setMonth(0, 1);
-
-      end.setFullYear(
-        start.getFullYear(),
-        11,
-        31,
-      );
-
-      end.setHours(23, 59, 59, 999);
-
-      return {
-        start,
-        end,
-      };
-    }
-
-    return null;
-  }
+  // private getProjectProgressDateRange(): {
+  //   start: Date;
+  //   end: Date;
+  // } | null {
+  //   const now = new Date();
+  //
+  //   const start = new Date(
+  //     now.getFullYear(),
+  //     now.getMonth(),
+  //     now.getDate(),
+  //   );
+  //
+  //   const end = new Date(start);
+  //
+  //   if (
+  //     this.projectProgressPeriod ===
+  //     'this_week'
+  //   ) {
+  //     const day =
+  //       start.getDay() === 0
+  //         ? 7
+  //         : start.getDay();
+  //
+  //     start.setDate(
+  //       start.getDate() - day + 1,
+  //     );
+  //
+  //     end.setTime(start.getTime());
+  //     end.setDate(end.getDate() + 6);
+  //     end.setHours(23, 59, 59, 999);
+  //
+  //     return {
+  //       start,
+  //       end,
+  //     };
+  //   }
+  //
+  //   if (
+  //     this.projectProgressPeriod ===
+  //     'this_month'
+  //   ) {
+  //     start.setDate(1);
+  //
+  //     end.setFullYear(
+  //       start.getFullYear(),
+  //       start.getMonth() + 1,
+  //       0,
+  //     );
+  //
+  //     end.setHours(23, 59, 59, 999);
+  //
+  //     return {
+  //       start,
+  //       end,
+  //     };
+  //   }
+  //
+  //   if (
+  //     this.projectProgressPeriod ===
+  //     'this_year'
+  //   ) {
+  //     start.setMonth(0, 1);
+  //
+  //     end.setFullYear(
+  //       start.getFullYear(),
+  //       11,
+  //       31,
+  //     );
+  //
+  //     end.setHours(23, 59, 59, 999);
+  //
+  //     return {
+  //       start,
+  //       end,
+  //     };
+  //   }
+  //
+  //   return null;
+  // }
 }

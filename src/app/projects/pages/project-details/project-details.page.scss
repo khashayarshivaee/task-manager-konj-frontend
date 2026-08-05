@@ -986,7 +986,109 @@
     repeat(2, minmax(0, 1fr));
 }
 
+.tasks-pagination {
+  display: flex;
+  min-height: 66px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-top: 16px;
+  padding: 13px 15px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface-soft);
+}
+
+.tasks-pagination-copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tasks-pagination-copy strong {
+  color: var(--text);
+  font-size: 9px;
+  font-weight: 820;
+}
+
+.tasks-pagination-copy span {
+  color: var(--muted);
+  font-size: 8px;
+}
+
+.load-more-tasks-button {
+  display: flex;
+  min-width: 145px;
+  min-height: 39px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 14px;
+  color: #ffffff;
+  font-size: 9px;
+  font-weight: 820;
+  border: 0;
+  border-radius: 11px;
+  background: var(--orange);
+  cursor: pointer;
+  transition:
+    opacity 150ms ease,
+    transform 150ms ease,
+    box-shadow 150ms ease;
+}
+
+.load-more-tasks-button:hover:not(
+  :disabled
+) {
+  transform: translateY(-1px);
+  box-shadow:
+    0 8px 18px
+    rgba(255, 107, 0, 0.18);
+}
+
+.load-more-tasks-button:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+.load-more-tasks-button ion-spinner {
+  width: 15px;
+  height: 15px;
+  color: #ffffff;
+}
+
+.tasks-pagination-complete {
+  color: #3b9b65;
+  font-size: 8px;
+  font-weight: 800;
+}
+
+.project-summary-error {
+  margin: 15px 0 0;
+  padding: 10px 12px;
+  color: #a24635;
+  font-size: 8px;
+  line-height: 1.6;
+  border: 1px solid
+  rgba(162, 70, 53, 0.14);
+  border-radius: 10px;
+  background: #fff5f2;
+}
+
 @media (max-width: 760px) {
+  .tasks-pagination {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .load-more-tasks-button {
+    width: 100%;
+  }
+
+  .tasks-pagination-complete {
+    text-align: center;
+  }
   .tasks-header-actions {
     width: 100%;
   }

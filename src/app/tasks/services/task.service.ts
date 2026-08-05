@@ -1,11 +1,17 @@
-import { HttpClient } from '@angular/common/http';
-import { Injectable, inject } from '@angular/core';
+import {
+  HttpClient,
+  HttpParams,
+} from '@angular/common/http';import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
 import {
   CreateTaskPayload,
   CreateTaskResponse,
+  ProjectTaskCalendarResponse,
+  ProjectTaskPeriod,
+  ProjectTaskSummaryResponse,
+  TaskListQuery,
   DeleteTaskAttachmentResponse,
   DeleteTaskResponse,
   UpdateTaskStatusPayload,
@@ -29,15 +35,130 @@ export class TaskService {
   getTasks(
     workspaceId: number,
     projectId: number,
+    query: TaskListQuery = {},
   ): Observable<ListTasksResponse> {
+    let params = new HttpParams();
+
+    if (query.page !== undefined) {
+      params = params.set(
+        'page',
+        String(query.page),
+      );
+    }
+
+    if (query.per_page !== undefined) {
+      params = params.set(
+        'per_page',
+        String(query.per_page),
+      );
+    }
+
+    if (query.search) {
+      params = params.set(
+        'search',
+        query.search,
+      );
+    }
+
+    if (query.status) {
+      params = params.set(
+        'status',
+        query.status,
+      );
+    }
+
+    if (query.priority) {
+      params = params.set(
+        'priority',
+        query.priority,
+      );
+    }
+
+    if (query.assignee !== undefined) {
+      params = params.set(
+        'assignee',
+        String(query.assignee),
+      );
+    }
+
+    if (query.due) {
+      params = params.set(
+        'due',
+        query.due,
+      );
+    }
+
+    if (query.sort) {
+      params = params.set(
+        'sort',
+        query.sort,
+      );
+    }
+
+    if (query.direction) {
+      params = params.set(
+        'direction',
+        query.direction,
+      );
+    }
+
     return this.http.get<ListTasksResponse>(
       this.tasksUrl(
         workspaceId,
         projectId,
       ),
+      {
+        params,
+      },
     );
   }
 
+  getTaskSummary(
+    workspaceId: number,
+    projectId: number,
+    period: ProjectTaskPeriod = 'all',
+  ): Observable<ProjectTaskSummaryResponse> {
+    const params = new HttpParams().set(
+      'period',
+      period,
+    );
+
+    return this.http.get<ProjectTaskSummaryResponse>(
+      this.taskSummaryUrl(
+        workspaceId,
+        projectId,
+      ),
+      {
+        params,
+      },
+    );
+  }
+  getTaskCalendar(
+    workspaceId: number,
+    projectId: number,
+    from: string,
+    to: string,
+  ): Observable<ProjectTaskCalendarResponse> {
+    const params = new HttpParams()
+      .set(
+        'from',
+        from,
+      )
+      .set(
+        'to',
+        to,
+      );
+
+    return this.http.get<ProjectTaskCalendarResponse>(
+      `${this.tasksUrl(
+        workspaceId,
+        projectId,
+      )}/calendar`,
+      {
+        params,
+      },
+    );
+  }
   getTaskWatchers(
     workspaceId: number,
     projectId: number,
@@ -226,6 +347,13 @@ export class TaskService {
     projectId: number,
   ): string {
     return `${environment.apiUrl}/workspaces/${workspaceId}/projects/${projectId}/tasks`;
+  }
+
+  private taskSummaryUrl(
+    workspaceId: number,
+    projectId: number,
+  ): string {
+    return `${environment.apiUrl}/workspaces/${workspaceId}/projects/${projectId}/task-summary`;
   }
 
   private attachmentsUrl(

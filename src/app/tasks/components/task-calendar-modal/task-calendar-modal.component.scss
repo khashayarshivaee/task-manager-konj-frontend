@@ -161,6 +161,80 @@ button {
   gap: 16px;
   margin-top: 18px;
 }
+.calendar-layout {
+  position: relative;
+}
+
+.calendar-layout-loading {
+  min-height: 470px;
+  pointer-events: none;
+}
+
+.calendar-layout-loading
+.calendar-panel,
+.calendar-layout-loading
+.calendar-day-panel {
+  opacity: 0.38;
+}
+
+.calendar-loading-overlay {
+  position: absolute;
+  z-index: 5;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 9px;
+  border-radius: 17px;
+  background:
+    rgba(255, 255, 255, 0.68);
+  backdrop-filter: blur(2px);
+}
+
+.calendar-loading-overlay ion-spinner {
+  width: 24px;
+  height: 24px;
+  color: var(--orange);
+}
+
+.calendar-loading-overlay strong {
+  color: var(--text);
+  font-size: 9px;
+}
+
+.calendar-error-message {
+  display: flex;
+  min-height: 45px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  margin-top: 14px;
+  padding: 10px 12px;
+  color: #a24635;
+  font-size: 8px;
+  border: 1px solid
+  rgba(162, 70, 53, 0.15);
+  border-radius: 11px;
+  background: #fff5f2;
+}
+
+.calendar-error-message button {
+  flex: 0 0 auto;
+  padding: 7px 10px;
+  color: #a24635;
+  font-size: 8px;
+  font-weight: 800;
+  border-radius: 8px;
+  background: #ffffff;
+  cursor: pointer;
+}
+
+.calendar-navigation-button:disabled,
+.calendar-today-button:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
 
 .calendar-panel,
 .calendar-day-panel {

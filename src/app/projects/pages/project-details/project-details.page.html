@@ -242,7 +242,7 @@
   </div>
 </article>
 </section>
-<section class="project-progress-card">
+ <section class="project-progress-card">
   <header class="project-progress-header">
     <div>
       <span class="project-eyebrow">
@@ -306,6 +306,11 @@
     </div>
   </div>
     </header>
+    @if (taskSummaryErrorMessage) {
+    <p class="project-summary-error">
+      {{ taskSummaryErrorMessage }}
+    </p>
+    }
 
     <div
       class="project-progress-track"
@@ -423,13 +428,12 @@
     </h2>
 
     <p>
-    {{ visibleTasks.length }}
+    {{ filteredTaskTotal }}
     {{
-    visibleTasks.length === 1
+    filteredTaskTotal === 1
       ? 'task'
       : 'tasks'
     }}
-
     @if (
       projectProgressPeriod === 'all'
     ) {
@@ -572,11 +576,12 @@
       }
     </div>
     } @else {
-    <div class="task-list">
+    <div class="tasks-list">
       @for (
       task of visibleTasks;
       track task.id
-      ) {      <article
+      ) {
+      <article
   class="task-row"
   [class.task-row-completed]="
     task.status === 'completed'
@@ -778,7 +783,54 @@
     </article>
       }
     </div>
+
+
+    @if (visibleTasks.length > 0) {
+    <div class="tasks-pagination">
+      <div class="tasks-pagination-copy">
+        <strong>
+          Showing
+     {{ loadedTaskCount }}
+     of
+     {{ filteredTaskTotal }}
+      </strong>
+
+     <span>
+      Tasks are loaded in groups of
+     {{ tasksPerPage }}.
+        </span>
+      </div>
+
+      @if (hasMoreTasks) {
+    <button
+      type="button"
+      class="load-more-tasks-button"
+      [disabled]="
+            isLoadingMoreTasks
+          "
+      (click)="loadMoreTasks()"
+    >
+      @if (isLoadingMoreTasks) {
+      <ion-spinner
+        name="crescent"
+      ></ion-spinner>
+
+      <span>Loading tasks...</span>
+      } @else {
+      <span>Load more tasks</span>
+      }
+    </button>
+    } @else {
+    <span
+      class="tasks-pagination-complete"
+    >
+          All tasks loaded
+        </span>
     }
+    </div>
+    }
+    }
+
     </section>
 
     <section class="project-workspace">

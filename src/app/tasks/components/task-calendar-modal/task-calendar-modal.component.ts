@@ -1,13 +1,23 @@
 import {
   Component,
+  DestroyRef,
   inject,
   Input,
   OnInit,
 } from '@angular/core';
 
 import {
+  HttpErrorResponse,
+} from '@angular/common/http';
+
+import {
+  takeUntilDestroyed,
+} from '@angular/core/rxjs-interop';
+
+import {
   IonContent,
   IonIcon,
+  IonSpinner,
   ModalController,
 } from '@ionic/angular/standalone';
 
@@ -23,8 +33,16 @@ import {
 } from 'ionicons/icons';
 
 import {
+  finalize,
+} from 'rxjs';
+
+import {
   ProjectTask,
 } from '../../models/task.model';
+
+import {
+  TaskService,
+} from '../../services/task.service';
 
 interface TaskCalendarDay {
   date: Date;
@@ -45,6 +63,7 @@ interface TaskCalendarDay {
   imports: [
     IonContent,
     IonIcon,
+    IonSpinner,
   ],
 })
 export class TaskCalendarModalComponent
@@ -52,8 +71,17 @@ export class TaskCalendarModalComponent
   private readonly modalController =
     inject(ModalController);
 
+  private readonly taskService =
+    inject(TaskService);
+
+  private readonly destroyRef =
+    inject(DestroyRef);
+
   @Input({ required: true })
-  tasks: ProjectTask[] = [];
+  workspaceId!: number;
+
+  @Input({ required: true })
+  projectId!: number;
 
   readonly weekDays = [
     'Mon',
@@ -71,8 +99,20 @@ export class TaskCalendarModalComponent
 
   selectedDateKey = '';
 
+  calendarTasks: ProjectTask[] = [];
+
+  tasksWithoutDueDateCount = 0;
+
+  calendarTaskTotal = 0;
+
+  isLoadingCalendar = false;
+
+  calendarErrorMessage = '';
+
   private readonly tasksByDate =
     new Map<string, ProjectTask[]>();
+
+  private calendarRequestId = 0;
 
   constructor() {
     addIcons({
@@ -84,46 +124,24 @@ export class TaskCalendarModalComponent
   }
 
   ngOnInit(): void {
-    this.buildTaskDateIndex();
-    this.selectInitialDate();
+    this.loadCalendarRange();
   }
 
   get calendarDays(): TaskCalendarDay[] {
-    const firstMonthDay =
-      this.startOfMonth(
-        this.currentMonth,
-      );
-
-    /*
-     * JavaScript:
-     * Sunday = 0
-     *
-     * Calendar:
-     * Monday = 0
-     */
-    const mondayOffset =
-      firstMonthDay.getDay() === 0
-        ? 6
-        : firstMonthDay.getDay() - 1;
-
-    const calendarStart =
-      new Date(firstMonthDay);
-
-    calendarStart.setDate(
-      calendarStart.getDate() -
-      mondayOffset,
-    );
+    const range =
+      this.getCalendarRange();
 
     return Array.from(
       {
         length: 42,
       },
       (_, index): TaskCalendarDay => {
-        const date =
-          new Date(calendarStart);
+        const date = new Date(
+          range.start,
+        );
 
         date.setDate(
-          calendarStart.getDate() +
+          range.start.getDate() +
           index,
         );
 
@@ -202,46 +220,46 @@ export class TaskCalendarModalComponent
   }
 
   get dueTaskCount(): number {
-    return this.tasks.reduce(
-      (total, task) =>
-        task.due_at
-          ? total + 1
-          : total,
-      0,
-    );
-  }
-
-  get tasksWithoutDueDateCount(): number {
-    return this.tasks.reduce(
-      (total, task) =>
-        task.due_at
-          ? total
-          : total + 1,
-      0,
-    );
+    return this.calendarTaskTotal;
   }
 
   previousMonth(): void {
+    if (this.isLoadingCalendar) {
+      return;
+    }
+
     this.currentMonth = new Date(
       this.currentMonth.getFullYear(),
       this.currentMonth.getMonth() - 1,
       1,
     );
 
-    this.selectFirstTaskInCurrentMonth();
+    this.selectedDateKey = '';
+
+    this.loadCalendarRange();
   }
 
   nextMonth(): void {
+    if (this.isLoadingCalendar) {
+      return;
+    }
+
     this.currentMonth = new Date(
       this.currentMonth.getFullYear(),
       this.currentMonth.getMonth() + 1,
       1,
     );
 
-    this.selectFirstTaskInCurrentMonth();
+    this.selectedDateKey = '';
+
+    this.loadCalendarRange();
   }
 
   goToToday(): void {
+    if (this.isLoadingCalendar) {
+      return;
+    }
+
     const today = new Date();
 
     this.currentMonth =
@@ -249,6 +267,8 @@ export class TaskCalendarModalComponent
 
     this.selectedDateKey =
       this.getDateKey(today);
+
+    this.loadCalendarRange();
   }
 
   selectDay(
@@ -259,7 +279,13 @@ export class TaskCalendarModalComponent
     if (!day.isCurrentMonth) {
       this.currentMonth =
         this.startOfMonth(day.date);
+
+      this.loadCalendarRange();
     }
+  }
+
+  retryCalendar(): void {
+    this.loadCalendarRange();
   }
 
   getTaskStatusLabel(
@@ -301,10 +327,116 @@ export class TaskCalendarModalComponent
     );
   }
 
+  private loadCalendarRange(): void {
+    if (
+      !this.workspaceId ||
+      !this.projectId
+    ) {
+      return;
+    }
+
+    const range =
+      this.getCalendarRange();
+
+    const requestId =
+      ++this.calendarRequestId;
+
+    this.isLoadingCalendar = true;
+    this.calendarErrorMessage = '';
+
+    this.taskService
+      .getTaskCalendar(
+        this.workspaceId,
+        this.projectId,
+        this.getDateKey(range.start),
+        this.getDateKey(range.end),
+      )
+      .pipe(
+        finalize(() => {
+          if (
+            requestId ===
+            this.calendarRequestId
+          ) {
+            this.isLoadingCalendar =
+              false;
+          }
+        }),
+
+        takeUntilDestroyed(
+          this.destroyRef,
+        ),
+      )
+      .subscribe({
+        next: (response) => {
+          if (
+            requestId !==
+            this.calendarRequestId
+          ) {
+            return;
+          }
+
+          this.calendarTasks =
+            response.data.tasks;
+
+          this.tasksWithoutDueDateCount =
+            response.data.without_due_date;
+
+          this.calendarTaskTotal =
+            response.meta.total;
+
+          this.buildTaskDateIndex();
+
+          this.selectDateAfterLoad(
+            range.start,
+            range.end,
+          );
+        },
+
+        error: (
+          error: HttpErrorResponse,
+        ) => {
+          if (
+            requestId !==
+            this.calendarRequestId
+          ) {
+            return;
+          }
+
+          this.calendarTasks = [];
+          this.tasksByDate.clear();
+          this.calendarTaskTotal = 0;
+
+          if (error.status === 403) {
+            this.calendarErrorMessage =
+              'You do not have access to this project calendar.';
+
+            return;
+          }
+
+          if (error.status === 404) {
+            this.calendarErrorMessage =
+              'The project calendar could not be found.';
+
+            return;
+          }
+
+          if (error.status === 422) {
+            this.calendarErrorMessage =
+              'The requested calendar range is invalid.';
+
+            return;
+          }
+
+          this.calendarErrorMessage =
+            'Unable to load the project calendar.';
+        },
+      });
+  }
+
   private buildTaskDateIndex(): void {
     this.tasksByDate.clear();
 
-    this.tasks.forEach((task) => {
+    this.calendarTasks.forEach((task) => {
       const dateKey =
         this.getTaskDueDateKey(task);
 
@@ -335,11 +467,34 @@ export class TaskCalendarModalComponent
     });
   }
 
-  private selectInitialDate(): void {
+  private selectDateAfterLoad(
+    rangeStart: Date,
+    rangeEnd: Date,
+  ): void {
+    if (
+      this.selectedDateKey &&
+      this.isDateKeyInsideRange(
+        this.selectedDateKey,
+        rangeStart,
+        rangeEnd,
+      )
+    ) {
+      return;
+    }
+
+    const today = new Date();
+
+    const isCurrentMonth =
+      today.getFullYear() ===
+      this.currentMonth.getFullYear() &&
+      today.getMonth() ===
+      this.currentMonth.getMonth();
+
     const todayKey =
-      this.getDateKey(new Date());
+      this.getDateKey(today);
 
     if (
+      isCurrentMonth &&
       this.tasksByDate.has(todayKey)
     ) {
       this.selectedDateKey =
@@ -350,10 +505,16 @@ export class TaskCalendarModalComponent
 
     this.selectFirstTaskInCurrentMonth();
 
-    if (!this.selectedDateKey) {
-      this.selectedDateKey =
-        todayKey;
+    if (this.selectedDateKey) {
+      return;
     }
+
+    this.selectedDateKey =
+      isCurrentMonth
+        ? todayKey
+        : this.getDateKey(
+          this.currentMonth,
+        );
   }
 
   private selectFirstTaskInCurrentMonth(): void {
@@ -382,6 +543,40 @@ export class TaskCalendarModalComponent
       matchingKey ?? '';
   }
 
+  private getCalendarRange(): {
+    start: Date;
+    end: Date;
+  } {
+    const firstMonthDay =
+      this.startOfMonth(
+        this.currentMonth,
+      );
+
+    const mondayOffset =
+      firstMonthDay.getDay() === 0
+        ? 6
+        : firstMonthDay.getDay() - 1;
+
+    const start =
+      new Date(firstMonthDay);
+
+    start.setDate(
+      start.getDate() -
+      mondayOffset,
+    );
+
+    const end = new Date(start);
+
+    end.setDate(
+      end.getDate() + 41,
+    );
+
+    return {
+      start,
+      end,
+    };
+  }
+
   private getTaskDueDateKey(
     task: ProjectTask,
   ): string | null {
@@ -397,6 +592,24 @@ export class TaskCalendarModalComponent
     )
       ? dateKey
       : null;
+  }
+
+  private isDateKeyInsideRange(
+    dateKey: string,
+    start: Date,
+    end: Date,
+  ): boolean {
+    const date =
+      this.parseDateKey(dateKey);
+
+    if (!date) {
+      return false;
+    }
+
+    return (
+      date >= start &&
+      date <= end
+    );
   }
 
   private getDateKey(

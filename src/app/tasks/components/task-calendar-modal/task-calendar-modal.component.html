@@ -36,6 +36,7 @@
         class="calendar-navigation-button"
         aria-label="Previous month"
         (click)="previousMonth()"
+        [disabled]="isLoadingCalendar"
       >
         <ion-icon
           name="chevron-back-outline"
@@ -60,6 +61,7 @@
         class="calendar-navigation-button"
         aria-label="Next month"
         (click)="nextMonth()"
+        [disabled]="isLoadingCalendar"
       >
         <ion-icon
           name="chevron-forward-outline"
@@ -74,8 +76,42 @@
         Today
       </button>
     </section>
+    @if (calendarErrorMessage) {
+    <div
+      class="calendar-error-message"
+      role="alert"
+    >
+      <span>
+    {{ calendarErrorMessage }}
+    </span>
 
-    <div class="calendar-layout">
+    <button
+      type="button"
+      (click)="retryCalendar()"
+    >
+      Try again
+    </button>
+  </div>
+    }
+
+    <div
+      class="calendar-layout"
+      [class.calendar-layout-loading]="
+    isLoadingCalendar
+  "
+    >
+      @if (isLoadingCalendar) {
+      <div class="calendar-loading-overlay">
+        <ion-spinner
+          name="crescent"
+        ></ion-spinner>
+
+        <strong>
+          Loading calendar...
+        </strong>
+      </div>
+      }
+
       <section class="calendar-panel">
         <div class="calendar-weekdays">
           @for (

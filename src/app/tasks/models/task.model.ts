@@ -11,6 +11,32 @@ export type TaskPriority =
   | 'high'
   | 'urgent';
 
+export type ProjectTaskPeriod =
+  | 'all'
+  | 'this_week'
+  | 'this_month'
+  | 'this_year';
+
+export type TaskDueFilter =
+  | 'this_week'
+  | 'this_month'
+  | 'this_year'
+  | 'overdue'
+  | 'no_due_date';
+
+export type TaskListSort =
+  | 'workflow'
+  | 'status'
+  | 'priority'
+  | 'due_at'
+  | 'title'
+  | 'created_at'
+  | 'updated_at';
+
+export type TaskSortDirection =
+  | 'asc'
+  | 'desc';
+
 export interface TaskUser {
   id: number;
   name: string;
@@ -78,13 +104,71 @@ export interface UpdateTaskPayload {
   starts_at: string | null;
   due_at: string | null;
 }
+export interface TaskListQuery {
+  page?: number;
+  per_page?: number;
+  search?: string;
+  status?: TaskStatus;
+  priority?: TaskPriority;
+  assignee?: number | 'me';
+  due?: TaskDueFilter;
+  sort?: TaskListSort;
+  direction?: TaskSortDirection;
+}
+
 export interface UpdateTaskStatusPayload {
   status: TaskStatus;
+}
+
+export interface TaskPaginationMeta {
+  current_page: number;
+  per_page: number;
+  total: number;
+  last_page: number;
+  from: number | null;
+  to: number | null;
+  has_more_pages: boolean;
 }
 
 export interface ListTasksResponse {
   data: {
     tasks: ProjectTask[];
+  };
+
+  meta: TaskPaginationMeta;
+}
+
+export interface ProjectTaskSummary {
+  period: ProjectTaskPeriod;
+  total: number;
+  completed: number;
+  remaining: number;
+  completion_percentage: number;
+
+  by_status: Record<
+    TaskStatus,
+    number
+  >;
+
+  without_due_date: number;
+}
+
+export interface ProjectTaskSummaryResponse {
+  data: ProjectTaskSummary;
+}
+
+export interface ProjectTaskCalendarData {
+  from: string;
+  to: string;
+  tasks: ProjectTask[];
+  without_due_date: number;
+}
+
+export interface ProjectTaskCalendarResponse {
+  data: ProjectTaskCalendarData;
+
+  meta: {
+    total: number;
   };
 }
 
