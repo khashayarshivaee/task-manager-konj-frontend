@@ -11,6 +11,11 @@ interface BroadcastAuthorizationResponse {
   channel_data?: string;
   shared_secret?: string;
 }
+interface RealtimeConnectionTestPayload {
+  user_id: number;
+  message: string;
+  sent_at: string;
+}
 
 @Injectable({
   providedIn: 'root',
@@ -102,8 +107,23 @@ export class RealtimeService {
     this.connectedUserId = userId;
     this.userChannelName = `users.${userId}`;
 
-    this.echo
-      .private(this.userChannelName)
+    const userChannel = this.echo.private(
+      this.userChannelName,
+    );
+
+    userChannel
+      .listen(
+        '.realtime.connection.tested',
+        (
+          payload:
+            RealtimeConnectionTestPayload,
+        ) => {
+          console.info(
+            '[Realtime] Test event received:',
+            payload,
+          );
+        },
+      )
       .subscribed(() => {
         console.info(
           `[Realtime] Subscribed to private-${this.userChannelName}`,
