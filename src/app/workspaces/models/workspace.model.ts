@@ -74,3 +74,48 @@ export interface ListWorkspacesResponse {
     workspaces: Workspace[];
   };
 }
+
+export interface WorkspaceDashboardSetupSteps {
+  account_created: boolean;
+  workspace_created: boolean;
+  team_member_invited: boolean;
+  project_created: boolean;
+}
+
+export interface WorkspaceDashboard {
+  workspace: {
+    id: number;
+    name: string;
+    slug: string;
+  };
+
+  setup: {
+    completed_steps: number;
+    total_steps: number;
+    completion_percentage: number;
+    steps: WorkspaceDashboardSetupSteps;
+  };
+
+  projects: {
+    total: number;
+  };
+
+  members: {
+    total: number;
+    owners: number;
+    admins: number;
+    members: number;
+  };
+
+  tasks: {
+    total: number;
+    open: number;
+    completed: number;
+    assigned_to_me: number;
+    overdue: number;
+  };
+}
+
+export interface GetWorkspaceDashboardResponse {
+  data: WorkspaceDashboard;
+}

@@ -1529,3 +1529,50 @@ button {
   rgba(255, 107, 0, 0.42);
   outline-offset: 2px;
 }
+
+.progress-track span {
+  transition: width 240ms ease;
+}
+
+.getting-started-state {
+  display: flex;
+  min-height: 250px;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 9px;
+  text-align: center;
+}
+
+.getting-started-state ion-spinner {
+  width: 23px;
+  height: 23px;
+  color: var(--orange);
+}
+
+.getting-started-state strong {
+  color: var(--text);
+  font-size: 10px;
+}
+
+.getting-started-state span {
+  max-width: 250px;
+  color: var(--muted);
+  font-size: 9px;
+  line-height: 1.7;
+}
+
+.getting-started-error {
+  color: #a44a3f;
+}
+
+.setup-retry-button {
+  min-height: 34px;
+  padding: 0 13px;
+  color: var(--orange-dark);
+  font-size: 9px;
+  font-weight: 800;
+  border-radius: 9px;
+  background: var(--orange-soft);
+  cursor: pointer;
+}

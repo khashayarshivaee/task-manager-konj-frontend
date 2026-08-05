@@ -9,6 +9,8 @@ import {
   ViewChild,
 } from '@angular/core';
 
+
+
 import {
   takeUntilDestroyed,
 } from '@angular/core/rxjs-interop';
@@ -79,6 +81,7 @@ import {
 
 import {
   Workspace,
+  WorkspaceDashboard,
 } from '../workspaces/models/workspace.model';
 
 @Component({
@@ -113,6 +116,11 @@ export class HomePage implements OnInit {
     this.workspaceService.workspaces$;
 
   projects: Project[] = [];
+
+  dashboard: WorkspaceDashboard | null = null;
+
+  isLoadingDashboard = false;
+  dashboardLoadError = '';
 
   isLoadingProjects = false;
   projectLoadError = '';
@@ -154,6 +162,7 @@ export class HomePage implements OnInit {
 
   ngOnInit(): void {
     this.watchActiveWorkspace();
+    this.watchActiveWorkspaceDashboard();
     this.loadWorkspaces();
   }
 
@@ -161,11 +170,16 @@ export class HomePage implements OnInit {
     const workspace =
       this.workspaceService.getActiveWorkspace();
 
-    if (
-      workspace &&
-      !this.isLoadingProjects
-    ) {
+    if (!workspace) {
+      return;
+    }
+
+    if (!this.isLoadingProjects) {
       this.retryLoadProjects();
+    }
+
+    if (!this.isLoadingDashboard) {
+      this.retryLoadDashboard();
     }
   }
 
@@ -212,6 +226,59 @@ export class HomePage implements OnInit {
 
               finalize(() => {
                 this.isLoadingProjects = false;
+              }),
+            );
+        }),
+
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
+  }
+
+  private watchActiveWorkspaceDashboard(): void {
+    this.activeWorkspace$
+      .pipe(
+        distinctUntilChanged(
+          (
+            previousWorkspace,
+            currentWorkspace,
+          ) =>
+            previousWorkspace?.id ===
+            currentWorkspace?.id,
+        ),
+
+        tap(() => {
+          this.dashboard = null;
+          this.dashboardLoadError = '';
+        }),
+
+        switchMap((workspace) => {
+          if (!workspace) {
+            this.isLoadingDashboard = false;
+
+            return of(null);
+          }
+
+          this.isLoadingDashboard = true;
+
+          return this.workspaceService
+            .getDashboard(workspace.id)
+            .pipe(
+              tap((dashboard) => {
+                this.dashboard = dashboard;
+              }),
+
+              catchError(() => {
+                this.dashboard = null;
+
+                this.dashboardLoadError =
+                  'Unable to load workspace statistics.';
+
+                return of(null);
+              }),
+
+              finalize(() => {
+                this.isLoadingDashboard = false;
               }),
             );
         }),
@@ -384,6 +451,7 @@ export class HomePage implements OnInit {
       ];
 
       this.showProjectNotice = true;
+      this.retryLoadDashboard();
     }
   }
   openProfile(): void {
@@ -434,6 +502,44 @@ export class HomePage implements OnInit {
 
   getFirstName(name: string): string {
     return name.trim().split(/\s+/)[0] || 'there';
+  }
+
+  get setupCompletedSteps(): number {
+    return (
+      this.dashboard?.setup.completed_steps ??
+      1
+    );
+  }
+
+  get setupTotalSteps(): number {
+    return (
+      this.dashboard?.setup.total_steps ??
+      4
+    );
+  }
+
+  get setupProgressPercentage(): number {
+    return (
+      this.dashboard
+        ?.setup
+        .completion_percentage ??
+      25
+    );
+  }
+
+  isSetupStepComplete(
+    step:
+      keyof WorkspaceDashboard[
+        'setup'
+        ]['steps'],
+  ): boolean {
+    if (!this.dashboard) {
+      return step === 'account_created';
+    }
+
+    return this.dashboard
+      .setup
+      .steps[step];
   }
 
   @HostListener(
@@ -501,6 +607,43 @@ export class HomePage implements OnInit {
 
           this.projectLoadError =
             'Unable to load projects for this workspace.';
+        },
+      });
+  }
+
+  retryLoadDashboard(): void {
+    const workspace =
+      this.workspaceService.getActiveWorkspace();
+
+    if (
+      !workspace ||
+      this.isLoadingDashboard
+    ) {
+      return;
+    }
+
+    this.isLoadingDashboard = true;
+    this.dashboardLoadError = '';
+
+    this.workspaceService
+      .getDashboard(workspace.id)
+      .pipe(
+        finalize(() => {
+          this.isLoadingDashboard = false;
+        }),
+
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: (dashboard) => {
+          this.dashboard = dashboard;
+        },
+
+        error: () => {
+          this.dashboard = null;
+
+          this.dashboardLoadError =
+            'Unable to load workspace statistics.';
         },
       });
   }

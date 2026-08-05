@@ -604,20 +604,33 @@
         <section class="stats-grid">
           <article class="stat-card">
             <div class="stat-icon">
-              <ion-icon name="folder-open-outline"></ion-icon>
+              <ion-icon
+                name="folder-open-outline"
+              ></ion-icon>
             </div>
 
             <div>
               <span>Projects</span>
 
               <strong>
-                {{ projects.length }}
+                @if (isLoadingDashboard) {
+                —
+                } @else {
+                {{
+                dashboard?.projects?.total ??
+                projects.length
+                }}
+                }
               </strong>
 
               <small>
-                @if (isLoadingProjects) {
-                Loading projects...
-                } @else if (projects.length) {
+                @if (isLoadingDashboard) {
+                Loading workspace statistics...
+                } @else if (dashboardLoadError) {
+                Statistics unavailable
+                } @else if (
+                (dashboard?.projects?.total ?? 0) > 0
+                ) {
                 Projects in this workspace
                 } @else {
                 No projects yet
@@ -628,25 +641,87 @@
 
           <article class="stat-card">
             <div class="stat-icon">
-              <ion-icon name="checkbox-outline"></ion-icon>
+              <ion-icon
+                name="checkbox-outline"
+              ></ion-icon>
             </div>
 
             <div>
               <span>Open tasks</span>
-              <strong>0</strong>
-              <small>Your task list is clear</small>
+
+              <strong>
+                @if (isLoadingDashboard) {
+                —
+                } @else {
+                {{ dashboard?.tasks?.open ?? 0 }}
+                }
+              </strong>
+
+              <small>
+                @if (isLoadingDashboard) {
+                Loading workspace statistics...
+                } @else if (dashboardLoadError) {
+                Statistics unavailable
+                } @else if (
+                (dashboard?.tasks?.open ?? 0) > 0
+                ) {
+                {{
+                dashboard
+                  ?.tasks
+                  ?.assigned_to_me ?? 0
+                }}
+                assigned to you ·
+                {{
+                dashboard
+                  ?.tasks
+                  ?.overdue ?? 0
+                }}
+                overdue
+                } @else {
+                No open tasks
+                }
+              </small>
             </div>
           </article>
 
           <article class="stat-card">
             <div class="stat-icon">
-              <ion-icon name="people-outline"></ion-icon>
+              <ion-icon
+                name="people-outline"
+              ></ion-icon>
             </div>
 
             <div>
               <span>Team members</span>
-              <strong>1</strong>
-              <small>Start inviting your team</small>
+
+              <strong>
+                @if (isLoadingDashboard) {
+                —
+                } @else {
+                {{ dashboard?.members?.total ?? 0 }}
+                }
+              </strong>
+
+              <small>
+                @if (isLoadingDashboard) {
+                Loading workspace statistics...
+                } @else if (dashboardLoadError) {
+                Statistics unavailable
+                } @else {
+                {{
+                dashboard
+                  ?.members
+                  ?.admins ?? 0
+                }}
+                admins ·
+                {{
+                dashboard
+                  ?.members
+                  ?.members ?? 0
+                }}
+                members
+                }
+              </small>
             </div>
           </article>
         </section>
@@ -862,61 +937,215 @@
                 <h2>Set up your account</h2>
               </div>
 
-              <ion-icon name="rocket-outline"></ion-icon>
+              <ion-icon
+                name="rocket-outline"
+              ></ion-icon>
             </div>
 
+            @if (isLoadingDashboard) {
+            <div class="getting-started-state">
+              <ion-spinner
+                name="crescent"
+              ></ion-spinner>
+
+              <strong>
+                Loading setup progress...
+              </strong>
+            </div>
+            } @else if (dashboardLoadError) {
+            <div
+              class="
+                getting-started-state
+                getting-started-error
+              "
+            >
+              <strong>
+                Setup progress unavailable
+              </strong>
+
+              <span>
+            {{ dashboardLoadError }}
+            </span>
+
+            <button
+              type="button"
+              class="setup-retry-button"
+              (click)="retryLoadDashboard()"
+            >
+              Try again
+            </button>
+          </div>
+            } @else {
             <div class="progress-track">
-              <span></span>
+              <span
+                [style.width.%]="
+                  setupProgressPercentage
+                "
+              ></span>
             </div>
 
             <p class="progress-label">
-              1 of 4 steps completed
-            </p>
+            {{ setupCompletedSteps }}
+            of
+            {{ setupTotalSteps }}
+            steps completed
+          </p>
 
-            <div class="setup-list">
-              <div class="setup-item setup-item-complete">
-                <span class="setup-check">
-                  <ion-icon name="checkmark-circle-outline"></ion-icon>
-                </span>
+          <div class="setup-list">
+            <div
+              class="setup-item"
+              [class.setup-item-complete]="
+                isSetupStepComplete(
+                  'account_created'
+                )
+              "
+            >
+              @if (
+                isSetupStepComplete(
+                  'account_created'
+                )
+              ) {
+            <span class="setup-check">
+            <ion-icon
+              name="checkmark-circle-outline"
+            ></ion-icon>
+          </span>
+            } @else {
+            <span class="setup-number">
+            1
+          </span>
+            }
 
-                <div>
-                  <strong>Create your account</strong>
-                  <small>Your Konj account is ready</small>
-                </div>
-              </div>
+            <div>
+              <strong>Create your account</strong>
 
-              <div class="setup-item">
-                <span class="setup-number">2</span>
-
-                <div>
-                  <strong>Create a workspace</strong>
-                  <small>Organize your team and work</small>
-                </div>
-              </div>
-
-              <div class="setup-item">
-                <span class="setup-number">3</span>
-
-                <div>
-                  <strong>Invite team members</strong>
-                  <small>Bring your team together</small>
-                </div>
-              </div>
-
-              <div class="setup-item">
-                <span class="setup-number">4</span>
-
-                <div>
-                  <strong>Create your first project</strong>
-                  <small>Start planning and assigning tasks</small>
-                </div>
-              </div>
+              <small>
+                Your Konj account is ready
+              </small>
             </div>
+          </div>
 
-            <div class="setup-footer">
-              <ion-icon name="calendar-outline"></ion-icon>
-              <span>You can finish setup at any time.</span>
+          <div
+            class="setup-item"
+            [class.setup-item-complete]="
+              isSetupStepComplete(
+                'workspace_created'
+              )
+            "
+          >
+            @if (
+              isSetupStepComplete(
+                'workspace_created'
+              )
+            ) {
+            <span class="setup-check">
+            <ion-icon
+              name="checkmark-circle-outline"
+            ></ion-icon>
+          </span>
+            } @else {
+            <span class="setup-number">
+            2
+          </span>
+            }
+
+            <div>
+              <strong>Create a workspace</strong>
+
+              <small>
+                Organize your team and work
+              </small>
             </div>
+          </div>
+
+          <div
+            class="setup-item"
+            [class.setup-item-complete]="
+              isSetupStepComplete(
+                'team_member_invited'
+              )
+            "
+          >
+            @if (
+              isSetupStepComplete(
+                'team_member_invited'
+              )
+            ) {
+            <span class="setup-check">
+            <ion-icon
+              name="checkmark-circle-outline"
+            ></ion-icon>
+          </span>
+            } @else {
+            <span class="setup-number">
+            3
+          </span>
+            }
+
+            <div>
+              <strong>Invite team members</strong>
+
+              <small>
+                Bring your team together
+              </small>
+            </div>
+          </div>
+
+          <div
+            class="setup-item"
+            [class.setup-item-complete]="
+              isSetupStepComplete(
+                'project_created'
+              )
+            "
+          >
+            @if (
+              isSetupStepComplete(
+                'project_created'
+              )
+            ) {
+            <span class="setup-check">
+            <ion-icon
+              name="checkmark-circle-outline"
+            ></ion-icon>
+          </span>
+            } @else {
+            <span class="setup-number">
+            4
+          </span>
+            }
+
+            <div>
+              <strong>
+                Create your first project
+              </strong>
+
+              <small>
+                Start planning and assigning tasks
+              </small>
+            </div>
+          </div>
+        </div>
+
+        <div class="setup-footer">
+          <ion-icon
+            name="calendar-outline"
+          ></ion-icon>
+
+          @if (
+            setupCompletedSteps ===
+            setupTotalSteps
+          ) {
+            <span>
+          Your workspace setup is complete.
+        </span>
+            } @else {
+            <span>
+          You can finish setup at any time.
+        </span>
+            }
+            </div>
+            }
           </aside>
         </section>
       </div>

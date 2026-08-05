@@ -12,6 +12,8 @@ import {
   CreateWorkspacePayload,
   CreateWorkspaceResponse,
   DeleteWorkspacePayload,
+  GetWorkspaceDashboardResponse,
+  WorkspaceDashboard,
   DeleteWorkspaceResponse,
   ListWorkspacesResponse,
   UpdateWorkspacePayload,
@@ -77,6 +79,18 @@ export class WorkspaceService {
 
           this.clearActiveWorkspace();
         }),
+      );
+  }
+
+  getDashboard(
+    workspaceId: number,
+  ): Observable<WorkspaceDashboard> {
+    return this.http
+      .get<GetWorkspaceDashboardResponse>(
+        `${this.workspacesUrl}/${workspaceId}/dashboard`,
+      )
+      .pipe(
+        map((response) => response.data),
       );
   }
 
