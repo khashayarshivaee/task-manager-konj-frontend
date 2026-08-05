@@ -350,6 +350,29 @@
 }
 
 @media (max-width: 760px) {
+
+  .project-progress-card {
+    padding: 21px;
+  }
+
+  .project-progress-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .project-progress-score {
+    align-items: flex-start;
+  }
+
+  .project-status-breakdown {
+    grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+  }
+
+  .project-status-breakdown
+  article:last-child {
+    grid-column: 1 / -1;
+  }
   .project-details-shell {
     width: min(100% - 28px, 1180px);
   }
@@ -1070,4 +1093,191 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+.project-progress-card {
+  margin-top: 16px;
+  padding: 27px;
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  background: var(--surface);
+  box-shadow:
+    0 18px 55px rgba(32, 28, 25, 0.04);
+}
+
+.project-progress-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.project-progress-header h2 {
+  margin: 7px 0 0;
+  color: var(--text);
+  font-size: 20px;
+  font-weight: 820;
+  letter-spacing: -0.03em;
+}
+
+.project-progress-header p {
+  margin: 7px 0 0;
+  color: var(--muted);
+  font-size: 9px;
+  line-height: 1.7;
+}
+
+.project-progress-score {
+  display: flex;
+  min-width: 150px;
+  align-items: flex-end;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.project-progress-score strong {
+  color: var(--text);
+  font-size: 30px;
+  font-weight: 880;
+  letter-spacing: -0.04em;
+}
+
+.project-progress-score span {
+  color: var(--muted);
+  font-size: 8px;
+}
+
+.project-progress-track {
+  position: relative;
+  height: 10px;
+  margin-top: 25px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #eeeeeb;
+}
+
+.project-progress-track > span {
+  display: block;
+  width: 0;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(
+      90deg,
+      var(--orange),
+      #ff9346
+  );
+  box-shadow:
+    0 4px 12px rgba(255, 107, 0, 0.22);
+  transition: width 280ms ease;
+}
+
+.project-progress-summary {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-top: 11px;
+  color: var(--muted);
+  font-size: 8px;
+}
+
+.project-progress-summary span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.project-progress-summary strong {
+  color: var(--text);
+  font-size: 9px;
+}
+
+.project-status-breakdown {
+  display: grid;
+  grid-template-columns:
+    repeat(5, minmax(0, 1fr));
+  gap: 9px;
+  margin-top: 22px;
+}
+
+.project-status-breakdown article {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  min-height: 65px;
+  justify-content: space-between;
+  flex-direction: column;
+  gap: 9px;
+  padding: 12px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 13px;
+  background: #fcfcfb;
+}
+
+.project-status-breakdown article::before {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 3px;
+  background: #8b8b85;
+  content: '';
+}
+
+.project-status-breakdown
+article[data-status='todo']::before {
+  background: #4d83c7;
+}
+
+.project-status-breakdown
+article[data-status='in_progress']::before {
+  background: var(--orange);
+}
+
+.project-status-breakdown
+article[data-status='in_review']::before {
+  background: #9a69c7;
+}
+
+.project-status-breakdown
+article[data-status='completed']::before {
+  background: #3b9b65;
+}
+
+.project-status-breakdown span {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 8px;
+  font-weight: 750;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.project-status-breakdown strong {
+  color: var(--text);
+  font-size: 20px;
+  font-weight: 850;
+}
+
+.project-progress-empty {
+  display: flex;
+  min-height: 100px;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 20px;
+  text-align: center;
+  border: 1px dashed var(--border);
+  border-radius: 14px;
+  background: var(--surface-soft);
+}
+
+.project-progress-empty strong {
+  color: var(--text);
+  font-size: 10px;
+}
+
+.project-progress-empty span {
+  color: var(--muted);
+  font-size: 8px;
 }

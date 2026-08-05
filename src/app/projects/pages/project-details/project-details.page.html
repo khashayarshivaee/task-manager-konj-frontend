@@ -242,19 +242,132 @@
   </div>
 </article>
 </section>
+<section class="project-progress-card">
+  <header class="project-progress-header">
+    <div>
+      <span class="project-eyebrow">
+        Work overview
+      </span>
 
-<section class="tasks-section">
-<header class="tasks-header">
-  <div>
-    <span class="project-eyebrow">
-      Project tasks
-    </span>
+      <h2>Project progress</h2>
 
-    <h2>
-      Plan and track the work
-    </h2>
+      <p>
+        Track how much of the current project
+        work has been completed.
+      </p>
+    </div>
 
-    <p>
+    <div class="project-progress-score">
+      <strong>
+    {{ projectProgressPercentage }}%
+      </strong>
+
+      @if (totalTaskCount > 0) {
+    <span>
+          {{ completedTaskCount }}
+      of
+      {{ totalTaskCount }}
+      tasks completed
+        </span>
+    } @else {
+    <span>No tasks created yet</span>
+    }
+    </div>
+  </header>
+
+  <div
+    class="project-progress-track"
+    role="progressbar"
+    aria-label="Project task progress"
+    aria-valuemin="0"
+    aria-valuemax="100"
+    [attr.aria-valuenow]="
+      projectProgressPercentage
+    "
+  >
+    <span
+      [style.width.%]="
+        projectProgressPercentage
+      "
+    ></span>
+  </div>
+
+  @if (totalTaskCount > 0) {
+    <div class="project-progress-summary">
+      <span>
+        <strong>
+          {{ completedTaskCount }}
+        </strong>
+
+        completed
+      </span>
+
+      <span>
+        <strong>
+          {{ remainingTaskCount }}
+        </strong>
+
+        remaining
+      </span>
+    </div>
+
+    <div class="project-status-breakdown">
+      <article data-status="backlog">
+        <span>Backlog</span>
+        <strong>{{ backlogTaskCount }}</strong>
+      </article>
+
+      <article data-status="todo">
+        <span>Todo</span>
+        <strong>{{ todoTaskCount }}</strong>
+      </article>
+
+      <article data-status="in_progress">
+        <span>In progress</span>
+        <strong>
+          {{ inProgressTaskCount }}
+        </strong>
+      </article>
+
+      <article data-status="in_review">
+        <span>In review</span>
+        <strong>
+          {{ inReviewTaskCount }}
+        </strong>
+      </article>
+
+      <article data-status="completed">
+        <span>Completed</span>
+        <strong>
+          {{ completedTaskCount }}
+        </strong>
+      </article>
+    </div>
+    } @else {
+    <div class="project-progress-empty">
+      <strong>
+        Progress will appear here
+      </strong>
+
+      <span>
+        Create the first task to start tracking
+        this project.
+      </span>
+    </div>
+    }
+    </section>
+    <section class="tasks-section">
+    <header class="tasks-header">
+      <div>
+        <span class="project-eyebrow">
+          Project tasks
+        </span>
+
+        <h2>
+          Plan and track the work
+        </h2>
+
+        <p>
     {{ tasks.length }}
     {{
     tasks.length === 1

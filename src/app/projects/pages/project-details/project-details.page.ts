@@ -503,6 +503,61 @@ export class ProjectDetailsPage implements OnInit {
       );
   }
 
+  get totalTaskCount(): number {
+    return this.tasks.length;
+  }
+
+  get completedTaskCount(): number {
+    return this.countTasksByStatus(
+      'completed',
+    );
+  }
+
+  get backlogTaskCount(): number {
+    return this.countTasksByStatus(
+      'backlog',
+    );
+  }
+
+  get todoTaskCount(): number {
+    return this.countTasksByStatus(
+      'todo',
+    );
+  }
+
+  get inProgressTaskCount(): number {
+    return this.countTasksByStatus(
+      'in_progress',
+    );
+  }
+
+  get inReviewTaskCount(): number {
+    return this.countTasksByStatus(
+      'in_review',
+    );
+  }
+
+  get remainingTaskCount(): number {
+    return Math.max(
+      this.totalTaskCount -
+      this.completedTaskCount,
+      0,
+    );
+  }
+
+  get projectProgressPercentage(): number {
+    if (this.totalTaskCount === 0) {
+      return 0;
+    }
+
+    return Math.round(
+      (
+        this.completedTaskCount /
+        this.totalTaskCount
+      ) * 100,
+    );
+  }
+
   isTaskStatusUpdating(
     taskId: number,
   ): boolean {
@@ -771,5 +826,13 @@ export class ProjectDetailsPage implements OnInit {
         return secondTask.id - firstTask.id;
       },
     );
+  }
+
+  private countTasksByStatus(
+    status: TaskStatus,
+  ): number {
+    return this.tasks.filter(
+      (task) => task.status === status,
+    ).length;
   }
 }
