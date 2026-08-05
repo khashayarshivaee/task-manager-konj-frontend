@@ -8,6 +8,8 @@ import {
   CreateTaskResponse,
   DeleteTaskAttachmentResponse,
   DeleteTaskResponse,
+  UpdateTaskStatusPayload,
+  UpdateTaskStatusResponse,
   GetTaskResponse,
   ListTaskAttachmentsResponse,
   ListTasksResponse,
@@ -114,6 +116,21 @@ export class TaskService {
         workspaceId,
         projectId,
       )}/${taskId}`,
+      payload,
+    );
+  }
+
+  updateTaskStatus(
+    workspaceId: number,
+    projectId: number,
+    taskId: number,
+    payload: UpdateTaskStatusPayload,
+  ): Observable<UpdateTaskStatusResponse> {
+    return this.http.patch<UpdateTaskStatusResponse>(
+      `${this.tasksUrl(
+        workspaceId,
+        projectId,
+      )}/${taskId}/status`,
       payload,
     );
   }

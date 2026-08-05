@@ -277,7 +277,30 @@
   <span>New task</span>
 </button>
 </header>
+@if (taskStatusErrorMessage) {
+    <div
+      class="task-status-error"
+      role="alert"
+    >
+      <ion-icon
+        name="alert-circle-outline"
+      ></ion-icon>
 
+      <span>
+      {{ taskStatusErrorMessage }}
+    </span>
+
+      <button
+        type="button"
+        aria-label="Dismiss task status error"
+        (click)="
+        taskStatusErrorMessage = ''
+      "
+      >
+        ×
+      </button>
+    </div>
+    }
 @if (isLoadingTasks) {
     <div class="tasks-state">
       <ion-spinner
@@ -342,32 +365,27 @@
     } @else {
     <div class="task-list">
       @for (task of tasks; track task.id) {
-      <button
-   type="button"
-   class="task-row"
-   (click)="openTaskDetails(task)"
- >
-         <span
-           class="task-status-line"
-           [attr.data-status]="task.status"
-         ></span>
+      <article
+  class="task-row"
+  [class.task-row-completed]="
+    task.status === 'completed'
+  "
+>
+  <span
+    class="task-status-line"
+    [attr.data-status]="task.status"
+  ></span>
 
-         <div class="task-row-main">
-           <div class="task-title-line">
-             <strong>
+  <button
+    type="button"
+    class="task-row-open"
+    (click)="openTaskDetails(task)"
+  >
+    <div class="task-row-main">
+      <div class="task-title-line">
+        <strong>
       {{ task.title }}
       </strong>
-
-      <span
-        class="task-status-pill"
-        [attr.data-status]="task.status"
-      >
-      {{
-      getTaskStatusLabel(
-        task.status
-      )
-      }}
-      </span>
     </div>
 
     <p>
@@ -396,14 +414,14 @@
       </span>
 
       <span
-  class="task-assignees-meta"
-  [title]="
-    getTaskAssigneeTitle(task)
-  "
->
-  @if (
-    getTaskAssignees(task).length === 0
-  ) {
+        class="task-assignees-meta"
+        [title]="
+          getTaskAssigneeTitle(task)
+        "
+      >
+        @if (
+          getTaskAssignees(task).length === 0
+        ) {
       <ion-icon
         name="person-circle-outline"
       ></ion-icon>
@@ -411,55 +429,142 @@
       <span>Unassigned</span>
       } @else {
       <span class="task-assignee-stack">
-      @for (
-        assignee of
-          getVisibleTaskAssignees(task);
-        track assignee.id
-      ) {
+              @for (
+                assignee of
+                  getVisibleTaskAssignees(task);
+                track assignee.id
+              ) {
         <span class="task-card-avatar">
-       <app-user-avatar
-  [name]="assignee.name"
-  [avatarPath]="assignee.avatar_path ?? null"
-  [size]="26"
-  [fontSize]="7"
-></app-user-avatar>
+          <app-user-avatar
+            [name]="assignee.name"
+            [avatarPath]="
+              assignee.avatar_path ??
+              null
+            "
+            [size]="26"
+            [fontSize]="7"
+          ></app-user-avatar>
         </span>
-      }
+              }
 
-      @if (
-        getHiddenTaskAssigneeCount(
-          task
-        ) > 0
-      ) {
+              @if (
+                getHiddenTaskAssigneeCount(
+                  task
+                ) > 0
+              ) {
         <span class="task-assignee-more">
           +{{
         getHiddenTaskAssigneeCount(
           task
         )
-          }}
-        </span>
-      }
-    </span>
+                  }}
+                </span>
+              }
+            </span>
 
       <span class="task-assignee-summary">
-      {{
-        getTaskAssigneeSummary(task)
+              {{
+        getTaskAssigneeSummary(
+          task
+        )
         }}
-    </span>
+            </span>
       }
       </span>
 
-            <span>
-              <ion-icon
-                name="calendar-outline"
-              ></ion-icon>
+      <span>
+        <ion-icon
+          name="calendar-outline"
+        ></ion-icon>
 
-              Due
+        Due
       {{ formatDate(task.due_at) }}
       </span>
     </div>
   </div>
 </button>
+
+<div class="task-quick-actions">
+  <button
+    type="button"
+    class="task-complete-button"
+    [class.task-complete-button-active]="
+      task.status === 'completed'
+    "
+    [disabled]="
+      isTaskStatusUpdating(task.id)
+    "
+    [attr.aria-pressed]="
+      task.status === 'completed'
+    "
+    [attr.aria-label]="
+      task.status === 'completed'
+        ? 'Reopen task'
+        : 'Complete task'
+    "
+    (click)="toggleTaskCompleted(task)"
+  >
+    <span class="task-complete-icon">
+      @if (
+        task.status === 'completed'
+      ) {
+      <ion-icon
+        name="checkmark-circle-outline"
+      ></ion-icon>
+      }
+      </span>
+
+      <span>
+      {{
+      task.status === 'completed'
+        ? 'Completed'
+        : 'Mark complete'
+      }}
+      </span>
+    </button>
+
+    <label class="task-status-control">
+      <span>Status</span>
+
+      <select
+        [value]="task.status"
+        [disabled]="
+          isTaskStatusUpdating(task.id)
+        "
+        [attr.aria-label]="
+          'Change status for ' +
+          task.title
+        "
+        (change)="
+          changeTaskStatus(
+            task,
+            $event
+          )
+        "
+      >
+        @for (
+          option of taskStatusOptions;
+          track option.value
+        ) {
+      <option
+        [value]="option.value"
+      >
+        {{ option.label }}
+      </option>
+      }
+      </select>
+    </label>
+
+    @if (
+      isTaskStatusUpdating(task.id)
+    ) {
+      <ion-spinner
+        class="task-status-updating-spinner"
+        name="crescent"
+      ></ion-spinner>
+      }
+      </div>
+    </article>
       }
     </div>
     }

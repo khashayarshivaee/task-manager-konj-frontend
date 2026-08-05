@@ -78,6 +78,9 @@ export interface UpdateTaskPayload {
   starts_at: string | null;
   due_at: string | null;
 }
+export interface UpdateTaskStatusPayload {
+  status: TaskStatus;
+}
 
 export interface ListTasksResponse {
   data: {
@@ -100,6 +103,13 @@ export interface CreateTaskResponse {
 }
 
 export interface UpdateTaskResponse {
+  message: string;
+
+  data: {
+    task: ProjectTask;
+  };
+}
+export interface UpdateTaskStatusResponse {
   message: string;
 
   data: {

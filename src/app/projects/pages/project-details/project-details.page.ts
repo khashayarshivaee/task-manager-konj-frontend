@@ -34,6 +34,7 @@ import {
 import {
   addOutline,
   arrowBackOutline,
+  alertCircleOutline,
   calendarOutline,
   checkmarkCircleOutline,
   createOutline,
@@ -53,6 +54,7 @@ import {
 } from '../../../tasks/components/create-task-modal/create-task-modal.component';
 import {
   ProjectTask,
+  TaskStatus,
   TaskUser,
 } from '../../../tasks/models/task.model';
 import {
@@ -111,6 +113,33 @@ export class ProjectDetailsPage implements OnInit {
     completed: 4,
   };
 
+  readonly taskStatusOptions:
+    ReadonlyArray<{
+      value: TaskStatus;
+      label: string;
+    }> = [
+    {
+      value: 'backlog',
+      label: 'Backlog',
+    },
+    {
+      value: 'todo',
+      label: 'Todo',
+    },
+    {
+      value: 'in_progress',
+      label: 'In progress',
+    },
+    {
+      value: 'in_review',
+      label: 'In review',
+    },
+    {
+      value: 'completed',
+      label: 'Completed',
+    },
+  ];
+
   project: Project | null = null;
   tasks: ProjectTask[] = [];
 
@@ -123,6 +152,11 @@ export class ProjectDetailsPage implements OnInit {
   errorMessage = '';
   taskErrorMessage = '';
 
+  taskStatusErrorMessage = '';
+
+  private readonly updatingTaskStatusIds =
+    new Set<number>();
+
   showUpdateNotice = false;
   showTaskCreatedNotice = false;
 
@@ -134,6 +168,7 @@ export class ProjectDetailsPage implements OnInit {
       checkmarkCircleOutline,
       createOutline,
       flagOutline,
+      alertCircleOutline,
       folderOpenOutline,
       listOutline,
       personCircleOutline,
@@ -468,6 +503,50 @@ export class ProjectDetailsPage implements OnInit {
       );
   }
 
+  isTaskStatusUpdating(
+    taskId: number,
+  ): boolean {
+    return this.updatingTaskStatusIds.has(
+      taskId,
+    );
+  }
+
+  toggleTaskCompleted(
+    task: ProjectTask,
+  ): void {
+    const nextStatus: TaskStatus =
+      task.status === 'completed'
+        ? 'todo'
+        : 'completed';
+
+    this.saveTaskStatus(
+      task,
+      nextStatus,
+    );
+  }
+
+  changeTaskStatus(
+    task: ProjectTask,
+    event: Event,
+  ): void {
+    const select = event.target;
+
+    if (
+      !(select instanceof HTMLSelectElement)
+    ) {
+      return;
+    }
+
+    const status =
+      select.value as TaskStatus;
+
+    this.saveTaskStatus(
+      task,
+      status,
+      select,
+    );
+  }
+
   getTaskPriorityLabel(
     priority: ProjectTask['priority'],
   ): string {
@@ -563,6 +642,102 @@ export class ProjectDetailsPage implements OnInit {
         day: 'numeric',
       },
     ).format(date);
+  }
+
+  private saveTaskStatus(
+    task: ProjectTask,
+    status: TaskStatus,
+    statusSelect?: HTMLSelectElement,
+  ): void {
+    if (
+      this.isTaskStatusUpdating(task.id)
+    ) {
+      if (statusSelect) {
+        statusSelect.value = task.status;
+      }
+
+      return;
+    }
+
+    if (status === task.status) {
+      return;
+    }
+
+    const previousStatus = task.status;
+
+    this.taskStatusErrorMessage = '';
+
+    this.updatingTaskStatusIds.add(
+      task.id,
+    );
+
+    this.taskService
+      .updateTaskStatus(
+        this.workspaceId,
+        this.projectId,
+        task.id,
+        {
+          status,
+        },
+      )
+      .pipe(
+        finalize(() => {
+          this.updatingTaskStatusIds.delete(
+            task.id,
+          );
+        }),
+
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: (response) => {
+          const updatedTask =
+            response.data.task;
+
+          this.tasks = this.sortTasks(
+            this.tasks.map(
+              (currentTask) =>
+                currentTask.id ===
+                updatedTask.id
+                  ? updatedTask
+                  : currentTask,
+            ),
+          );
+        },
+
+        error: (
+          error: HttpErrorResponse,
+        ) => {
+          if (statusSelect) {
+            statusSelect.value =
+              previousStatus;
+          }
+
+          if (error.status === 403) {
+            this.taskStatusErrorMessage =
+              'You do not have permission to update this task.';
+
+            return;
+          }
+
+          if (error.status === 404) {
+            this.taskStatusErrorMessage =
+              'This task could not be found.';
+
+            return;
+          }
+
+          if (error.status === 422) {
+            this.taskStatusErrorMessage =
+              'The selected task status is invalid.';
+
+            return;
+          }
+
+          this.taskStatusErrorMessage =
+            'Task status could not be updated. Please try again.';
+        },
+      });
   }
 
   private sortTasks(
