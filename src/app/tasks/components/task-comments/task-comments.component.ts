@@ -53,6 +53,11 @@ import {
   TaskCommentService,
 } from '../../services/task-comment.service';
 
+import {
+  RealtimeService,
+  type TaskCommentDeletedEvent,
+} from '../../../core/services/realtime.service';
+
 interface SelectedCommentImage {
   file: File;
   previewUrl: string;
@@ -109,6 +114,9 @@ export class TaskCommentsComponent
   private readonly commentService =
     inject(TaskCommentService);
 
+  private readonly realtimeService =
+    inject(RealtimeService);
+
   private readonly alertController =
     inject(AlertController);
 
@@ -146,6 +154,11 @@ export class TaskCommentsComponent
   isSubmittingReply = false;
   isUpdatingComment = false;
 
+  private isMarkingCommentsRead = false;
+
+  private shouldMarkCommentsReadAgain =
+    false;
+
   deletingCommentId: number | null = null;
   deletingAttachmentId: number | null = null;
 
@@ -181,10 +194,16 @@ export class TaskCommentsComponent
   }
 
   ngOnInit(): void {
+    this.subscribeToRealtime();
+
+    this.realtimeService.joinTask(
+      this.taskId,
+    );
+
     this.loadComments();
   }
-
   ngOnDestroy(): void {
+    this.realtimeService.leaveTask();
     this.revokeCommentUrls(
       this.comments,
     );
@@ -224,6 +243,7 @@ export class TaskCommentsComponent
           this.revokeCommentUrls(
             this.comments,
           );
+          this.markCommentsAsRead();
 
           this.comments =
             response.data.comments.map(
@@ -791,6 +811,231 @@ export class TaskCommentsComponent
       .join('');
   }
 
+  private subscribeToRealtime(): void {
+    this.realtimeService
+      .commentCreated$
+      .pipe(
+        takeUntilDestroyed(
+          this.destroyRef,
+        ),
+      )
+      .subscribe((event) => {
+        if (
+          !this.isCurrentTaskEvent(
+            event,
+          )
+        ) {
+          return;
+        }
+
+        this.appendCreatedComment(
+          event.comment,
+        );
+
+        /*
+         * The discussion is currently open,
+         * therefore an incoming comment is
+         * immediately considered read.
+         */
+        this.markCommentsAsRead();
+      });
+
+    this.realtimeService
+      .commentUpdated$
+      .pipe(
+        takeUntilDestroyed(
+          this.destroyRef,
+        ),
+      )
+      .subscribe((event) => {
+        if (
+          !this.isCurrentTaskEvent(
+            event,
+          )
+        ) {
+          return;
+        }
+
+        this.applyRealtimeCommentUpdate(
+          event.comment,
+        );
+      });
+
+    this.realtimeService
+      .commentDeleted$
+      .pipe(
+        takeUntilDestroyed(
+          this.destroyRef,
+        ),
+      )
+      .subscribe((event) => {
+        if (
+          !this.isCurrentTaskEvent(
+            event,
+          )
+        ) {
+          return;
+        }
+
+        this.applyRealtimeCommentDelete(
+          event,
+        );
+      });
+  }
+
+  private isCurrentTaskEvent(
+    event: {
+      workspace_id: number;
+      project_id: number;
+      task_id: number;
+    },
+  ): boolean {
+    return (
+      event.workspace_id ===
+      this.workspaceId &&
+      event.project_id ===
+      this.projectId &&
+      event.task_id ===
+      this.taskId
+    );
+  }
+
+  private applyRealtimeCommentUpdate(
+    comment: TaskComment,
+  ): void {
+    const existingView =
+      this.findCommentView(
+        comment.id,
+      );
+
+    if (!existingView) {
+      this.loadComments();
+
+      return;
+    }
+
+    this.replaceCommentView(
+      existingView,
+      comment,
+    );
+  }
+
+  private applyRealtimeCommentDelete(
+    event: TaskCommentDeletedEvent,
+  ): void {
+    const existingView =
+      this.findCommentView(
+        event.comment_id,
+      );
+
+    if (!existingView) {
+      return;
+    }
+
+    this.revokeAttachmentUrls(
+      existingView.attachments,
+    );
+
+    existingView.attachments = [];
+
+    existingView.comment = {
+      ...existingView.comment,
+
+      body: null,
+      is_deleted: true,
+      attachments: [],
+    };
+
+    if (
+      this.editingCommentId ===
+      event.comment_id
+    ) {
+      this.cancelEdit();
+    }
+
+    this.touchComments();
+  }
+
+  private replaceCommentView(
+    view: TaskCommentView,
+    comment: TaskComment,
+  ): void {
+    this.revokeAttachmentUrls(
+      view.attachments,
+    );
+
+    this.revokeCommentUrls(
+      view.replies,
+    );
+
+    const replacement =
+      this.buildCommentView(
+        comment,
+      );
+
+    view.comment =
+      replacement.comment;
+
+    view.attachments =
+      replacement.attachments;
+
+    view.replies =
+      replacement.replies;
+
+    this.touchComments();
+
+    this.loadAttachmentPreviews([
+      view,
+    ]);
+  }
+
+  private markCommentsAsRead(): void {
+    if (this.isMarkingCommentsRead) {
+      this.shouldMarkCommentsReadAgain =
+        true;
+
+      return;
+    }
+
+    this.isMarkingCommentsRead = true;
+
+    this.commentService
+      .markCommentsRead(
+        this.workspaceId,
+        this.projectId,
+        this.taskId,
+      )
+      .pipe(
+        finalize(() => {
+          this.isMarkingCommentsRead =
+            false;
+
+          if (
+            this.shouldMarkCommentsReadAgain
+          ) {
+            this.shouldMarkCommentsReadAgain =
+              false;
+
+            this.markCommentsAsRead();
+          }
+        }),
+
+        takeUntilDestroyed(
+          this.destroyRef,
+        ),
+      )
+      .subscribe({
+        error: () => {
+          /*
+           * Reading comments is a background
+           * synchronization operation. A failure
+           * should not replace the discussion UI
+           * with an error message.
+           */
+        },
+      });
+  }
+
   private buildCommentView(
     comment: TaskComment,
   ): TaskCommentView {
@@ -820,8 +1065,30 @@ export class TaskCommentsComponent
   private appendCreatedComment(
     comment: TaskComment,
   ): void {
+    /*
+     * The creator receives both the HTTP
+     * response and the WebSocket event.
+     * Update the existing item instead of
+     * displaying it twice.
+     */
+    const existingView =
+      this.findCommentView(
+        comment.id,
+      );
+
+    if (existingView) {
+      this.replaceCommentView(
+        existingView,
+        comment,
+      );
+
+      return;
+    }
+
     const view =
-      this.buildCommentView(comment);
+      this.buildCommentView(
+        comment,
+      );
 
     if (comment.parent_id === null) {
       this.comments = [

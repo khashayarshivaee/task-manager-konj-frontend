@@ -59,6 +59,7 @@ export interface TaskAttachment {
 export interface ProjectTask {
   id: number;
   project_id: number;
+  unread_comments_count: number;
   created_by: number | null;
   assigned_to: number | null;
   title: string;

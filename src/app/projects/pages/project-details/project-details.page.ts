@@ -13,6 +13,10 @@ import {
 } from '../../../tasks/components/task-calendar-modal/task-calendar-modal.component';
 
 import {
+  RealtimeService,
+} from '../../../core/services/realtime.service';
+
+import {
   TaskDetailsModalComponent,
 } from '../../../tasks/components/task-details-modal/task-details-modal.component';
 
@@ -112,6 +116,9 @@ export class ProjectDetailsPage implements OnInit {
 
   private readonly taskService =
     inject(TaskService);
+
+  private readonly realtimeService =
+    inject(RealtimeService);
 
   private readonly destroyRef =
     inject(DestroyRef);
@@ -246,6 +253,7 @@ export class ProjectDetailsPage implements OnInit {
   }
 
   ngOnInit(): void {
+    this.subscribeToUnreadCommentUpdates();
     this.workspaceId = Number(
       this.activatedRoute.snapshot.paramMap.get(
         'workspaceId',
@@ -1229,4 +1237,51 @@ export class ProjectDetailsPage implements OnInit {
   //
   //   return null;
   // }
+
+  private subscribeToUnreadCommentUpdates(): void {
+    this.realtimeService
+      .unreadCommentsUpdated$
+      .pipe(
+        takeUntilDestroyed(
+          this.destroyRef,
+        ),
+      )
+      .subscribe((event) => {
+        if (
+          event.workspace_id !==
+          this.workspaceId ||
+          event.project_id !==
+          this.projectId
+        ) {
+          return;
+        }
+
+        const taskExists =
+          this.tasks.some(
+            (task) =>
+              task.id === event.task_id,
+          );
+
+        if (!taskExists) {
+          return;
+        }
+
+        this.tasks =
+          this.tasks.map((task) => {
+            if (
+              task.id !== event.task_id
+            ) {
+              return task;
+            }
+
+            return {
+              ...task,
+
+              unread_comments_count:
+              event
+                .unread_comments_count,
+            };
+          });
+      });
+  }
 }

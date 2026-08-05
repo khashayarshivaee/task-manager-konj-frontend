@@ -208,6 +208,24 @@
             <strong>
               {{ task.title }}
             </strong>
+            @if (
+            task.unread_comments_count > 0
+            ) {
+            <span
+              class="calendar-task-unread-badge"
+              [attr.aria-label]="
+                task.unread_comments_count +
+                ' unread comments'
+              "
+            >
+            {{
+            task.unread_comments_count > 99
+              ? '99+'
+              : task.unread_comments_count
+            }}
+            new
+          </span>
+            }
 
             <span>
                     {{

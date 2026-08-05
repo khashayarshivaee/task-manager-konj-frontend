@@ -72,6 +72,18 @@ export interface DeleteTaskCommentAttachmentResponse {
   message: string;
 }
 
+export interface MarkTaskCommentsReadResponse {
+  message: string;
+
+  data: {
+    last_read_comment_id:
+      | number
+      | null;
+
+    unread_comments_count: number;
+  };
+}
+
 export interface CreateTaskCommentPayload {
   body: string | null;
   parentId: number | null;

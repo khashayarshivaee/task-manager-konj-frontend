@@ -2,30 +2,116 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import Echo from 'laravel-echo';
 import Pusher from 'pusher-js';
-import { firstValueFrom } from 'rxjs';
+import {
+  firstValueFrom,
+  Subject,
+} from 'rxjs';
 
 import { environment } from '../../../environments/environment';
+import { TaskComment } from '../../tasks/models/task-comment.model';
 
 interface BroadcastAuthorizationResponse {
   auth: string;
   channel_data?: string;
   shared_secret?: string;
 }
-interface RealtimeConnectionTestPayload {
+
+export interface TaskCommentCreatedEvent {
+  workspace_id: number;
+  project_id: number;
+  task_id: number;
+  actor_id: number;
+  comment: TaskComment;
+}
+
+export interface TaskCommentUpdatedEvent {
+  workspace_id: number;
+  project_id: number;
+  task_id: number;
+  actor_id: number;
+  comment: TaskComment;
+}
+
+export interface TaskCommentDeletedEvent {
+  workspace_id: number;
+  project_id: number;
+  task_id: number;
+  actor_id: number;
+  comment_id: number;
+  parent_id: number | null;
+}
+
+export interface TaskCommentsReadEvent {
+  workspace_id: number;
+  project_id: number;
+  task_id: number;
   user_id: number;
-  message: string;
-  sent_at: string;
+  last_read_comment_id: number | null;
+  unread_comments_count: number;
+}
+
+export interface TaskUnreadCommentsUpdatedEvent {
+  workspace_id: number;
+  project_id: number;
+  task_id: number;
+  user_id: number;
+  unread_comments_count: number;
+  reason:
+    | 'comment_created'
+    | 'comment_deleted'
+    | 'comments_read'
+    | string;
 }
 
 @Injectable({
   providedIn: 'root',
 })
 export class RealtimeService {
-  private echo: Echo<'reverb'> | null = null;
+  private echo: Echo<'reverb'> | null =
+    null;
 
-  private connectedUserId: number | null = null;
+  private connectedUserId:
+    | number
+    | null = null;
 
-  private userChannelName: string | null = null;
+  private userChannelName:
+    | string
+    | null = null;
+
+  private taskChannelName:
+    | string
+    | null = null;
+
+  private readonly commentCreatedSubject =
+    new Subject<TaskCommentCreatedEvent>();
+
+  private readonly commentUpdatedSubject =
+    new Subject<TaskCommentUpdatedEvent>();
+
+  private readonly commentDeletedSubject =
+    new Subject<TaskCommentDeletedEvent>();
+
+  private readonly commentsReadSubject =
+    new Subject<TaskCommentsReadEvent>();
+
+  private readonly unreadCommentsUpdatedSubject =
+    new Subject<TaskUnreadCommentsUpdatedEvent>();
+
+  readonly commentCreated$ =
+    this.commentCreatedSubject.asObservable();
+
+  readonly commentUpdated$ =
+    this.commentUpdatedSubject.asObservable();
+
+  readonly commentDeleted$ =
+    this.commentDeletedSubject.asObservable();
+
+  readonly commentsRead$ =
+    this.commentsReadSubject.asObservable();
+
+  readonly unreadCommentsUpdated$ =
+    this.unreadCommentsUpdatedSubject
+      .asObservable();
 
   constructor(
     private readonly http: HttpClient,
@@ -54,9 +140,11 @@ export class RealtimeService {
 
       wsHost: environment.reverb.host,
       wsPort: environment.reverb.wsPort,
-      wssPort: environment.reverb.wssPort,
+      wssPort:
+      environment.reverb.wssPort,
 
-      forceTLS: environment.reverb.forceTLS,
+      forceTLS:
+      environment.reverb.forceTLS,
 
       enabledTransports: [
         'ws',
@@ -76,7 +164,8 @@ export class RealtimeService {
                 `${environment.apiUrl}/broadcasting/auth`,
                 {
                   socket_id: socketId,
-                  channel_name: channel.name,
+                  channel_name:
+                  channel.name,
                 },
               ),
             )
@@ -86,42 +175,55 @@ export class RealtimeService {
                   response,
                 );
               })
-              .catch((error: unknown) => {
-                const authorizationError =
-                  error instanceof Error
-                    ? error
-                    : new Error(
-                      'Broadcast authorization failed.',
-                    );
+              .catch(
+                (error: unknown) => {
+                  const authorizationError =
+                    error instanceof Error
+                      ? error
+                      : new Error(
+                        'Broadcast authorization failed.',
+                      );
 
-                callback(
-                  authorizationError,
-                  null as never,
-                );
-              });
+                  callback(
+                    authorizationError,
+                    null as never,
+                  );
+                },
+              );
           },
         };
       },
     });
 
     this.connectedUserId = userId;
-    this.userChannelName = `users.${userId}`;
+    this.userChannelName =
+      `users.${userId}`;
 
-    const userChannel = this.echo.private(
-      this.userChannelName,
-    );
+    const userChannel =
+      this.echo.private(
+        this.userChannelName,
+      );
 
     userChannel
       .listen(
-        '.realtime.connection.tested',
+        '.task.comments.read',
         (
           payload:
-            RealtimeConnectionTestPayload,
+            TaskCommentsReadEvent,
         ) => {
-          console.info(
-            '[Realtime] Test event received:',
+          this.commentsReadSubject.next(
             payload,
           );
+        },
+      )
+      .listen(
+        '.task.unread-comments.updated',
+        (
+          payload:
+            TaskUnreadCommentsUpdatedEvent,
+        ) => {
+          this.unreadCommentsUpdatedSubject
+            .next(payload);
         },
       )
       .subscribed(() => {
@@ -131,19 +233,111 @@ export class RealtimeService {
       })
       .error((error: unknown) => {
         console.error(
-          '[Realtime] Private channel subscription failed.',
+          '[Realtime] User channel subscription failed.',
           error,
         );
       });
+  }
+
+  joinTask(taskId: number): void {
+    if (!this.echo) {
+      console.warn(
+        '[Realtime] Cannot join task channel before connecting.',
+      );
+
+      return;
+    }
+
+    const channelName =
+      `tasks.${taskId}`;
+
+    if (
+      this.taskChannelName ===
+      channelName
+    ) {
+      return;
+    }
+
+    this.leaveTask();
+
+    this.taskChannelName =
+      channelName;
+
+    const taskChannel =
+      this.echo.private(
+        channelName,
+      );
+
+    taskChannel
+      .listen(
+        '.task.comment.created',
+        (
+          payload:
+            TaskCommentCreatedEvent,
+        ) => {
+          this.commentCreatedSubject.next(
+            payload,
+          );
+        },
+      )
+      .listen(
+        '.task.comment.updated',
+        (
+          payload:
+            TaskCommentUpdatedEvent,
+        ) => {
+          this.commentUpdatedSubject.next(
+            payload,
+          );
+        },
+      )
+      .listen(
+        '.task.comment.deleted',
+        (
+          payload:
+            TaskCommentDeletedEvent,
+        ) => {
+          this.commentDeletedSubject.next(
+            payload,
+          );
+        },
+      )
+      .subscribed(() => {
+        console.info(
+          `[Realtime] Subscribed to private-${channelName}`,
+        );
+      })
+      .error((error: unknown) => {
+        console.error(
+          '[Realtime] Task channel subscription failed.',
+          error,
+        );
+      });
+  }
+
+  leaveTask(): void {
+    if (
+      this.echo &&
+      this.taskChannelName
+    ) {
+      this.echo.leave(
+        this.taskChannelName,
+      );
+    }
+
+    this.taskChannelName = null;
   }
 
   disconnect(): void {
     if (!this.echo) {
       this.connectedUserId = null;
       this.userChannelName = null;
+      this.taskChannelName = null;
 
       return;
     }
+
+    this.leaveTask();
 
     if (this.userChannelName) {
       this.echo.leave(
@@ -156,9 +350,12 @@ export class RealtimeService {
     this.echo = null;
     this.connectedUserId = null;
     this.userChannelName = null;
+    this.taskChannelName = null;
   }
 
-  getSocketId(): string | undefined {
+  getSocketId():
+    | string
+    | undefined {
     return this.echo?.socketId();
   }
 }

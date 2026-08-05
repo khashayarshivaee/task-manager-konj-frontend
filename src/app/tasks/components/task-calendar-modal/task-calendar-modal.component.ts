@@ -15,6 +15,10 @@ import {
 } from '@angular/core/rxjs-interop';
 
 import {
+  RealtimeService,
+} from '../../../core/services/realtime.service';
+
+import {
   IonContent,
   IonIcon,
   IonSpinner,
@@ -74,6 +78,9 @@ export class TaskCalendarModalComponent
   private readonly taskService =
     inject(TaskService);
 
+  private readonly realtimeService =
+    inject(RealtimeService);
+
   private readonly destroyRef =
     inject(DestroyRef);
 
@@ -124,9 +131,9 @@ export class TaskCalendarModalComponent
   }
 
   ngOnInit(): void {
+    this.subscribeToUnreadCommentUpdates();
     this.loadCalendarRange();
   }
-
   get calendarDays(): TaskCalendarDay[] {
     const range =
       this.getCalendarRange();
@@ -325,6 +332,57 @@ export class TaskCalendarModalComponent
       task,
       'task',
     );
+  }
+
+  private subscribeToUnreadCommentUpdates(): void {
+    this.realtimeService
+      .unreadCommentsUpdated$
+      .pipe(
+        takeUntilDestroyed(
+          this.destroyRef,
+        ),
+      )
+      .subscribe((event) => {
+        if (
+          event.workspace_id !==
+          this.workspaceId ||
+          event.project_id !==
+          this.projectId
+        ) {
+          return;
+        }
+
+        const taskExists =
+          this.calendarTasks.some(
+            (task) =>
+              task.id === event.task_id,
+          );
+
+        if (!taskExists) {
+          return;
+        }
+
+        this.calendarTasks =
+          this.calendarTasks.map(
+            (task) => {
+              if (
+                task.id !== event.task_id
+              ) {
+                return task;
+              }
+
+              return {
+                ...task,
+
+                unread_comments_count:
+                event
+                  .unread_comments_count,
+              };
+            },
+          );
+
+        this.buildTaskDateIndex();
+      });
   }
 
   private loadCalendarRange(): void {

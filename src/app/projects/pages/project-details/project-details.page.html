@@ -598,13 +598,33 @@
     (click)="openTaskDetails(task)"
   >
     <div class="task-row-main">
-      <div class="task-title-line">
-        <strong>
+   <div class="task-title-line">
+  <strong>
       {{ task.title }}
       </strong>
-    </div>
 
-    <p>
+      @if (
+        task.unread_comments_count > 0
+      ) {
+      <span
+        class="task-unread-comments-badge"
+        [attr.aria-label]="
+        task.unread_comments_count +
+        ' unread comments'
+      "
+      >
+      {{
+        task.unread_comments_count > 99
+          ? '99+'
+          : task.unread_comments_count
+        }}
+
+        <span>new</span>
+    </span>
+      }
+      </div>
+
+          <p>
       {{
       task.description ||
       'No description has been added.'

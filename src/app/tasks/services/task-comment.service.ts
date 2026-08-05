@@ -14,6 +14,7 @@ import {
 } from '../../../environments/environment';
 import {
   CreateTaskCommentPayload,
+  MarkTaskCommentsReadResponse,
   CreateTaskCommentResponse,
   DeleteTaskCommentAttachmentResponse,
   DeleteTaskCommentResponse,
@@ -40,6 +41,21 @@ export class TaskCommentService {
         projectId,
         taskId,
       ),
+    );
+  }
+
+  markCommentsRead(
+    workspaceId: number,
+    projectId: number,
+    taskId: number,
+  ): Observable<MarkTaskCommentsReadResponse> {
+    return this.http.patch<MarkTaskCommentsReadResponse>(
+      `${this.getCommentsUrl(
+        workspaceId,
+        projectId,
+        taskId,
+      )}/read`,
+      {},
     );
   }
 

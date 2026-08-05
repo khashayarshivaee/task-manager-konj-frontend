@@ -1492,3 +1492,43 @@ article[data-status='completed']::before {
 .calendar-view-button ion-icon {
   font-size: 16px;
 }
+.task-title-line {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.task-title-line strong {
+  min-width: 0;
+}
+
+.task-unread-comments-badge {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 4px;
+
+  min-height: 22px;
+  padding: 3px 8px;
+
+  border: 1px solid
+  rgba(255, 107, 0, 0.2);
+  border-radius: 999px;
+
+  background:
+    rgba(255, 107, 0, 0.1);
+
+  color: #e85f00;
+
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.task-unread-comments-badge span {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
