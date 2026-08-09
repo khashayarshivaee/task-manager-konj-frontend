@@ -18,6 +18,28 @@ export interface UpdateProfilePayload {
   avatar?: File | null;
 }
 
+export interface RegisterCredentials {
+  name: string;
+  email: string;
+  password: string;
+  password_confirmation: string;
+}
+
+export interface RegisterRequestPayload
+  extends RegisterCredentials {
+  device_name: string;
+}
+
+export interface UpdatePasswordPayload {
+  current_password: string;
+  password: string;
+  password_confirmation: string;
+}
+
+export interface UpdatePasswordResponse {
+  message: string;
+}
+
 export interface UpdateProfileResponse {
   message: string;
   data: {
@@ -51,4 +73,11 @@ export interface CurrentUserResponse {
 
 export interface LogoutResponse {
   message: string;
+}
+
+export interface EmailVerificationResponse {
+  message: string;
+  data: {
+    verified: boolean;
+  };
 }

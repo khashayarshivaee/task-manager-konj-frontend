@@ -1,0 +1,398 @@
+<div
+  class="command-palette"
+  (keydown)="handleKeydown($event)"
+>
+  <div class="search-head">
+    <ion-icon
+      name="search-outline"
+    ></ion-icon>
+
+    <input
+      #searchInput
+      type="text"
+      autocomplete="off"
+      spellcheck="false"
+      placeholder="Search anything..."
+      [formControl]="searchControl"
+    />
+
+    @if (isSearching) {
+    <ion-spinner
+      name="crescent"
+    ></ion-spinner>
+    } @else {
+    <kbd>ESC</kbd>
+    }
+
+    <button
+      type="button"
+      class="close-button"
+      aria-label="Close search"
+      (click)="close()"
+    >
+      <ion-icon
+        name="close-outline"
+      ></ion-icon>
+    </button>
+  </div>
+
+  <div class="search-body">
+    @if (queryLength < 2) {
+    <div class="search-start-state">
+      <div class="search-start-icon">
+        <ion-icon
+          name="search-outline"
+        ></ion-icon>
+      </div>
+
+      <strong>
+        Search across Konj
+      </strong>
+
+      <span>
+        Find workspaces, projects,
+        tasks and comments.
+      </span>
+
+      <div class="search-shortcuts">
+        <span>
+          <kbd>↑</kbd>
+          <kbd>↓</kbd>
+          Navigate
+        </span>
+
+        <span>
+          <kbd>↵</kbd>
+          Open
+        </span>
+
+        <span>
+          <kbd>ESC</kbd>
+          Close
+        </span>
+      </div>
+    </div>
+    } @else if (searchError) {
+    <div class="search-empty-state">
+      <strong>
+        Search unavailable
+      </strong>
+
+      <span>
+    {{ searchError }}
+    </span>
+  </div>
+    } @else if (
+    hasSearched &&
+    !isSearching &&
+    !hasResults
+    ) {
+    <div class="search-empty-state">
+      <strong>
+        No results found
+      </strong>
+
+      <span>
+        Try another keyword.
+      </span>
+    </div>
+    } @else {
+    @if (
+      results.workspaces.length
+    ) {
+    <section
+      class="result-section"
+    >
+      <div
+        class="result-section-title"
+      >
+        <span>Workspaces</span>
+        <small>
+          {{
+          results.workspaces.length
+          }}
+        </small>
+      </div>
+
+      @for (
+      result
+      of results.workspaces;
+      track resultKey(result)
+      ) {
+      <button
+        type="button"
+        class="result-item"
+        [class.is-selected]="
+          isSelected(result)
+        "
+        (mouseenter)="
+          selectIndex(result)
+        "
+        (click)="
+          selectResult(result)
+        "
+      >
+        <span
+          class="result-icon workspace"
+        >
+          <ion-icon
+            name="business-outline"
+          ></ion-icon>
+        </span>
+
+        <span
+          class="result-copy"
+        >
+          <strong>
+      {{ result.title }}
+      </strong>
+
+      <small>
+      {{ result.subtitle }}
+      </small>
+    </span>
+
+    @if (
+      isSelected(result)
+    ) {
+      <kbd>↵</kbd>
+      }
+      </button>
+      }
+    </section>
+    }
+
+    @if (
+      results.projects.length
+    ) {
+    <section
+      class="result-section"
+    >
+      <div
+        class="result-section-title"
+      >
+        <span>Projects</span>
+        <small>
+          {{
+          results.projects.length
+          }}
+        </small>
+      </div>
+
+      @for (
+      result
+      of results.projects;
+      track resultKey(result)
+      ) {
+      <button
+        type="button"
+        class="result-item"
+        [class.is-selected]="
+          isSelected(result)
+        "
+        (mouseenter)="
+          selectIndex(result)
+        "
+        (click)="
+          selectResult(result)
+        "
+      >
+        <span
+          class="result-icon project"
+        >
+          <ion-icon
+            name="folder-open-outline"
+          ></ion-icon>
+        </span>
+
+        <span
+          class="result-copy"
+        >
+          <strong>
+      {{ result.title }}
+      </strong>
+
+      <small>
+      {{ result.subtitle }}
+      </small>
+
+      @if (result.excerpt) {
+      <span>
+                    {{ result.excerpt }}
+                  </span>
+      }
+      </span>
+
+      @if (
+        isSelected(result)
+      ) {
+      <kbd>↵</kbd>
+      }
+      </button>
+      }
+    </section>
+    }
+
+    @if (
+      results.tasks.length
+    ) {
+    <section
+      class="result-section"
+    >
+      <div
+        class="result-section-title"
+      >
+        <span>Tasks</span>
+        <small>
+          {{
+          results.tasks.length
+          }}
+        </small>
+      </div>
+
+      @for (
+      result
+      of results.tasks;
+      track resultKey(result)
+      ) {
+      <button
+        type="button"
+        class="result-item"
+        [class.is-selected]="
+          isSelected(result)
+        "
+        (mouseenter)="
+          selectIndex(result)
+        "
+        (click)="
+          selectResult(result)
+        "
+      >
+        <span
+          class="result-icon task"
+        >
+          <ion-icon
+            name="checkbox-outline"
+          ></ion-icon>
+        </span>
+
+        <span
+          class="result-copy"
+        >
+          <strong>
+      {{ result.title }}
+      </strong>
+
+      <small>
+      {{ result.subtitle }}
+      </small>
+
+      @if (result.excerpt) {
+      <span>
+                    {{ result.excerpt }}
+                  </span>
+      }
+      </span>
+
+      @if (
+        isSelected(result)
+      ) {
+      <kbd>↵</kbd>
+      }
+      </button>
+      }
+    </section>
+    }
+
+    @if (
+      results.comments.length
+    ) {
+    <section
+      class="result-section"
+    >
+      <div
+        class="result-section-title"
+      >
+        <span>Comments</span>
+        <small>
+          {{
+          results.comments.length
+          }}
+        </small>
+      </div>
+
+      @for (
+      result
+      of results.comments;
+      track resultKey(result)
+      ) {
+      <button
+        type="button"
+        class="result-item"
+        [class.is-selected]="
+          isSelected(result)
+        "
+        (mouseenter)="
+          selectIndex(result)
+        "
+        (click)="
+          selectResult(result)
+        "
+      >
+        <span
+          class="result-icon comment"
+        >
+          <ion-icon
+            name="chatbubble-ellipses-outline"
+          ></ion-icon>
+        </span>
+
+        <span
+          class="result-copy"
+        >
+          <strong>
+      {{ result.title }}
+      </strong>
+
+      <small>
+        Comment by
+      {{ result.subtitle }}
+      </small>
+
+      @if (result.excerpt) {
+      <span>
+                    “{{ result.excerpt }}”
+                  </span>
+      }
+      </span>
+
+      @if (
+        isSelected(result)
+      ) {
+      <kbd>↵</kbd>
+      }
+      </button>
+      }
+    </section>
+    }
+    }
+  </div>
+
+  <footer class="command-footer">
+    <span>
+      <kbd>↑</kbd>
+      <kbd>↓</kbd>
+      Navigate
+    </span>
+
+    <span>
+      <kbd>↵</kbd>
+      Open
+    </span>
+
+    <span>
+      <kbd>ESC</kbd>
+      Close
+    </span>
+  </footer>
+</div>

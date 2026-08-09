@@ -1576,3 +1576,201 @@ button {
   background: var(--orange-soft);
   cursor: pointer;
 }
+
+.notification-menu-shell {
+  position: relative;
+}
+
+.icon-button.is-active {
+  color: var(--orange-dark);
+  border-color: rgba(255, 107, 0, 0.24);
+  background: rgba(255, 107, 0, 0.06);
+}
+
+.notification-badge {
+  position: absolute;
+  top: -5px;
+  right: -6px;
+  display: grid;
+  min-width: 18px;
+  height: 18px;
+  place-items: center;
+  padding: 0 5px;
+  color: #ffffff;
+  font-size: 8px;
+  font-weight: 800;
+  line-height: 1;
+  border: 2px solid var(--surface);
+  border-radius: 999px;
+  background: var(--orange);
+}
+
+.notification-popover {
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 0;
+  z-index: 60;
+  width: min(380px, calc(100vw - 32px));
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow:
+    0 24px 60px rgba(0, 0, 0, 0.12);
+}
+
+.notification-popover-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 15px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.notification-popover-header > div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.notification-popover-header strong {
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.notification-popover-header span {
+  color: var(--muted);
+  font-size: 9px;
+}
+
+.notification-read-all {
+  display: inline-flex;
+  min-height: 30px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 9px;
+  color: var(--orange-dark);
+  font-size: 9px;
+  font-weight: 750;
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.notification-read-all:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.notification-read-all ion-spinner {
+  width: 14px;
+  height: 14px;
+}
+
+.notification-popover-body {
+  max-height: 420px;
+  overflow-y: auto;
+}
+
+.notification-item {
+  position: relative;
+  display: flex;
+  width: 100%;
+  align-items: flex-start;
+  gap: 11px;
+  padding: 13px 16px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  cursor: pointer;
+}
+
+.notification-item:last-child {
+  border-bottom: 0;
+}
+
+.notification-item:hover {
+  background: #fafaf8;
+}
+
+.notification-item.is-unread {
+  background: rgba(255, 107, 0, 0.035);
+}
+
+.notification-copy {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 5px;
+  padding-right: 12px;
+}
+
+.notification-copy > span {
+  color: #55554f;
+  font-size: 10px;
+  line-height: 1.55;
+}
+
+.notification-copy strong {
+  color: var(--text);
+  font-weight: 800;
+}
+
+.notification-copy small {
+  color: var(--muted);
+  font-size: 8px;
+}
+
+.notification-unread-dot {
+  position: absolute;
+  top: 18px;
+  right: 14px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--orange);
+}
+
+.notification-loading,
+.notification-empty {
+  display: flex;
+  min-height: 150px;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+}
+
+.notification-loading {
+  gap: 8px;
+  font-size: 10px;
+}
+
+.notification-loading ion-spinner {
+  width: 16px;
+  height: 16px;
+}
+
+.notification-empty {
+  flex-direction: column;
+  gap: 6px;
+  padding: 24px;
+  text-align: center;
+}
+
+.notification-empty ion-icon {
+  margin-bottom: 4px;
+  color: #b5b5ae;
+  font-size: 24px;
+}
+
+.notification-empty strong {
+  color: var(--text);
+  font-size: 11px;
+}
+
+.notification-empty span {
+  font-size: 9px;
+}

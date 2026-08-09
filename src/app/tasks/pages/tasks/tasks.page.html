@@ -1,0 +1,850 @@
+<ion-content
+  [fullscreen]="true"
+  class="tasks-page"
+>
+  <main class="tasks-shell">
+    <header class="tasks-topbar">
+      <button
+        type="button"
+        class="back-button"
+        (click)="goHome()"
+      >
+        <ion-icon
+          name="arrow-back-outline"
+        ></ion-icon>
+
+        <span>Back to dashboard</span>
+      </button>
+
+      <div class="brand-mark">
+        K
+      </div>
+    </header>
+
+    @if (isLoadingWorkspace) {
+    <section class="page-state">
+      <ion-spinner
+        name="crescent"
+      ></ion-spinner>
+
+      <strong>
+        Loading workspace...
+      </strong>
+
+      <span>
+        Preparing your workspace tasks.
+      </span>
+    </section>
+    } @else if (
+    workspaceErrorMessage
+    ) {
+    <section class="page-state">
+      <span class="state-icon">
+        <ion-icon
+          name="list-outline"
+        ></ion-icon>
+      </span>
+
+      <strong>
+        Workspace unavailable
+      </strong>
+
+      <p>
+    {{ workspaceErrorMessage }}
+    </p>
+
+    <button
+      type="button"
+      class="primary-action"
+      (click)="openWorkspaces()"
+    >
+      Open workspaces
+    </button>
+  </section>
+    } @else if (
+    !activeWorkspace
+    ) {
+    <section class="page-state">
+      <span class="state-icon">
+        <ion-icon
+          name="list-outline"
+        ></ion-icon>
+      </span>
+
+      <strong>
+        No active workspace
+      </strong>
+
+      <p>
+        Select a workspace before
+        viewing tasks.
+      </p>
+
+      <button
+        type="button"
+        class="primary-action"
+        (click)="openWorkspaces()"
+      >
+        Open workspaces
+      </button>
+    </section>
+    } @else {
+    <section class="tasks-hero">
+      <span class="hero-icon">
+        <ion-icon
+          name="list-outline"
+        ></ion-icon>
+      </span>
+
+      <div class="hero-copy">
+        <span class="eyebrow">
+          Workspace tasks
+        </span>
+
+        <h1>
+    {{ activeWorkspace.name }}
+    </h1>
+
+    <p>
+      Review work across every project
+      in the active workspace.
+    </p>
+  </div>
+
+  <div class="hero-task-count">
+    <strong>
+    {{ filteredTaskTotal }}
+    </strong>
+
+    <span>
+    {{
+    filteredTaskTotal === 1
+      ? 'task'
+      : 'tasks'
+    }}
+    </span>
+  </div>
+</section>
+
+<section class="tasks-card">
+  <header class="tasks-card-header">
+    <div>
+      <span class="eyebrow">
+        All projects
+      </span>
+
+      <h2>Tasks</h2>
+
+      <p>
+        Search, filter and manage tasks
+        across this workspace.
+      </p>
+    </div>
+  </header>
+
+  <section
+    class="task-filters"
+    aria-label="Task filters"
+  >
+    <div class="task-filter-top">
+      <div class="task-filter-search">
+        <ion-icon
+          name="search-outline"
+        ></ion-icon>
+
+        <input
+          type="search"
+          placeholder="Search tasks..."
+          autocomplete="off"
+          [value]="taskSearchDraft"
+          (input)="
+            onTaskSearchInput(
+              $event
+            )
+          "
+          (keydown.enter)="
+            applyTaskSearch()
+          "
+        />
+
+        <button
+          type="button"
+          class="task-search-button"
+          [disabled]="
+            isLoadingTasks
+          "
+          (click)="
+            applyTaskSearch()
+          "
+        >
+          Search
+        </button>
+      </div>
+
+      <div class="task-filter-summary">
+        <span>Filters</span>
+
+        @if (
+          activeTaskFilterCount > 0
+        ) {
+    <strong>
+      {{
+      activeTaskFilterCount
+      }}
+    </strong>
+    }
+    </div>
+  </div>
+
+  <div class="task-filter-bottom">
+    <div class="task-status-filters">
+      <span class="task-filter-label">
+        Status
+      </span>
+
+      <button
+        type="button"
+        class="task-filter-chip"
+        [class.task-filter-chip-active]="
+          taskStatusFilter === ''
+        "
+        [disabled]="
+          isLoadingTasks
+        "
+        (click)="
+          setTaskStatusFilter('')
+        "
+      >
+        All
+      </button>
+
+      @for (
+        option of
+          taskStatusOptions;
+        track option.value
+      ) {
+    <button
+      type="button"
+      class="task-filter-chip"
+      [class.task-filter-chip-active]="
+                    taskStatusFilter ===
+                    option.value
+                  "
+      [disabled]="
+                    isLoadingTasks
+                  "
+      (click)="
+                    setTaskStatusFilter(
+                      option.value
+                    )
+                  "
+    >
+      {{ option.label }}
+    </button>
+    }
+    </div>
+
+    <div class="task-filter-actions">
+      <button
+        type="button"
+        class="
+          task-filter-chip
+          task-filter-assignee
+        "
+        [class.task-filter-chip-active]="
+          taskAssignedToMeOnly
+        "
+        [disabled]="
+          isLoadingTasks
+        "
+        (click)="
+          toggleTaskAssignedToMe()
+        "
+      >
+        <ion-icon
+          name="person-circle-outline"
+        ></ion-icon>
+
+        <span>
+          Assigned to me
+        </span>
+      </button>
+
+      <label class="task-priority-filter">
+        <span>Priority</span>
+
+        <select
+          [value]="
+            taskPriorityFilter
+          "
+          [disabled]="
+            isLoadingTasks
+          "
+          (change)="
+            setTaskPriorityFilter(
+              $event
+            )
+          "
+        >
+          <option value="">
+            All priorities
+          </option>
+
+          <option value="low">
+            Low
+          </option>
+
+          <option value="medium">
+            Medium
+          </option>
+
+          <option value="high">
+            High
+          </option>
+
+          <option value="urgent">
+            Urgent
+          </option>
+        </select>
+      </label>
+
+      <label class="task-priority-filter">
+        <span>Due</span>
+
+        <select
+          [value]="
+            taskDueFilter
+          "
+          [disabled]="
+            isLoadingTasks
+          "
+          (change)="
+            setTaskDueFilter(
+              $event
+            )
+          "
+        >
+          <option value="">
+            Any date
+          </option>
+
+          <option value="this_week">
+            This week
+          </option>
+
+          <option value="this_month">
+            This month
+          </option>
+
+          <option value="this_year">
+            This year
+          </option>
+
+          <option value="overdue">
+            Overdue
+          </option>
+
+          <option value="no_due_date">
+            No due date
+          </option>
+        </select>
+      </label>
+
+      @if (hasTaskFilters) {
+    <button
+      type="button"
+      class="task-filter-clear"
+      [disabled]="
+                    isLoadingTasks
+                  "
+      (click)="
+                    clearTaskFilters()
+                  "
+    >
+      Clear
+    </button>
+    }
+    </div>
+  </div>
+</section>
+
+@if (
+  taskStatusErrorMessage
+) {
+    <div
+      class="task-status-error"
+      role="alert"
+    >
+      <ion-icon
+        name="alert-circle-outline"
+      ></ion-icon>
+
+      <span>
+              {{
+        taskStatusErrorMessage
+        }}
+            </span>
+
+      <button
+        type="button"
+        aria-label="Dismiss error"
+        (click)="
+                taskStatusErrorMessage = ''
+              "
+      >
+        ×
+      </button>
+    </div>
+    }
+
+    @if (isLoadingTasks) {
+    <div class="tasks-state">
+      <ion-spinner
+        name="crescent"
+      ></ion-spinner>
+
+      <strong>
+        Loading tasks...
+      </strong>
+
+      <span>
+              Getting the latest
+              workspace work.
+            </span>
+    </div>
+    } @else if (
+          taskErrorMessage
+        ) {
+    <div
+      class="
+              tasks-state
+              tasks-error
+            "
+    >
+            <span class="state-icon">
+              <ion-icon
+                name="list-outline"
+              ></ion-icon>
+            </span>
+
+      <strong>
+        Tasks unavailable
+      </strong>
+
+      <span>
+              {{ taskErrorMessage }}
+            </span>
+
+      <button
+        type="button"
+        class="secondary-action"
+        (click)="
+                loadTasks(true)
+              "
+      >
+        Try again
+      </button>
+    </div>
+    } @else if (
+          tasks.length === 0
+        ) {
+    <div class="tasks-state">
+            <span class="state-icon">
+              <ion-icon
+                name="list-outline"
+              ></ion-icon>
+            </span>
+
+      @if (hasTaskFilters) {
+      <strong>
+        No tasks match
+        these filters
+      </strong>
+
+      <span>
+        Try another status,
+        priority, due date or
+        search term.
+      </span>
+
+      <button
+        type="button"
+        class="secondary-action"
+        (click)="
+          clearTaskFilters()
+        "
+      >
+        Clear filters
+      </button>
+      } @else {
+      <strong>
+        No tasks yet
+      </strong>
+
+      <span>
+        Tasks created inside
+        workspace projects will
+        appear here.
+      </span>
+      }
+    </div>
+    } @else {
+    <div class="tasks-list">
+      @for (
+      task of tasks;
+      track task.id
+      ) {
+      <article
+        class="task-row"
+        [class.task-row-completed]="
+          task.status ===
+          'completed'
+        "
+      >
+        <span
+          class="task-status-line"
+          [attr.data-status]="
+            task.status
+          "
+        ></span>
+
+        <button
+          type="button"
+          class="task-row-open"
+          (click)="
+            openTaskDetails(
+              task
+            )
+          "
+        >
+          <div class="task-row-main">
+            <div class="task-title-line">
+              <strong>
+      {{ task.title }}
+      </strong>
+
+      @if (
+        task.unread_comments_count >
+        0
+      ) {
+      <span
+        class="
+                            task-unread-comments-badge
+                          "
+      >
+                          {{
+        task.unread_comments_count >
+        99
+          ? '99+'
+          : task.unread_comments_count
+        }}
+
+        <span>new</span>
+                        </span>
+      }
+      </div>
+
+      <button
+        type="button"
+        class="task-project-link"
+        (click)="
+          openProject(
+            task,
+            $event
+          )
+        "
+      >
+        <span
+          class="project-dot"
+          [style.background-color]="
+            task.project?.color ||
+            '#ff6b00'
+          "
+        ></span>
+
+        <span>
+      {{
+      task.project?.name ||
+      'Project'
+      }}
+      </span>
+    </button>
+
+    <p>
+      {{
+      task.description ||
+      'No description has been added.'
+      }}
+      </p>
+
+      <div class="task-meta">
+        <span
+          class="task-priority"
+          [attr.data-priority]="
+            task.priority
+          "
+        >
+          <ion-icon
+            name="flag-outline"
+          ></ion-icon>
+
+      {{
+      getTaskPriorityLabel(
+        task.priority
+      )
+      }}
+      </span>
+
+      <span
+        class="task-assignees-meta"
+        [title]="
+          getTaskAssigneeTitle(
+            task
+          )
+        "
+      >
+        @if (
+          getTaskAssignees(
+            task
+          ).length === 0
+        ) {
+      <ion-icon
+        name="person-circle-outline"
+      ></ion-icon>
+
+      <span>
+                            Unassigned
+                          </span>
+      } @else {
+      <span class="task-assignee-stack">
+                            @for (
+                              assignee of
+                                getVisibleTaskAssignees(
+                                  task
+                                );
+                              track assignee.id
+                            ) {
+        <span class="task-card-avatar">
+          <app-user-avatar
+            [name]="
+              assignee.name
+            "
+            [avatarPath]="
+              assignee.avatar_path ??
+              null
+            "
+            [size]="26"
+            [fontSize]="7"
+          ></app-user-avatar>
+        </span>
+                            }
+
+                            @if (
+                              getHiddenTaskAssigneeCount(
+                                task
+                              ) > 0
+                            ) {
+        <span
+          class="
+            task-assignee-more
+          "
+        >
+          +{{
+        getHiddenTaskAssigneeCount(
+          task
+        )
+                                }}
+                              </span>
+                            }
+                          </span>
+
+      <span
+        class="
+                              task-assignee-summary
+                            "
+      >
+                            {{
+        getTaskAssigneeSummary(
+          task
+        )
+        }}
+                          </span>
+      }
+      </span>
+
+      <span>
+        <ion-icon
+          name="calendar-outline"
+        ></ion-icon>
+
+        Due
+      {{
+      formatDate(
+        task.due_at
+      )
+      }}
+      </span>
+    </div>
+  </div>
+</button>
+
+<div class="task-quick-actions">
+  <button
+    type="button"
+    class="task-complete-button"
+    [class.task-complete-button-active]="
+      task.status ===
+      'completed'
+    "
+    [disabled]="
+      isTaskStatusUpdating(
+        task.id
+      )
+    "
+    (click)="
+      toggleTaskCompleted(
+        task
+      )
+    "
+  >
+    <span
+      class="
+        task-complete-icon
+      "
+    >
+      @if (
+        task.status ===
+        'completed'
+      ) {
+      <ion-icon
+        name="
+                            checkmark-circle-outline
+                          "
+      ></ion-icon>
+      }
+      </span>
+
+      <span>
+      {{
+      task.status ===
+      'completed'
+        ? 'Completed'
+        : 'Mark complete'
+      }}
+      </span>
+    </button>
+
+    <label
+      class="
+        task-status-control
+      "
+    >
+      <span>Status</span>
+
+      <select
+        [value]="task.status"
+        [disabled]="
+          isTaskStatusUpdating(
+            task.id
+          )
+        "
+        (change)="
+          changeTaskStatus(
+            task,
+            $event
+          )
+        "
+      >
+        @for (
+          option of
+            taskStatusOptions;
+          track option.value
+        ) {
+      <option
+        [value]="
+                            option.value
+                          "
+      >
+        {{ option.label }}
+      </option>
+      }
+      </select>
+    </label>
+
+    @if (
+      isTaskStatusUpdating(
+        task.id
+      )
+    ) {
+      <ion-spinner
+        class="
+                        task-status-updating-spinner
+                      "
+        name="crescent"
+      ></ion-spinner>
+      }
+      </div>
+    </article>
+      }
+    </div>
+
+    <div class="tasks-pagination">
+      <div class="tasks-pagination-copy">
+        <strong>
+          Showing
+          {{ loadedTaskCount }}
+          of
+          {{ filteredTaskTotal }}
+        </strong>
+
+        <span>
+                Tasks are loaded in
+                groups of
+          {{ tasksPerPage }}.
+              </span>
+      </div>
+
+      @if (hasMoreTasks) {
+      <button
+        type="button"
+        class="
+          load-more-tasks-button
+        "
+        [disabled]="
+          isLoadingMoreTasks
+        "
+        (click)="
+          loadMoreTasks()
+        "
+      >
+        @if (
+          isLoadingMoreTasks
+        ) {
+      <ion-spinner
+        name="crescent"
+      ></ion-spinner>
+
+      <span>
+                    Loading tasks...
+                  </span>
+      } @else {
+      <span>
+                    Load more tasks
+                  </span>
+      }
+      </button>
+      } @else {
+      <span
+        class="
+          tasks-pagination-complete
+        "
+      >
+        All tasks loaded
+      </span>
+      }
+    </div>
+    }
+    </section>
+    }
+  </main>
+</ion-content>

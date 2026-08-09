@@ -1,0 +1,160 @@
+<ion-content
+  [fullscreen]="true"
+  class="login-page"
+>
+  <div class="login-layout">
+    <section
+      class="login-card verify-card"
+      aria-labelledby="verify-email-title"
+    >
+      <div class="brand">
+        <div
+          class="brand-mark"
+          aria-hidden="true"
+        >
+          K
+        </div>
+
+        <div class="brand-copy">
+          <strong>Konj</strong>
+          <span>Task Manager</span>
+        </div>
+      </div>
+
+      <div class="verify-icon">
+        <ion-icon
+          name="mail-unread-outline"
+        ></ion-icon>
+      </div>
+
+      <header class="login-header verify-header">
+        <span class="login-badge">
+          One last step
+        </span>
+
+        <h1 id="verify-email-title">
+          Verify your email
+        </h1>
+
+        <p>
+          We sent a verification link to
+        </p>
+
+        @if (email) {
+        <strong class="verify-email-address">
+        {{ email }}
+        </strong>
+        }
+
+        <p class="verify-description">
+          Open the email and click the
+          verification link before
+          continuing to your workspace.
+        </p>
+      </header>
+
+      @if (successMessage) {
+      <div
+        class="verify-success"
+        role="status"
+      >
+        <ion-icon
+          name="checkmark-circle-outline"
+        ></ion-icon>
+
+        <span>
+      {{ successMessage }}
+      </span>
+    </div>
+      }
+
+      @if (errorMessage) {
+      <div
+        class="login-error"
+        role="alert"
+        aria-live="polite"
+      >
+      {{ errorMessage }}
+      </div>
+      }
+
+      <div class="verify-actions">
+        <ion-button
+          type="button"
+          expand="block"
+          class="login-submit"
+          [disabled]="isChecking"
+          (click)="continue()"
+        >
+          @if (isChecking) {
+          <ion-spinner
+            name="crescent"
+          ></ion-spinner>
+
+          <span>
+            Checking...
+          </span>
+          } @else {
+          <span>
+            I verified my email
+          </span>
+          }
+        </ion-button>
+
+        <button
+          type="button"
+          class="verify-secondary"
+          [disabled]="isResending"
+          (click)="resend()"
+        >
+          @if (isResending) {
+          <ion-spinner
+            name="crescent"
+          ></ion-spinner>
+
+          <span>
+            Sending...
+          </span>
+          } @else {
+          <ion-icon
+            name="refresh-outline"
+          ></ion-icon>
+
+          <span>
+            Resend verification email
+          </span>
+          }
+        </button>
+      </div>
+
+      <button
+        type="button"
+        class="verify-logout"
+        [disabled]="isLoggingOut"
+        (click)="logout()"
+      >
+        <ion-icon
+          name="log-out-outline"
+        ></ion-icon>
+
+        <span>
+          Sign out
+        </span>
+      </button>
+
+      <footer class="login-footer">
+        <span>
+          Konj Task Manager
+        </span>
+
+        <span
+          class="footer-dot"
+        ></span>
+
+        <span>
+          Work better together
+        </span>
+      </footer>
+    </section>
+  </div>
+</ion-content>

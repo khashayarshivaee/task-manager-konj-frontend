@@ -32,6 +32,83 @@ import {
 export class TaskService {
   private readonly http = inject(HttpClient);
 
+
+  getWorkspaceTasks(
+    workspaceId: number,
+    query: TaskListQuery = {},
+  ): Observable<ListTasksResponse> {
+    let params = new HttpParams();
+
+    if (query.page !== undefined) {
+      params = params.set(
+        'page',
+        String(query.page),
+      );
+    }
+
+    if (query.per_page !== undefined) {
+      params = params.set(
+        'per_page',
+        String(query.per_page),
+      );
+    }
+
+    if (query.search) {
+      params = params.set(
+        'search',
+        query.search,
+      );
+    }
+
+    if (query.status) {
+      params = params.set(
+        'status',
+        query.status,
+      );
+    }
+
+    if (query.priority) {
+      params = params.set(
+        'priority',
+        query.priority,
+      );
+    }
+
+    if (query.assignee !== undefined) {
+      params = params.set(
+        'assignee',
+        String(query.assignee),
+      );
+    }
+
+    if (query.due) {
+      params = params.set(
+        'due',
+        query.due,
+      );
+    }
+
+    if (query.sort) {
+      params = params.set(
+        'sort',
+        query.sort,
+      );
+    }
+
+    if (query.direction) {
+      params = params.set(
+        'direction',
+        query.direction,
+      );
+    }
+
+    return this.http.get<ListTasksResponse>(
+      `${environment.apiUrl}/workspaces/${workspaceId}/tasks`,
+      {
+        params,
+      },
+    );
+  }
   getTasks(
     workspaceId: number,
     projectId: number,

@@ -10,6 +10,10 @@ import {
 import { environment } from '../../../environments/environment';
 import { TaskComment } from '../../tasks/models/task-comment.model';
 
+
+import {
+  ActivityNotification,
+} from '../../notifications/models/notification.model';
 interface BroadcastAuthorizationResponse {
   auth: string;
   channel_data?: string;
@@ -63,6 +67,19 @@ export interface TaskUnreadCommentsUpdatedEvent {
     | string;
 }
 
+export interface UserNotificationCreatedEvent {
+  user_id: number;
+  notification: ActivityNotification;
+  unread_count: number;
+}
+
+export interface UserNotificationsReadUpdatedEvent {
+  user_id: number;
+  notification_id: number | null;
+  unread_count: number;
+  read_all: boolean;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -97,6 +114,12 @@ export class RealtimeService {
   private readonly unreadCommentsUpdatedSubject =
     new Subject<TaskUnreadCommentsUpdatedEvent>();
 
+  private readonly notificationCreatedSubject =
+    new Subject<UserNotificationCreatedEvent>();
+
+  private readonly notificationsReadUpdatedSubject =
+    new Subject<UserNotificationsReadUpdatedEvent>();
+
   readonly commentCreated$ =
     this.commentCreatedSubject.asObservable();
 
@@ -111,6 +134,14 @@ export class RealtimeService {
 
   readonly unreadCommentsUpdated$ =
     this.unreadCommentsUpdatedSubject
+      .asObservable();
+
+  readonly notificationCreated$ =
+    this.notificationCreatedSubject
+      .asObservable();
+
+  readonly notificationsReadUpdated$ =
+    this.notificationsReadUpdatedSubject
       .asObservable();
 
   constructor(
@@ -223,6 +254,26 @@ export class RealtimeService {
             TaskUnreadCommentsUpdatedEvent,
         ) => {
           this.unreadCommentsUpdatedSubject
+            .next(payload);
+        },
+      )
+      .listen(
+        '.notification.created',
+        (
+          payload:
+            UserNotificationCreatedEvent,
+        ) => {
+          this.notificationCreatedSubject
+            .next(payload);
+        },
+      )
+      .listen(
+        '.notifications.read-updated',
+        (
+          payload:
+            UserNotificationsReadUpdatedEvent,
+        ) => {
+          this.notificationsReadUpdatedSubject
             .next(payload);
         },
       )

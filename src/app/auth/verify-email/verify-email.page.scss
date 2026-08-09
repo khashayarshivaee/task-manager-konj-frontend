@@ -1,0 +1,128 @@
+.verify-card {
+  text-align: left;
+}
+
+.verify-icon {
+  display: grid;
+  width: 62px;
+  height: 62px;
+  margin-bottom: 22px;
+  place-items: center;
+  color: var(--konj-primary);
+  border-radius: 19px;
+  background: var(--konj-primary-soft);
+}
+
+.verify-icon ion-icon {
+  width: 29px;
+  height: 29px;
+}
+
+.verify-header {
+  margin-bottom: 25px;
+}
+
+.verify-email-address {
+  display: block;
+  margin-top: 5px;
+  color: var(--konj-text);
+  font-size: 14px;
+  font-weight: 780;
+  overflow-wrap: anywhere;
+}
+
+.verify-description {
+  margin-top: 18px !important;
+}
+
+.verify-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.verify-secondary {
+  display: flex;
+  min-height: 50px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 16px;
+  color: #4e4e49;
+  font-size: 12px;
+  font-weight: 720;
+  border: 1px solid var(--konj-border);
+  border-radius: 14px;
+  background: #ffffff;
+  cursor: pointer;
+  transition:
+    border-color 150ms ease,
+    background 150ms ease;
+}
+
+.verify-secondary:hover:not(:disabled) {
+  border-color: #d8d8d2;
+  background: var(--konj-input);
+}
+
+.verify-secondary:disabled,
+.verify-logout:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.verify-secondary ion-icon {
+  width: 17px;
+  height: 17px;
+}
+
+.verify-secondary ion-spinner {
+  width: 17px;
+  height: 17px;
+}
+
+.verify-success {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding: 12px 14px;
+  color: #247748;
+  font-size: 12px;
+  font-weight: 550;
+  line-height: 1.7;
+  border: 1px solid rgba(36, 119, 72, 0.14);
+  border-radius: 13px;
+  background: rgba(36, 119, 72, 0.065);
+}
+
+.verify-success ion-icon {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  margin-top: 1px;
+}
+
+.verify-logout {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin: 20px auto 0;
+  padding: 7px 10px;
+  color: var(--konj-muted);
+  font-size: 11px;
+  font-weight: 650;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.verify-logout:hover:not(:disabled) {
+  color: var(--konj-text);
+}
+
+.verify-logout ion-icon {
+  width: 15px;
+  height: 15px;
+}

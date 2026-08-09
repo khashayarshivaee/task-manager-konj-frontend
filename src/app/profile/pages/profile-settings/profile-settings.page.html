@@ -13,7 +13,9 @@
           name="arrow-back-outline"
         ></ion-icon>
 
-        <span>Back to dashboard</span>
+        <span>
+          Back to dashboard
+        </span>
       </button>
 
       <div class="brand-mark">
@@ -27,21 +29,26 @@
         name="crescent"
       ></ion-spinner>
 
-      <strong>Loading profile...</strong>
+      <strong>
+        Loading settings...
+      </strong>
 
       <span>
-        Getting your latest account information.
+        Getting your latest account
+        information.
       </span>
     </section>
     } @else if (!user) {
     <section class="page-state">
       <span class="state-icon">
         <ion-icon
-          name="person-circle-outline"
+          name="settings-outline"
         ></ion-icon>
       </span>
 
-      <strong>Profile unavailable</strong>
+      <strong>
+        Settings unavailable
+      </strong>
 
       <p>
     {{ errorMessage }}
@@ -59,23 +66,155 @@
     <section class="profile-hero">
       <span class="hero-icon">
         <ion-icon
-          name="person-circle-outline"
+          name="settings-outline"
         ></ion-icon>
       </span>
 
       <div>
         <span class="eyebrow">
-          Account settings
+          Account
         </span>
 
-        <h1>Your profile</h1>
+        <h1>Settings</h1>
 
         <p>
-          Update your personal information and
-          profile picture.
+          Manage your profile, security,
+          workspace preferences and
+          notifications.
         </p>
       </div>
     </section>
+
+    <div class="settings-layout">
+      <aside
+        class="settings-navigation"
+        aria-label="Settings navigation"
+      >
+        <header>
+          <span class="eyebrow">
+            Settings
+          </span>
+
+          <strong>
+            Your account
+          </strong>
+        </header>
+
+        <button
+          type="button"
+          class="settings-navigation-item"
+          [class.settings-navigation-item-active]="
+            activeSection === 'profile'
+          "
+          (click)="
+            selectSection('profile')
+          "
+        >
+          <span class="settings-navigation-icon">
+            <ion-icon
+              name="person-circle-outline"
+            ></ion-icon>
+          </span>
+
+          <span>
+            <strong>Profile</strong>
+            <small>
+              Personal information
+            </small>
+          </span>
+        </button>
+
+        <button
+          type="button"
+          class="settings-navigation-item"
+          [class.settings-navigation-item-active]="
+            activeSection === 'security'
+          "
+          (click)="
+            selectSection('security')
+          "
+        >
+          <span class="settings-navigation-icon">
+            <ion-icon
+              name="lock-closed-outline"
+            ></ion-icon>
+          </span>
+
+          <span>
+            <strong>Security</strong>
+            <small>
+              Password and access
+            </small>
+          </span>
+        </button>
+
+        <button
+          type="button"
+          class="settings-navigation-item"
+          [class.settings-navigation-item-active]="
+            activeSection === 'preferences'
+          "
+          (click)="
+            selectSection('preferences')
+          "
+        >
+          <span class="settings-navigation-icon">
+            <ion-icon
+              name="grid-outline"
+            ></ion-icon>
+          </span>
+
+          <span>
+            <strong>Preferences</strong>
+            <small>
+              Default workspace
+            </small>
+          </span>
+        </button>
+
+        <button
+          type="button"
+          class="settings-navigation-item"
+          [class.settings-navigation-item-active]="
+            activeSection === 'notifications'
+          "
+          (click)="
+            selectSection('notifications')
+          "
+        >
+          <span class="settings-navigation-icon">
+            <ion-icon
+              name="notifications-outline"
+            ></ion-icon>
+          </span>
+
+          <span>
+            <strong>Notifications</strong>
+            <small>
+              Notification controls
+            </small>
+          </span>
+        </button>
+      </aside>
+
+      <section class="settings-content">
+        @if (
+          activeSection === 'profile'
+        ) {
+    <div class="settings-section-heading">
+              <span class="eyebrow">
+                Profile
+              </span>
+
+      <h2>
+        Personal information
+      </h2>
+
+      <p>
+        Update the information other
+        workspace members see about you.
+      </p>
+    </div>
 
     @if (successMessage) {
     <div
@@ -86,8 +225,10 @@
         name="checkmark-circle-outline"
       ></ion-icon>
 
-      <span>{{ successMessage }}</span>
-    </div>
+      <span>
+    {{ successMessage }}
+    </span>
+  </div>
     }
 
     @if (errorMessage) {
@@ -95,7 +236,7 @@
       class="error-notice"
       role="alert"
     >
-      {{ errorMessage }}
+    {{ errorMessage }}
     </div>
     }
 
@@ -107,187 +248,608 @@
       <section class="avatar-section">
         <div class="avatar-preview">
           @if (avatarPreviewUrl) {
-    <img
-      [src]="avatarPreviewUrl"
-      alt="Selected profile picture"
-    />
-    } @else {
-    <app-user-avatar
-      [name]="user.name"
-      [avatarPath]="user.avatar_path"
-      [size]="96"
-      [fontSize]="25"
-    ></app-user-avatar>
-    }
-    </div>
+          <img
+            [src]="avatarPreviewUrl"
+            alt="Selected profile picture"
+          />
+          } @else {
+          <app-user-avatar
+            [name]="user.name"
+            [avatarPath]="
+              user.avatar_path
+            "
+            [size]="96"
+            [fontSize]="25"
+          ></app-user-avatar>
+          }
+        </div>
 
-    <div class="avatar-copy">
-      <span class="eyebrow">
-        Profile picture
-      </span>
+        <div class="avatar-copy">
+                  <span class="eyebrow">
+                    Profile picture
+                  </span>
 
-      <h2>Choose your photo</h2>
+          <h2>
+            Choose your photo
+          </h2>
 
-      <p>
-        JPG, PNG or WebP. Maximum size 2 MB.
-      </p>
+          <p>
+            JPG, PNG or WebP.
+            Maximum size 2 MB.
+          </p>
 
-      <div class="avatar-actions">
-        <label
-          class="upload-button"
-          for="profile-avatar"
+          <div class="avatar-actions">
+            <label
+              class="upload-button"
+              for="profile-avatar"
+            >
+              <ion-icon
+                name="camera-outline"
+              ></ion-icon>
+
+              <span>
+                        {{
+                avatarPreviewUrl
+                  ? 'Choose another'
+                  : 'Choose photo'
+                }}
+                      </span>
+            </label>
+
+            <input
+              id="profile-avatar"
+              type="file"
+              accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+              (change)="
+                        handleAvatarSelection(
+                          $event
+                        )
+                      "
+            />
+
+            @if (selectedAvatar) {
+            <button
+              type="button"
+              class="clear-avatar-button"
+              (click)="
+                clearSelectedAvatar()
+              "
+            >
+              <ion-icon
+                name="close-outline"
+              ></ion-icon>
+
+              Remove selection
+            </button>
+            }
+          </div>
+
+          @if (
+          avatarErrorMessage
+          ) {
+          <small class="field-error">
+          {{
+          avatarErrorMessage
+          }}
+          </small>
+          }
+        </div>
+      </section>
+
+      <section class="information-section">
+        <header>
+                  <span class="eyebrow">
+                    Personal information
+                  </span>
+
+          <h2>
+            Account details
+          </h2>
+
+          <p>
+            These details are visible
+            to other workspace members.
+          </p>
+        </header>
+
+        <div class="form-grid">
+          <label class="form-field">
+                    <span>
+                      Full name
+                    </span>
+
+            <input
+              type="text"
+              formControlName="name"
+              autocomplete="name"
+              placeholder="Enter your full name"
+            />
+
+            @if (
+            nameControl.touched &&
+            nameControl.hasError(
+            'required'
+            )
+            ) {
+            <small class="field-error">
+              Your name is required.
+            </small>
+            }
+
+            @if (
+            nameControl.touched &&
+            nameControl.hasError(
+            'maxlength'
+            )
+            ) {
+            <small class="field-error">
+              Your name cannot exceed
+              100 characters.
+            </small>
+            }
+          </label>
+
+          <label class="form-field">
+                    <span>
+                      Email address
+                    </span>
+
+            <input
+              type="email"
+              formControlName="email"
+              autocomplete="email"
+              placeholder="Enter your email address"
+            />
+
+            @if (
+            emailControl.touched &&
+            emailControl.hasError(
+            'required'
+            )
+            ) {
+            <small class="field-error">
+              Your email address is
+              required.
+            </small>
+            }
+
+            @if (
+            emailControl.touched &&
+            emailControl.hasError(
+            'email'
+            )
+            ) {
+            <small class="field-error">
+              Enter a valid email
+              address.
+            </small>
+            }
+          </label>
+        </div>
+      </section>
+
+      <footer class="profile-actions">
+        <button
+          type="button"
+          class="secondary-action"
+          [disabled]="isSaving"
+          (click)="goBack()"
         >
-          <ion-icon
-            name="camera-outline"
-          ></ion-icon>
+          Cancel
+        </button>
+
+        <button
+          type="submit"
+          class="save-button"
+          [disabled]="
+                    isSaving ||
+                    profileForm.invalid
+                  "
+        >
+          @if (isSaving) {
+          <ion-spinner
+            name="crescent"
+          ></ion-spinner>
 
           <span>
-    {{
-    avatarPreviewUrl
-      ? 'Choose another'
-      : 'Choose photo'
-    }}
-    </span>
-  </label>
-
-  <input
-    id="profile-avatar"
-    type="file"
-    accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
-    (change)="
-      handleAvatarSelection($event)
-    "
-  />
-
-  @if (selectedAvatar) {
-    <button
-      type="button"
-      class="clear-avatar-button"
-      (click)="clearSelectedAvatar()"
-    >
-      <ion-icon
-        name="close-outline"
-      ></ion-icon>
-
-      Remove selection
-    </button>
+            Saving...
+          </span>
+          } @else {
+          <span>
+            Save changes
+          </span>
+          }
+        </button>
+      </footer>
+    </form>
     }
-    </div>
 
-    @if (avatarErrorMessage) {
-    <small class="field-error">
-      {{ avatarErrorMessage }}
-    </small>
-    }
-    </div>
-  </section>
+    @if (
+      activeSection === 'security'
+    ) {
+    <div class="settings-section-heading">
+              <span class="eyebrow">
+                Security
+              </span>
 
-  <section class="information-section">
-    <header>
-      <span class="eyebrow">
-        Personal information
-      </span>
-
-      <h2>Account details</h2>
+      <h2>
+        Change password
+      </h2>
 
       <p>
-        These details are visible to other
-        workspace members.
+        Use a strong password that
+        you do not use elsewhere.
       </p>
-    </header>
+    </div>
 
-    <div class="form-grid">
+    <div class="security-warning">
+      <ion-icon
+        name="lock-closed-outline"
+      ></ion-icon>
+
+      <div>
+        <strong>
+          You will be signed out
+        </strong>
+
+        <span>
+                  Changing your password
+                  revokes all active sessions.
+                  You will need to sign in
+                  again with the new password.
+                </span>
+      </div>
+    </div>
+
+    @if (
+    passwordErrorMessage
+    ) {
+    <div
+      class="error-notice"
+      role="alert"
+    >
+    {{
+    passwordErrorMessage
+    }}
+    </div>
+    }
+
+    <form
+      class="settings-card security-card"
+      [formGroup]="passwordForm"
+      (ngSubmit)="savePassword()"
+    >
       <label class="form-field">
-        <span>Full name</span>
+                <span>
+                  Current password
+                </span>
 
         <input
-          type="text"
-          formControlName="name"
-          autocomplete="name"
-          placeholder="Enter your full name"
+          type="password"
+          formControlName="currentPassword"
+          autocomplete="current-password"
+          placeholder="Enter current password"
         />
 
         @if (
-          nameControl.touched &&
-          nameControl.hasError('required')
+        currentPasswordControl.touched &&
+        currentPasswordControl
+        .hasError('required')
         ) {
-    <small class="field-error">
-      Your name is required.
-    </small>
+        <small class="field-error">
+          Your current password is
+          required.
+        </small>
+        }
+      </label>
+
+      <div class="form-grid">
+        <label class="form-field">
+                  <span>
+                    New password
+                  </span>
+
+          <input
+            type="password"
+            formControlName="password"
+            autocomplete="new-password"
+            placeholder="At least 8 characters"
+          />
+
+          @if (
+          passwordControl.touched &&
+          passwordControl
+          .hasError('minlength')
+          ) {
+          <small class="field-error">
+            Use at least 8
+            characters.
+          </small>
+          }
+        </label>
+
+        <label class="form-field">
+                  <span>
+                    Confirm new password
+                  </span>
+
+          <input
+            type="password"
+            formControlName="passwordConfirmation"
+            autocomplete="new-password"
+            placeholder="Repeat new password"
+          />
+
+          @if (
+          passwordConfirmationControl
+          .touched &&
+          passwordConfirmationControl
+          .hasError('required')
+          ) {
+          <small class="field-error">
+            Confirm your new
+            password.
+          </small>
+          }
+        </label>
+      </div>
+
+      <footer class="profile-actions">
+        <button
+          type="submit"
+          class="save-button"
+          [disabled]="
+                    isSavingPassword ||
+                    passwordForm.invalid
+                  "
+        >
+          @if (
+          isSavingPassword
+          ) {
+          <ion-spinner
+            name="crescent"
+          ></ion-spinner>
+
+          <span>
+            Updating...
+          </span>
+          } @else {
+          <span>
+            Update password
+          </span>
+          }
+        </button>
+      </footer>
+    </form>
     }
 
     @if (
-      nameControl.touched &&
-      nameControl.hasError('maxlength')
+      activeSection === 'preferences'
     ) {
-    <small class="field-error">
-      Your name cannot exceed
-      100 characters.
-    </small>
-    }
-    </label>
+    <div class="settings-section-heading">
+              <span class="eyebrow">
+                Preferences
+              </span>
 
-    <label class="form-field">
-      <span>Email address</span>
+      <h2>
+        Workspace preferences
+      </h2>
 
-      <input
-        type="email"
-        formControlName="email"
-        autocomplete="email"
-        placeholder="Enter your email address"
-      />
-
-      @if (
-        emailControl.touched &&
-        emailControl.hasError('required')
-      ) {
-    <small class="field-error">
-      Your email address is required.
-    </small>
-    }
+      <p>
+        Choose which workspace should
+        be active when you return.
+      </p>
+    </div>
 
     @if (
-      emailControl.touched &&
-      emailControl.hasError('email')
+    workspaceSuccessMessage
     ) {
-    <small class="field-error">
-      Enter a valid email address.
-    </small>
-    }
-    </label>
+    <div
+      class="success-notice"
+      role="status"
+    >
+      <ion-icon
+        name="checkmark-circle-outline"
+      ></ion-icon>
+
+      <span>
+    {{
+    workspaceSuccessMessage
+    }}
+    </span>
   </div>
-</section>
-
-<footer class="profile-actions">
-  <button
-    type="button"
-    class="secondary-action"
-    [disabled]="isSaving"
-    (click)="goBack()"
-  >
-    Cancel
-  </button>
-
-  <button
-    type="submit"
-    class="save-button"
-    [disabled]="
-      isSaving ||
-      profileForm.invalid
-    "
-  >
-    @if (isSaving) {
-    <ion-spinner
-      name="crescent"
-    ></ion-spinner>
-
-    <span>Saving...</span>
-    } @else {
-    <span>Save changes</span>
     }
-    </button>
-  </footer>
-</form>
+
+    <section class="settings-card">
+      <header class="workspace-preference-header">
+        <div>
+                  <span class="eyebrow">
+                    Active workspace
+                  </span>
+
+          <h3>
+            Default work context
+          </h3>
+
+          <p>
+            Your dashboard, projects
+            and tasks use this
+            workspace as the current
+            context.
+          </p>
+        </div>
+
+        @if (activeWorkspace) {
+        <div class="active-workspace-summary">
+          <span>
+        {{
+        activeWorkspace.name
+          .charAt(0)
+          .toUpperCase()
+        }}
+        </span>
+
+        <div>
+          <small>
+            Active
+          </small>
+
+          <strong>
+        {{
+        activeWorkspace.name
+        }}
+        </strong>
+      </div>
+    </div>
+        }
+      </header>
+
+      @if (isLoadingWorkspaces) {
+      <div class="preference-state">
+        <ion-spinner
+          name="crescent"
+        ></ion-spinner>
+
+        <span>
+          Loading workspaces...
+        </span>
+      </div>
+      } @else if (
+      workspaceErrorMessage
+      ) {
+      <div class="preference-state">
+        <span>
+      {{
+      workspaceErrorMessage
+      }}
+      </span>
+    </div>
+      } @else if (
+      workspaces.length === 0
+      ) {
+      <div class="preference-state">
+        <span>
+          You do not have any
+          workspaces yet.
+        </span>
+      </div>
+      } @else {
+      <div class="workspace-preference-list">
+        @for (
+          workspace of workspaces;
+          track workspace.id
+        ) {
+      <button
+        type="button"
+        class="workspace-preference-item"
+        [class.workspace-preference-item-active]="
+                        activeWorkspace?.id ===
+                        workspace.id
+                      "
+        (click)="
+                        selectActiveWorkspace(
+                          workspace
+                        )
+                      "
+      >
+                      <span class="workspace-preference-avatar">
+                        {{
+                        workspace.name
+                          .charAt(0)
+                          .toUpperCase()
+                        }}
+                      </span>
+
+        <span class="workspace-preference-copy">
+                        <strong>
+                          {{
+                          workspace.name
+                          }}
+                        </strong>
+
+                        <small>
+                          {{
+                          getWorkspaceRole(
+                            workspace
+                          )
+                          }}
+                          ·
+                          {{ workspace.slug }}
+                        </small>
+                      </span>
+
+        @if (
+        activeWorkspace?.id ===
+        workspace.id
+        ) {
+        <ion-icon
+          name="checkmark-circle-outline"
+        ></ion-icon>
+        }
+      </button>
+      }
+      </div>
+      }
+
+      <footer class="preference-actions">
+        <button
+          type="button"
+          class="secondary-action"
+          (click)="
+                    openWorkspaceManagement()
+                  "
+        >
+          Manage workspaces
+        </button>
+      </footer>
+    </section>
+    }
+
+    @if (
+      activeSection === 'notifications'
+    ) {
+    <div class="settings-section-heading">
+              <span class="eyebrow">
+                Notifications
+              </span>
+
+      <h2>
+        Notification preferences
+      </h2>
+
+      <p>
+        Control how activity and task
+        updates reach you.
+      </p>
+    </div>
+
+    <section class="settings-card notification-placeholder">
+              <span class="notification-placeholder-icon">
+                <ion-icon
+                  name="notifications-outline"
+                ></ion-icon>
+              </span>
+
+      <div>
+        <strong>
+          Notification controls
+        </strong>
+
+        <p>
+          Notification preferences
+          will become available when
+          the in-app notification
+          system is connected.
+        </p>
+      </div>
+
+      <span class="coming-soon-badge">
+                Next
+              </span>
+    </section>
+    }
+    </section>
+  </div>
     }
   </main>
 </ion-content>

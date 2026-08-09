@@ -9,7 +9,12 @@ import {
   AuthUser,
   CurrentUserResponse,
   LoginCredentials,
+  UpdatePasswordPayload,
+  EmailVerificationResponse,
+  UpdatePasswordResponse,
   LoginRequestPayload,
+  RegisterCredentials,
+  RegisterRequestPayload,
   UpdateProfilePayload,
   UpdateProfileResponse,
   LogoutResponse,
@@ -48,6 +53,39 @@ export class AuthService {
           this.currentUserSubject.next(response.data.user);
         }),
         map((response) => response.data.user),
+      );
+  }
+
+  register(
+    credentials: RegisterCredentials,
+  ): Observable<AuthUser> {
+    const payload: RegisterRequestPayload = {
+      ...credentials,
+
+      device_name:
+        `konj-task-manager-${Capacitor.getPlatform()}`,
+    };
+
+    return this.http
+      .post<AuthResponse>(
+        `${this.authUrl}/register`,
+        payload,
+      )
+      .pipe(
+        tap((response) => {
+          this.tokenStorage.setToken(
+            response.data.access_token,
+          );
+
+          this.currentUserSubject.next(
+            response.data.user,
+          );
+        }),
+
+        map(
+          (response) =>
+            response.data.user,
+        ),
       );
   }
 
@@ -101,6 +139,29 @@ export class AuthService {
             response.data.user,
         ),
       );
+  }
+  updatePassword(
+    payload: UpdatePasswordPayload,
+  ): Observable<UpdatePasswordResponse> {
+    return this.http.put<UpdatePasswordResponse>(
+      `${this.profileUrl}/password`,
+      payload,
+    );
+  }
+
+  resendVerificationEmail():
+    Observable<EmailVerificationResponse> {
+    return this.http.post<EmailVerificationResponse>(
+      `${this.authUrl}/email/verification-notification`,
+      {},
+    );
+  }
+  verifyEmail(
+    verificationUrl: string,
+  ): Observable<EmailVerificationResponse> {
+    return this.http.get<EmailVerificationResponse>(
+      verificationUrl,
+    );
   }
   logout(): Observable<LogoutResponse> {
     return this.http

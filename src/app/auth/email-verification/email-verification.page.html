@@ -1,0 +1,83 @@
+<ion-content
+  [fullscreen]="true"
+  class="verification-page"
+>
+  <main class="verification-layout">
+    <section class="verification-shell">
+      <div class="brand">
+        <div class="brand-mark">
+          K
+        </div>
+
+        <div class="brand-copy">
+          <strong>Konj</strong>
+          <span>Task Manager</span>
+        </div>
+      </div>
+
+      <div class="verification-card">
+        @if (state === 'loading') {
+        <div class="status-icon loading">
+          <ion-spinner
+            name="crescent"
+          ></ion-spinner>
+        </div>
+        }
+
+        @if (state === 'success') {
+        <div class="status-icon success">
+          <ion-icon
+            name="checkmark-circle-outline"
+          ></ion-icon>
+        </div>
+        }
+
+        @if (state === 'error') {
+        <div class="status-icon error">
+          <ion-icon
+            name="alert-circle-outline"
+          ></ion-icon>
+        </div>
+        }
+
+        <span class="verification-badge">
+          EMAIL VERIFICATION
+        </span>
+
+        <h1>
+          {{ title }}
+        </h1>
+
+        <p>
+          {{ message }}
+        </p>
+
+        @if (state === 'success') {
+        <ion-button
+          expand="block"
+          class="continue-button"
+          (click)="continueToApp()"
+        >
+          Continue to Konj
+        </ion-button>
+        }
+
+        @if (state === 'error') {
+        <ion-button
+          expand="block"
+          class="continue-button"
+          (click)="continueToApp()"
+        >
+          Back to Konj
+        </ion-button>
+        }
+      </div>
+
+      <footer>
+        Konj Task Manager
+        <span>·</span>
+        Work better together
+      </footer>
+    </section>
+  </main>
+</ion-content>

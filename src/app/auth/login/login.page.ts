@@ -82,6 +82,12 @@ export class LoginPage {
     this.isPasswordVisible = !this.isPasswordVisible;
   }
 
+  openRegister(): void {
+    void this.router.navigateByUrl(
+      '/register',
+    );
+  }
+
   submit(): void {
     if (this.loginForm.invalid || this.isSubmitting) {
       this.loginForm.markAllAsTouched();
@@ -100,15 +106,28 @@ export class LoginPage {
         }),
       )
       .subscribe({
-        next: () => {
+        next: (user) => {
+          if (!user.email_verified_at) {
+            void this.router.navigateByUrl(
+              '/verify-email',
+            );
+
+            return;
+          }
+
           const requestedUrl =
-            this.route.snapshot.queryParamMap.get('returnUrl');
+            this.route.snapshot.queryParamMap.get(
+              'returnUrl',
+            );
 
-          const returnUrl = requestedUrl?.startsWith('/')
-            ? requestedUrl
-            : '/home';
+          const returnUrl =
+            requestedUrl?.startsWith('/')
+              ? requestedUrl
+              : '/home';
 
-          void this.router.navigateByUrl(returnUrl);
+          void this.router.navigateByUrl(
+            returnUrl,
+          );
         },
         error: (error: HttpErrorResponse) => {
           this.errorMessage = this.resolveErrorMessage(error);

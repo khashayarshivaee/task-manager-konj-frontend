@@ -44,6 +44,15 @@ export interface TaskUser {
   avatar_path?: string | null;
 }
 
+export interface TaskProject {
+  id: number;
+  workspace_id: number;
+  name: string;
+  slug: string;
+  status: string;
+  color: string | null;
+}
+
 export interface TaskAttachment {
   id: number;
   task_id: number;
@@ -59,6 +68,7 @@ export interface TaskAttachment {
 export interface ProjectTask {
   id: number;
   project_id: number;
+  project?: TaskProject;
   unread_comments_count: number;
   created_by: number | null;
   assigned_to: number | null;

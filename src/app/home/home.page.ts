@@ -9,12 +9,30 @@ import {
   ViewChild,
 } from '@angular/core';
 
+import {
+  GlobalSearchLauncherService,
+} from '../search/services/global-search-launcher.service';
 
+import {
+  ActivityNotification,
+} from '../notifications/models/notification.model';
+
+import {
+  NotificationService,
+} from '../notifications/services/notification.service';
+
+import {
+  ProjectActivityPresenterService,
+} from '../projects/services/project-activity-presenter.service';
 
 import {
   takeUntilDestroyed,
 } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
+
+import {
+  TaskDetailsModalComponent,
+} from '../tasks/components/task-details-modal/task-details-modal.component';
 
 import {
   DeleteWorkspaceModalComponent,
@@ -100,8 +118,17 @@ export class HomePage implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly workspaceService = inject(WorkspaceService);
 
+  private readonly globalSearchLauncher =
+    inject(GlobalSearchLauncherService);
+
   private readonly projectService =
     inject(ProjectService);
+
+  private readonly notificationService =
+    inject(NotificationService);
+
+  private readonly activityPresenter =
+    inject(ProjectActivityPresenterService);
 
   private readonly destroyRef =
     inject(DestroyRef);
@@ -112,6 +139,15 @@ export class HomePage implements OnInit {
   readonly activeWorkspace$ =
     this.workspaceService.activeWorkspace$;
 
+  readonly notifications$ =
+    this.notificationService.notifications$;
+
+  readonly notificationUnreadCount$ =
+    this.notificationService.unreadCount$;
+
+  readonly notificationsLoading$ =
+    this.notificationService.loading$;
+
   readonly workspaces$ =
     this.workspaceService.workspaces$;
 
@@ -121,6 +157,12 @@ export class HomePage implements OnInit {
 
   isLoadingDashboard = false;
   dashboardLoadError = '';
+
+  isNotificationsOpen = false;
+  isMarkingAllNotificationsRead = false;
+
+  @ViewChild('notificationMenu')
+  private notificationMenu?: ElementRef<HTMLElement>;
 
   isLoadingProjects = false;
   projectLoadError = '';
@@ -168,9 +210,14 @@ export class HomePage implements OnInit {
 
   ionViewWillEnter(): void {
     const workspace =
-      this.workspaceService.getActiveWorkspace();
+      this.workspaceService
+        .getActiveWorkspace();
 
     if (!workspace) {
+      if (!this.isLoadingWorkspaces) {
+        this.loadWorkspaces();
+      }
+
       return;
     }
 
@@ -181,6 +228,13 @@ export class HomePage implements OnInit {
     if (!this.isLoadingDashboard) {
       this.retryLoadDashboard();
     }
+  }
+
+  openGlobalSearch(): void {
+    this.closeWorkspaceMenu();
+    this.closeNotifications();
+
+    this.globalSearchLauncher.open();
   }
 
   private watchActiveWorkspace(): void {
@@ -454,14 +508,14 @@ export class HomePage implements OnInit {
       this.retryLoadDashboard();
     }
   }
-  openProfile(): void {
-    this.closeWorkspaceMenu();
-    this.closeSidebar();
-
-    void this.router.navigateByUrl(
-      '/profile',
-    );
-  }
+  // openProfile(): void {
+  //   this.closeWorkspaceMenu();
+  //   this.closeSidebar();
+  //
+  //   void this.router.navigateByUrl(
+  //     '/profile',
+  //   );
+  // }
 
   logout(): void {
     if (this.isLoggingOut) {
@@ -475,7 +529,9 @@ export class HomePage implements OnInit {
       .pipe(
         finalize(() => {
           this.isLoggingOut = false;
-          this.workspaceService.resetWorkspaceState();
+
+          this.workspaceService
+            .resetWorkspaceState();
         }),
       )
       .subscribe({
@@ -542,6 +598,173 @@ export class HomePage implements OnInit {
       .steps[step];
   }
 
+  toggleNotifications(
+    event: MouseEvent,
+  ): void {
+    event.stopPropagation();
+
+    this.isNotificationsOpen =
+      !this.isNotificationsOpen;
+
+    if (this.isNotificationsOpen) {
+      this.closeWorkspaceMenu();
+    }
+  }
+
+  closeNotifications(): void {
+    this.isNotificationsOpen = false;
+  }
+
+  async markAllNotificationsAsRead(
+    event: MouseEvent,
+  ): Promise<void> {
+    event.stopPropagation();
+
+    if (this.isMarkingAllNotificationsRead) {
+      return;
+    }
+
+    this.isMarkingAllNotificationsRead =
+      true;
+
+    try {
+      await this.notificationService
+        .markAllAsRead();
+    } finally {
+      this.isMarkingAllNotificationsRead =
+        false;
+    }
+  }
+
+  async markNotificationAsRead(
+    notification: ActivityNotification,
+  ): Promise<void> {
+    if (
+      notification.notification.is_read
+    ) {
+      return;
+    }
+
+    await this.notificationService
+      .markAsRead(
+        notification.notification.id,
+      );
+  }
+
+  async openNotification(
+    notification: ActivityNotification,
+  ): Promise<void> {
+    if (
+      !notification
+        .notification
+        .is_read
+    ) {
+      try {
+        await this.markNotificationAsRead(
+          notification,
+        );
+      } catch {
+        /*
+         * Opening the related task should
+         * still be possible if marking the
+         * notification as read fails.
+         */
+      }
+    }
+
+    this.closeNotifications();
+
+    const taskId =
+      this.getNotificationTaskId(
+        notification,
+      );
+
+    if (taskId === null) {
+      return;
+    }
+
+    const modal =
+      await this.modalController.create({
+        component:
+        TaskDetailsModalComponent,
+
+        componentProps: {
+          workspaceId:
+          notification.workspace_id,
+
+          projectId:
+          notification.project_id,
+
+          taskId,
+        },
+
+        cssClass:
+          'project-create-modal',
+
+        backdropDismiss: false,
+      });
+
+    await modal.present();
+
+    await modal.onDidDismiss();
+  }
+
+  private getNotificationTaskId(
+    notification: ActivityNotification,
+  ): number | null {
+    if (
+      notification.type ===
+      'task_deleted'
+    ) {
+      return null;
+    }
+
+    if (
+      notification.subject_type ===
+      'task' &&
+      notification.subject_id !== null
+    ) {
+      return notification.subject_id;
+    }
+
+    const metadataTaskId =
+      notification.metadata?.['task_id'];
+
+    if (
+      typeof metadataTaskId ===
+      'number' &&
+      Number.isInteger(
+        metadataTaskId,
+      ) &&
+      metadataTaskId > 0
+    ) {
+      return metadataTaskId;
+    }
+
+    return null;
+  }
+
+  getNotificationText(
+    notification: ActivityNotification,
+  ): string {
+    return this.activityPresenter
+      .getText(notification);
+  }
+
+  getNotificationActorName(
+    notification: ActivityNotification,
+  ): string {
+    return this.activityPresenter
+      .getActorName(notification);
+  }
+
+  getNotificationTime(
+    notification: ActivityNotification,
+  ): string {
+    return this.activityPresenter
+      .getTime(notification);
+  }
+
   @HostListener(
     'document:click',
     ['$event'],
@@ -555,15 +778,25 @@ export class HomePage implements OnInit {
       return;
     }
 
-    if (
+    const clickedWorkspaceSwitcher =
       this.workspaceSwitcher
         ?.nativeElement
         .contains(target)
-    ) {
-      return;
+      ?? false;
+
+    const clickedNotificationMenu =
+      this.notificationMenu
+        ?.nativeElement
+        .contains(target)
+      ?? false;
+
+    if (!clickedWorkspaceSwitcher) {
+      this.closeWorkspaceMenu();
     }
 
-    this.closeWorkspaceMenu();
+    if (!clickedNotificationMenu) {
+      this.closeNotifications();
+    }
   }
 
   @HostListener(
@@ -571,8 +804,8 @@ export class HomePage implements OnInit {
   )
   handleEscapeKey(): void {
     this.closeWorkspaceMenu();
+    this.closeNotifications();
   }
-
   retryLoadProjects(): void {
     const workspace =
       this.workspaceService.getActiveWorkspace();
@@ -710,6 +943,49 @@ export class HomePage implements OnInit {
       workspace.id,
       'members',
     ]);
+  }
+
+  openWorkspaces(): void {
+    this.closeWorkspaceMenu();
+    this.closeSidebar();
+
+    void this.router.navigateByUrl(
+      '/workspaces',
+    );
+  }
+  openTasks(): void {
+    this.closeWorkspaceMenu();
+    this.closeSidebar();
+
+    void this.router.navigateByUrl(
+      '/tasks',
+    );
+  }
+  openProfile(): void {
+    this.closeWorkspaceMenu();
+    this.closeSidebar();
+
+    void this.router.navigateByUrl(
+      '/settings',
+    );
+  }
+
+  openSettings(): void {
+    this.closeWorkspaceMenu();
+    this.closeSidebar();
+
+    void this.router.navigateByUrl(
+      '/settings',
+    );
+  }
+
+  openProjects(): void {
+    this.closeWorkspaceMenu();
+    this.closeSidebar();
+
+    void this.router.navigateByUrl(
+      '/projects',
+    );
   }
 
   openProject(

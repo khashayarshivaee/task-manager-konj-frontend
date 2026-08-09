@@ -266,11 +266,13 @@
           <button
             type="button"
             class="navigation-item"
-            disabled
+            (click)="openWorkspaces()"
           >
-            <ion-icon name="grid-outline"></ion-icon>
+            <ion-icon
+              name="grid-outline"
+            ></ion-icon>
+
             <span>Workspaces</span>
-            <small>Soon</small>
           </button>
         </div>
 
@@ -282,18 +284,30 @@
           <button
             type="button"
             class="navigation-item"
-            disabled
+            [disabled]="
+    !(activeWorkspace$ | async)
+  "
+            (click)="openProjects()"
           >
-            <ion-icon name="folder-open-outline"></ion-icon>
+            <ion-icon
+              name="folder-open-outline"
+            ></ion-icon>
+
             <span>Projects</span>
           </button>
 
           <button
             type="button"
             class="navigation-item"
-            disabled
+            [disabled]="
+    !(activeWorkspace$ | async)
+  "
+            (click)="openTasks()"
           >
-            <ion-icon name="checkbox-outline"></ion-icon>
+            <ion-icon
+              name="checkbox-outline"
+            ></ion-icon>
+
             <span>Tasks</span>
           </button>
 
@@ -312,9 +326,12 @@
           <button
             type="button"
             class="navigation-item"
-            disabled
+            (click)="openSettings()"
           >
-            <ion-icon name="settings-outline"></ion-icon>
+            <ion-icon
+              name="settings-outline"
+            ></ion-icon>
+
             <span>Settings</span>
           </button>
         </div>
@@ -386,20 +403,221 @@
           <button
             type="button"
             class="search-button"
+            (click)="openGlobalSearch()"
           >
-            <ion-icon name="search-outline"></ion-icon>
-            <span>Search anything</span>
+            <ion-icon
+              name="search-outline"
+            ></ion-icon>
+
+            <span>
+    Search anything
+  </span>
+
             <kbd>⌘ K</kbd>
           </button>
 
-          <button
-            type="button"
-            class="icon-button"
-            aria-label="Notifications"
+          <div
+            class="notification-menu-shell"
+            #notificationMenu
           >
-            <ion-icon name="notifications-outline"></ion-icon>
-            <span class="notification-dot"></span>
-          </button>
+            <button
+              type="button"
+              class="icon-button"
+              [class.is-active]="isNotificationsOpen"
+              aria-label="Notifications"
+              (click)="toggleNotifications($event)"
+            >
+              <ion-icon
+                name="notifications-outline"
+              ></ion-icon>
+
+              @if (
+              notificationUnreadCount$
+              | async;
+              as unreadCount
+              ) {
+              @if (unreadCount > 0) {
+              <span
+                class="notification-badge"
+              >
+          {{
+                unreadCount > 99
+                  ? '99+'
+                  : unreadCount
+                }}
+        </span>
+              }
+              }
+            </button>
+
+            @if (isNotificationsOpen) {
+            <div class="notification-popover">
+              <div class="notification-popover-header">
+                <div>
+                  <strong>Notifications</strong>
+
+                  @if (
+                    notificationUnreadCount$
+                      | async;
+                    as unreadCount
+                  ) {
+            <span>
+              {{ unreadCount }}
+              unread
+            </span>
+            }
+            </div>
+
+            <button
+              type="button"
+              class="notification-read-all"
+              [disabled]="
+                isMarkingAllNotificationsRead
+              "
+              (click)="
+                markAllNotificationsAsRead(
+                  $event
+                )
+              "
+            >
+              @if (
+                isMarkingAllNotificationsRead
+              ) {
+            <ion-spinner
+              name="crescent"
+            ></ion-spinner>
+            } @else {
+            Mark all as read
+            }
+            </button>
+          </div>
+
+          <div class="notification-popover-body">
+            @if (
+              notificationsLoading$
+                | async
+            ) {
+            <div
+              class="notification-loading"
+            >
+              <ion-spinner
+                name="crescent"
+              ></ion-spinner>
+              <span>
+              Loading notifications...
+            </span>
+            </div>
+            } @else {
+            @if (
+            notifications$
+            | async;
+            as notifications
+            ) {
+            @if (
+              notifications.length === 0
+            ) {
+            <div
+              class="notification-empty"
+            >
+              <ion-icon
+                name="notifications-outline"
+              ></ion-icon>
+
+              <strong>
+                You're all caught up
+              </strong>
+
+              <span>
+                  New activity will appear
+                  here.
+                </span>
+            </div>
+            } @else {
+            @for (
+            notification
+            of notifications.slice(
+            0,
+            6
+            );
+            track
+            notification.notification.id
+            ) {
+            <button
+              type="button"
+              class="notification-item"
+              [class.is-unread]="
+                !notification
+                  .notification
+                  .is_read
+              "
+              (click)="
+  openNotification(
+    notification
+  )
+"
+            >
+              <app-user-avatar
+                class="notification-avatar"
+                [name]="
+                  getNotificationActorName(
+                    notification
+                  )
+                "
+                [avatarPath]="
+                  notification.actor
+                    ?.avatar_path ??
+                  null
+                "
+                [size]="34"
+                [fontSize]="8"
+              ></app-user-avatar>
+
+              <span
+                class="notification-copy"
+              >
+                <span>
+                  <strong>
+            {{
+            getNotificationActorName(
+              notification
+            )
+            }}
+            </strong>
+
+            {{
+            getNotificationText(
+              notification
+            )
+            }}
+            </span>
+
+            <small>
+            {{
+            getNotificationTime(
+              notification
+            )
+            }}
+            </small>
+          </span>
+
+          @if (
+            !notification
+              .notification
+              .is_read
+          ) {
+            <span
+              class="notification-unread-dot"
+            ></span>
+            }
+            </button>
+            }
+            }
+            }
+            }
+            </div>
+          </div>
+            }
+          </div>
 
           @if (currentUser$ | async; as user) {
       <button

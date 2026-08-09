@@ -1,0 +1,361 @@
+<ion-content
+  [fullscreen]="true"
+  class="login-page"
+>
+  <div class="login-layout">
+    <section
+      class="login-card"
+      aria-labelledby="register-title"
+    >
+      <div class="brand">
+        <div
+          class="brand-mark"
+          aria-hidden="true"
+        >
+          K
+        </div>
+
+        <div class="brand-copy">
+          <strong>Konj</strong>
+          <span>Task Manager</span>
+        </div>
+      </div>
+
+      <header class="login-header">
+        <span class="login-badge">
+          Get started
+        </span>
+
+        <h1 id="register-title">
+          Create your account
+        </h1>
+
+        <p>
+          Create an account and start
+          managing your work with your team.
+        </p>
+      </header>
+
+      <form
+        [formGroup]="registerForm"
+        (ngSubmit)="submit()"
+        novalidate
+        class="login-form"
+      >
+        <div class="form-group">
+          <label for="register-name">
+            Full name
+          </label>
+
+          <div
+            class="input-control"
+            [class.input-invalid]="
+              registerForm.controls.name.touched &&
+              registerForm.controls.name.invalid
+            "
+          >
+            <ion-icon
+              name="person-outline"
+              aria-hidden="true"
+            ></ion-icon>
+
+            <ion-input
+              id="register-name"
+              formControlName="name"
+              type="text"
+              autocomplete="name"
+              placeholder="Your name"
+              [clearInput]="true"
+            ></ion-input>
+          </div>
+
+          @if (
+          registerForm.controls.name.touched &&
+          registerForm.controls.name.hasError(
+          'required'
+          )
+          ) {
+          <p class="field-error">
+            Your name is required.
+          </p>
+          }
+        </div>
+
+        <div class="form-group">
+          <label for="register-email">
+            Email address
+          </label>
+
+          <div
+            class="input-control"
+            [class.input-invalid]="
+              registerForm.controls.email.touched &&
+              registerForm.controls.email.invalid
+            "
+          >
+            <ion-icon
+              name="mail-outline"
+              aria-hidden="true"
+            ></ion-icon>
+
+            <ion-input
+              id="register-email"
+              formControlName="email"
+              type="email"
+              inputmode="email"
+              autocomplete="email"
+              placeholder="name@example.com"
+              class="email-input"
+              [clearInput]="true"
+            ></ion-input>
+          </div>
+
+          @if (
+          registerForm.controls.email.touched &&
+          registerForm.controls.email.hasError(
+          'required'
+          )
+          ) {
+          <p class="field-error">
+            Email address is required.
+          </p>
+          }
+
+          @if (
+          registerForm.controls.email.touched &&
+          registerForm.controls.email.hasError(
+          'email'
+          )
+          ) {
+          <p class="field-error">
+            Enter a valid email address.
+          </p>
+          }
+        </div>
+
+        <div class="form-group">
+          <label for="register-password">
+            Password
+          </label>
+
+          <div
+            class="input-control"
+            [class.input-invalid]="
+              registerForm.controls.password.touched &&
+              registerForm.controls.password.invalid
+            "
+          >
+            <ion-icon
+              name="lock-closed-outline"
+              aria-hidden="true"
+            ></ion-icon>
+
+            <ion-input
+              id="register-password"
+              formControlName="password"
+              [type]="
+                isPasswordVisible
+                  ? 'text'
+                  : 'password'
+              "
+              autocomplete="new-password"
+              placeholder="At least 8 characters"
+            ></ion-input>
+
+            <button
+              type="button"
+              class="password-toggle"
+              (click)="
+                togglePasswordVisibility()
+              "
+              [attr.aria-label]="
+                isPasswordVisible
+                  ? 'Hide password'
+                  : 'Show password'
+              "
+            >
+              <ion-icon
+                [name]="
+                  isPasswordVisible
+                    ? 'eye-off-outline'
+                    : 'eye-outline'
+                "
+              ></ion-icon>
+            </button>
+          </div>
+
+          @if (
+          registerForm.controls.password.touched &&
+          registerForm.controls.password.hasError(
+          'required'
+          )
+          ) {
+          <p class="field-error">
+            Password is required.
+          </p>
+          }
+
+          @if (
+          registerForm.controls.password.touched &&
+          registerForm.controls.password.hasError(
+          'minlength'
+          )
+          ) {
+          <p class="field-error">
+            Password must be at least
+            8 characters.
+          </p>
+          }
+        </div>
+
+        <div class="form-group">
+          <label
+            for="register-password-confirmation"
+          >
+            Confirm password
+          </label>
+
+          <div
+            class="input-control"
+            [class.input-invalid]="
+              (
+                registerForm.controls
+                  .password_confirmation
+                  .touched &&
+                registerForm.controls
+                  .password_confirmation
+                  .invalid
+              ) ||
+              passwordsDoNotMatch
+            "
+          >
+            <ion-icon
+              name="lock-closed-outline"
+              aria-hidden="true"
+            ></ion-icon>
+
+            <ion-input
+              id="register-password-confirmation"
+              formControlName="password_confirmation"
+              [type]="
+                isPasswordConfirmationVisible
+                  ? 'text'
+                  : 'password'
+              "
+              autocomplete="new-password"
+              placeholder="Repeat your password"
+            ></ion-input>
+
+            <button
+              type="button"
+              class="password-toggle"
+              (click)="
+                togglePasswordConfirmationVisibility()
+              "
+              [attr.aria-label]="
+                isPasswordConfirmationVisible
+                  ? 'Hide password'
+                  : 'Show password'
+              "
+            >
+              <ion-icon
+                [name]="
+                  isPasswordConfirmationVisible
+                    ? 'eye-off-outline'
+                    : 'eye-outline'
+                "
+              ></ion-icon>
+            </button>
+          </div>
+
+          @if (
+          registerForm.controls
+          .password_confirmation
+          .touched &&
+          registerForm.controls
+          .password_confirmation
+          .hasError('required')
+          ) {
+          <p class="field-error">
+            Please confirm your password.
+          </p>
+          }
+
+          @if (
+          registerForm.controls
+          .password_confirmation
+          .touched &&
+          passwordsDoNotMatch
+          ) {
+          <p class="field-error">
+            Passwords do not match.
+          </p>
+          }
+        </div>
+
+        @if (errorMessage) {
+        <div
+          class="login-error"
+          role="alert"
+          aria-live="polite"
+        >
+        {{ errorMessage }}
+        </div>
+        }
+
+        <ion-button
+          type="submit"
+          expand="block"
+          class="login-submit"
+          [disabled]="
+            registerForm.invalid ||
+            passwordsDoNotMatch ||
+            isSubmitting
+          "
+        >
+          @if (isSubmitting) {
+          <ion-spinner
+            name="crescent"
+          ></ion-spinner>
+
+          <span>
+            Creating account...
+          </span>
+          } @else {
+          <span>
+            Create account
+          </span>
+          }
+        </ion-button>
+      </form>
+
+      <div class="register-hint">
+        <span>
+          Already have an account?
+        </span>
+
+        <button
+          type="button"
+          class="register-link"
+          (click)="openLogin()"
+        >
+          Sign in
+        </button>
+      </div>
+
+      <footer class="login-footer">
+        <span>
+          Konj Task Manager
+        </span>
+
+        <span
+          class="footer-dot"
+        ></span>
+
+        <span>
+          Work better together
+        </span>
+      </footer>
+    </section>
+  </div>
+</ion-content>

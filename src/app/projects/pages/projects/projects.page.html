@@ -1,0 +1,289 @@
+<ion-content
+  [fullscreen]="true"
+  class="projects-page"
+>
+  <main class="projects-shell">
+    <header class="projects-topbar">
+      <button
+        type="button"
+        class="back-button"
+        (click)="goHome()"
+      >
+        <ion-icon
+          name="arrow-back-outline"
+        ></ion-icon>
+
+        <span>Back to dashboard</span>
+      </button>
+
+      <div class="brand-mark">
+        K
+      </div>
+    </header>
+
+    @if (isLoadingWorkspace) {
+    <section class="page-state">
+      <ion-spinner
+        name="crescent"
+      ></ion-spinner>
+
+      <strong>
+        Loading workspace...
+      </strong>
+
+      <span>
+        Preparing your project workspace.
+      </span>
+    </section>
+    } @else if (workspaceLoadError) {
+    <section class="page-state">
+      <span class="state-icon">
+        <ion-icon
+          name="folder-open-outline"
+        ></ion-icon>
+      </span>
+
+      <strong>
+        Workspace unavailable
+      </strong>
+
+      <p>
+    {{ workspaceLoadError }}
+    </p>
+
+    <button
+      type="button"
+      class="primary-action"
+      (click)="retry()"
+    >
+      Try again
+    </button>
+  </section>
+    } @else if (!activeWorkspace) {
+    <section class="page-state">
+      <span class="state-icon">
+        <ion-icon
+          name="folder-open-outline"
+        ></ion-icon>
+      </span>
+
+      <strong>
+        No active workspace
+      </strong>
+
+      <p>
+        Select or create a workspace
+        before managing projects.
+      </p>
+
+      <button
+        type="button"
+        class="primary-action"
+        (click)="openWorkspaces()"
+      >
+        Open workspaces
+      </button>
+    </section>
+    } @else {
+    <section class="projects-hero">
+      <span class="hero-icon">
+        <ion-icon
+          name="folder-open-outline"
+        ></ion-icon>
+      </span>
+
+      <div class="hero-copy">
+        <span class="eyebrow">
+          Workspace projects
+        </span>
+
+        <h1>
+    {{ activeWorkspace.name }}
+    </h1>
+
+    <p>
+      Plan projects, deadlines, tasks
+      and team work from one place.
+    </p>
+  </div>
+
+  @if (canManageProjects()) {
+    <button
+      type="button"
+      class="create-project-button"
+      (click)="createProject()"
+    >
+      <ion-icon
+        name="add-outline"
+      ></ion-icon>
+
+      <span>New project</span>
+    </button>
+    }
+    </section>
+
+    @if (noticeMessage) {
+    <div class="page-notice">
+      <ion-icon
+        name="checkmark-circle-outline"
+      ></ion-icon>
+
+      <span>
+            {{ noticeMessage }}
+          </span>
+    </div>
+    }
+
+    <section class="projects-card">
+      <header class="projects-card-header">
+        <div>
+          <span class="eyebrow">
+            Active workspace
+          </span>
+
+          <h2>Projects</h2>
+
+          <p>
+            All projects currently available
+            inside {{ activeWorkspace.name }}.
+            </p>
+          </div>
+
+          <span class="project-count">
+    {{ projects.length }}
+    </span>
+  </header>
+
+  @if (isLoadingProjects) {
+    <div class="projects-state">
+      <ion-spinner
+        name="crescent"
+      ></ion-spinner>
+
+      <span>
+              Loading projects...
+            </span>
+    </div>
+    } @else if (projectLoadError) {
+    <div class="projects-state error-state">
+      <ion-icon
+        name="folder-open-outline"
+      ></ion-icon>
+
+      <strong>
+        Projects could not be loaded
+      </strong>
+
+      <span>
+              {{ projectLoadError }}
+            </span>
+
+      <button
+        type="button"
+        (click)="retry()"
+      >
+        Try again
+      </button>
+    </div>
+    } @else if (projects.length === 0) {
+    <div class="projects-empty">
+            <span class="empty-icon">
+              <ion-icon
+                name="folder-open-outline"
+              ></ion-icon>
+            </span>
+
+      <strong>
+        No projects yet
+      </strong>
+
+      <p>
+        Projects organize related tasks,
+        deadlines and team activity.
+      </p>
+
+      @if (canManageProjects()) {
+      <button
+        type="button"
+        class="primary-action"
+        (click)="createProject()"
+      >
+        <ion-icon
+          name="add-outline"
+        ></ion-icon>
+
+        Create project
+      </button>
+      }
+    </div>
+    } @else {
+    <div class="project-grid">
+      @for (
+      project of projects;
+      track project.id
+      ) {
+      <button
+        type="button"
+        class="project-card"
+        (click)="openProject(project)"
+      >
+        <header class="project-card-header">
+          <span
+            class="project-color"
+            [style.background-color]="
+              project.color ||
+              '#ff6b00'
+            "
+          ></span>
+
+          <span class="project-status">
+      {{
+      getStatusLabel(
+        project
+      )
+      }}
+      </span>
+    </header>
+
+    <div class="project-main">
+      <strong>
+      {{ project.name }}
+      </strong>
+
+      <span class="project-slug">
+      {{ project.slug }}
+      </span>
+
+      <p>
+      {{
+      project.description ||
+      'No description added yet.'
+      }}
+      </p>
+    </div>
+
+    <footer class="project-footer">
+      <span>
+        <ion-icon
+          name="calendar-outline"
+        ></ion-icon>
+
+      {{
+      getDueDate(
+        project
+      )
+      }}
+      </span>
+
+      <small>
+        Open project
+      </small>
+    </footer>
+  </button>
+      }
+    </div>
+    }
+    </section>
+    }
+  </main>
+</ion-content>

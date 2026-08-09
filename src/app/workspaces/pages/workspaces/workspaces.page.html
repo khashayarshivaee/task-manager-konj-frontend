@@ -1,0 +1,342 @@
+<ion-content
+  [fullscreen]="true"
+  class="workspaces-page"
+>
+  <main class="workspaces-shell">
+    <header class="workspaces-topbar">
+      <button
+        type="button"
+        class="back-button"
+        (click)="goHome()"
+      >
+        <ion-icon
+          name="arrow-back-outline"
+        ></ion-icon>
+
+        <span>Back to dashboard</span>
+      </button>
+
+      <div class="brand-mark">
+        K
+      </div>
+    </header>
+
+    <section class="workspaces-hero">
+      <span class="hero-icon">
+        <ion-icon
+          name="grid-outline"
+        ></ion-icon>
+      </span>
+
+      <div class="hero-copy">
+        <span class="eyebrow">
+          Workspace management
+        </span>
+
+        <h1>Your workspaces</h1>
+
+        <p>
+          Switch between teams and manage
+          the spaces you belong to.
+        </p>
+      </div>
+
+      <button
+        type="button"
+        class="create-workspace-button"
+        (click)="createWorkspace()"
+      >
+        <ion-icon
+          name="add-outline"
+        ></ion-icon>
+
+        <span>Create workspace</span>
+      </button>
+    </section>
+
+    @if (noticeMessage) {
+    <div
+      class="page-notice"
+      role="status"
+    >
+      <ion-icon
+        name="checkmark-circle-outline"
+      ></ion-icon>
+
+      <span>
+    {{ noticeMessage }}
+    </span>
+  </div>
+    }
+
+    @if (isLoading) {
+    <section class="page-state">
+      <ion-spinner
+        name="crescent"
+      ></ion-spinner>
+
+      <strong>
+        Loading workspaces...
+      </strong>
+
+      <span>
+        Getting the latest workspace
+        information.
+      </span>
+    </section>
+    } @else if (errorMessage) {
+    <section class="page-state">
+      <span class="state-icon">
+        <ion-icon
+          name="grid-outline"
+        ></ion-icon>
+      </span>
+
+      <strong>
+        Workspaces unavailable
+      </strong>
+
+      <p>
+    {{ errorMessage }}
+    </p>
+
+    <div class="state-actions">
+      <button
+        type="button"
+        class="secondary-action"
+        (click)="goHome()"
+      >
+        Return home
+      </button>
+
+      <button
+        type="button"
+        class="primary-action"
+        (click)="loadWorkspaces()"
+      >
+        Try again
+      </button>
+    </div>
+  </section>
+    } @else {
+    @if (
+      workspaces$ | async;
+      as workspaces
+    ) {
+    <section class="workspaces-card">
+      <header class="workspaces-card-header">
+        <div>
+              <span class="eyebrow">
+                Available spaces
+              </span>
+
+          <h2>Workspaces</h2>
+
+          <p>
+            Select a workspace to make it
+            active across your dashboard.
+          </p>
+        </div>
+
+        <span class="workspace-count">
+              {{ workspaces.length }}
+            </span>
+      </header>
+
+      @if (workspaces.length === 0) {
+      <div class="empty-workspaces">
+        <span class="empty-icon">
+          <ion-icon
+            name="grid-outline"
+          ></ion-icon>
+        </span>
+
+        <strong>
+          No workspaces yet
+        </strong>
+
+        <span>
+          Create your first workspace
+          to start organizing projects
+          and tasks.
+        </span>
+
+        <button
+          type="button"
+          class="empty-create-button"
+          (click)="createWorkspace()"
+        >
+          <ion-icon
+            name="add-outline"
+          ></ion-icon>
+
+          Create workspace
+        </button>
+      </div>
+      } @else {
+      <div class="workspace-grid">
+        @for (
+          workspace of workspaces;
+          track workspace.id
+        ) {
+      <article
+        class="workspace-card"
+        [class.workspace-card-active]="
+                    isWorkspaceActive(
+                      workspace
+                    )
+                  "
+      >
+        <header class="workspace-card-top">
+                    <span class="workspace-avatar">
+                      {{
+                      workspace.name
+                        .charAt(0)
+                        .toUpperCase()
+                      }}
+                    </span>
+
+          <div class="workspace-status">
+            @if (
+            isWorkspaceActive(
+            workspace
+            )
+            ) {
+            <span class="active-badge">
+              <ion-icon
+                name="checkmark-circle-outline"
+              ></ion-icon>
+
+              Active
+            </span>
+            }
+
+            <span class="role-badge">
+                        {{
+              getWorkspaceRole(
+                workspace
+              )
+              }}
+                      </span>
+          </div>
+        </header>
+
+        <div class="workspace-identity">
+          <strong>
+            {{ workspace.name }}
+          </strong>
+
+          <span>
+                      {{ workspace.slug }}
+                    </span>
+        </div>
+
+        <div class="workspace-owner">
+          <span>Owner</span>
+
+          <strong>
+            {{ workspace.owner.name }}
+          </strong>
+        </div>
+
+        <div class="workspace-primary-actions">
+          @if (
+          !isWorkspaceActive(
+          workspace
+          )
+          ) {
+          <button
+            type="button"
+            class="activate-button"
+            (click)="
+              selectWorkspace(
+                workspace
+              )
+            "
+          >
+            Set as active
+          </button>
+          } @else {
+          <button
+            type="button"
+            class="
+              activate-button
+              activate-button-current
+            "
+            disabled
+          >
+            Current workspace
+          </button>
+          }
+
+          <button
+            type="button"
+            class="members-button"
+            (click)="
+                        openMembers(
+                          workspace
+                        )
+                      "
+          >
+            <ion-icon
+              name="people-outline"
+            ></ion-icon>
+
+            <span>Members</span>
+          </button>
+        </div>
+
+        @if (
+        canManageWorkspace(
+        workspace
+        )
+        ) {
+        <footer class="workspace-management">
+          <button
+            type="button"
+            class="workspace-edit-button"
+            (click)="
+              editWorkspace(
+                workspace
+              )
+            "
+          >
+            <ion-icon
+              name="create-outline"
+            ></ion-icon>
+
+            <span>Edit</span>
+          </button>
+
+          @if (
+            canDeleteWorkspace(
+              workspace
+            )
+          ) {
+        <button
+          type="button"
+          class="workspace-delete-button"
+          (click)="
+                            deleteWorkspace(
+                              workspace
+                            )
+                          "
+        >
+          <ion-icon
+            name="trash-outline"
+          ></ion-icon>
+
+          <span>Delete</span>
+        </button>
+        }
+        </footer>
+        }
+      </article>
+      }
+      </div>
+      }
+    </section>
+    }
+    }
+  </main>
+</ion-content>

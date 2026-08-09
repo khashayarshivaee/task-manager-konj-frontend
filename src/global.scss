@@ -174,3 +174,28 @@ ion-modal.task-calendar-modal::part(
     border-radius: 0;
   }
 }
+
+ion-modal.global-search-modal {
+  --width: min(680px, calc(100vw - 32px));
+  --height: min(680px, calc(100vh - 48px));
+  --border-radius: 18px;
+
+  align-items: flex-start;
+  padding-top: min(12vh, 110px);
+}
+
+ion-modal.global-search-modal::part(content) {
+  overflow: hidden;
+  border: 1px solid rgba(0, 0, 0, 0.07);
+  box-shadow:
+    0 30px 90px rgba(0, 0, 0, 0.18);
+}
+
+@media (max-width: 640px) {
+  ion-modal.global-search-modal {
+    --width: calc(100vw - 20px);
+    --height: min(680px, calc(100vh - 28px));
+
+    padding-top: 14px;
+  }
+}
