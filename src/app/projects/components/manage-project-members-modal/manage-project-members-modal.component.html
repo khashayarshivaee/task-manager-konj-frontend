@@ -1,0 +1,305 @@
+<ion-content
+  [fullscreen]="true"
+  class="project-members-modal-page"
+>
+  <main class="project-members-modal-shell">
+    <header class="modal-header">
+      <div class="modal-heading">
+        <span class="modal-icon">
+          <ion-icon
+            name="people-outline"
+          ></ion-icon>
+        </span>
+
+        <div>
+          <span class="modal-eyebrow">
+            Project team
+          </span>
+
+          <h1>Manage members</h1>
+        </div>
+      </div>
+
+      <button
+        type="button"
+        class="modal-close"
+        aria-label="Close"
+        (click)="close()"
+      >
+        <ion-icon
+          name="close-outline"
+        ></ion-icon>
+      </button>
+    </header>
+
+    <p class="modal-description">
+      Choose which workspace members belong
+      to the {{ project.name }} project team.
+    </p>
+
+    @if (isLoading) {
+    <section class="modal-state">
+      <ion-spinner
+        name="crescent"
+      ></ion-spinner>
+
+      <strong>Loading project team...</strong>
+
+      <span>
+        Getting the latest workspace and
+        project members.
+      </span>
+    </section>
+    } @else {
+    @if (errorMessage) {
+    <div
+      class="modal-error"
+      role="alert"
+      aria-live="polite"
+    >
+      {{ errorMessage }}
+    </div>
+    }
+
+    <section class="members-section">
+      <header class="section-header">
+        <div>
+          <span class="section-eyebrow">
+            Current team
+          </span>
+
+          <h2>Project members</h2>
+
+          <p>
+            Members of this project can be
+            assigned to its tasks.
+          </p>
+        </div>
+
+        <span class="members-count">
+    {{ projectMembers.length }}
+    </span>
+  </header>
+
+  @if (projectMembers.length === 0) {
+    <div class="empty-state">
+      <ion-icon
+        name="people-outline"
+      ></ion-icon>
+
+      <strong>No project members</strong>
+
+      <span>
+              This project does not currently
+              have any team members.
+            </span>
+    </div>
+    } @else {
+    <div class="members-list">
+      @for (
+      member of projectMembers;
+      track member.id
+      ) {
+      <article class="member-row">
+        <app-user-avatar
+          class="member-avatar"
+          [name]="member.user.name"
+          [avatarPath]="
+            member.user.avatar_path
+          "
+          [size]="42"
+          [fontSize]="10"
+        ></app-user-avatar>
+
+        <div class="member-identity">
+          <div class="member-name">
+            <strong>
+      {{ member.user.name }}
+      </strong>
+
+      @if (
+        isProjectCreator(member)
+      ) {
+      <span class="creator-badge">
+                        Creator
+                      </span>
+      }
+      </div>
+
+      <small>
+      {{ member.user.email }}
+      </small>
+    </div>
+
+    <div class="member-actions">
+      @if (
+        canManageMembers &&
+        !isProjectCreator(member)
+      ) {
+      <button
+        type="button"
+        class="remove-member-button"
+        aria-label="Remove project member"
+        [disabled]="
+                        removingMembershipId !== null ||
+                        addingUserId !== null
+                      "
+        (click)="removeMember(member)"
+      >
+        @if (
+        removingMembershipId ===
+        member.id
+        ) {
+        <ion-spinner
+          name="crescent"
+        ></ion-spinner>
+        } @else {
+        <ion-icon
+          name="person-remove-outline"
+        ></ion-icon>
+        }
+      </button>
+      } @else if (
+                    isProjectCreator(member)
+                  ) {
+      <span class="protected-member">
+                      Permanent
+                    </span>
+      }
+      </div>
+    </article>
+      }
+    </div>
+    }
+    </section>
+
+    <section class="members-section">
+      <header class="section-header">
+        <div>
+          <span class="section-eyebrow">
+            Workspace
+          </span>
+
+          <h2>Available members</h2>
+
+          <p>
+            Add existing workspace members
+            to this project team.
+          </p>
+        </div>
+
+        @if (!canManageMembers) {
+    <span class="view-only-badge">
+              View only
+            </span>
+    }
+    </header>
+
+    @if (!canManageMembers) {
+    <div class="permission-note">
+      Only workspace owners and admins
+      can manage the project team.
+    </div>
+    } @else if (
+          availableMembers.length === 0
+        ) {
+    <div class="empty-state compact">
+      <ion-icon
+        name="people-outline"
+      ></ion-icon>
+
+      <strong>
+        Everyone is already here
+      </strong>
+
+      <span>
+              There are no additional active
+              workspace members to add.
+            </span>
+    </div>
+    } @else {
+    <div class="members-list available-list">
+      @for (
+      member of availableMembers;
+      track member.id
+      ) {
+      <article class="member-row">
+        <app-user-avatar
+          class="member-avatar"
+          [name]="member.user.name"
+          [avatarPath]="
+            member.user.avatar_path
+          "
+          [size]="42"
+          [fontSize]="10"
+        ></app-user-avatar>
+
+        <div class="member-identity">
+          <strong>
+      {{ member.user.name }}
+      </strong>
+
+      <small>
+      {{ member.user.email }}
+      </small>
+    </div>
+
+    <div class="member-actions">
+      <button
+        type="button"
+        class="add-member-button"
+        [disabled]="
+          addingUserId !== null ||
+          removingMembershipId !== null
+        "
+        (click)="addMember(member)"
+      >
+        @if (
+          addingUserId ===
+          member.user_id
+        ) {
+      <ion-spinner
+        name="crescent"
+      ></ion-spinner>
+      } @else {
+      <ion-icon
+        name="add-outline"
+      ></ion-icon>
+
+      <span>Add</span>
+      }
+      </button>
+    </div>
+  </article>
+      }
+    </div>
+    }
+    </section>
+
+    <footer class="modal-footer">
+      <div>
+        <strong>
+    {{ projectMembers.length }}
+    {{
+    projectMembers.length === 1
+      ? 'member'
+      : 'members'
+    }}
+    </strong>
+
+    <span>
+      currently in this project team
+    </span>
+  </div>
+
+  <button
+    type="button"
+    class="done-button"
+    (click)="close()"
+  >
+    Done
+  </button>
+</footer>
+    }
+  </main>
+</ion-content>

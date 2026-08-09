@@ -11,11 +11,12 @@ import {
   UserAvatarComponent,
 } from '../../../shared/components/user-avatar/user-avatar.component';
 import {
-  WorkspaceMember,
-} from '../../../workspaces/models/workspace-member.model';
+  ProjectMember,
+} from '../../../projects/models/project-member.model';
+
 import {
-  WorkspaceMemberService,
-} from '../../../workspaces/services/workspace-member.service';
+  ProjectMemberService,
+} from '../../../projects/services/project-member.service';
 
 
 import {
@@ -102,7 +103,7 @@ export class CreateTaskModalComponent
     inject(TaskService);
 
   private readonly memberService =
-    inject(WorkspaceMemberService);
+    inject(ProjectMemberService);
 
   private readonly destroyRef =
     inject(DestroyRef);
@@ -120,7 +121,7 @@ export class CreateTaskModalComponent
 
   selectedImages: SelectedTaskImage[] = [];
 
-  members: WorkspaceMember[] = [];
+  members: ProjectMember[] = [];
 
   isLoadingMembers = false;
   memberLoadError = '';
@@ -235,19 +236,23 @@ export class CreateTaskModalComponent
   loadWorkspaceMembers(): void {
     if (
       !Number.isInteger(this.workspaceId) ||
-      this.workspaceId <= 0
+      !Number.isInteger(this.projectId) ||
+      this.workspaceId <= 0 ||
+      this.projectId <= 0
     ) {
       this.memberLoadError =
-        'The workspace address is invalid.';
+        'The project address is invalid.';
 
       return;
     }
 
     this.isLoadingMembers = true;
     this.memberLoadError = '';
-
     this.memberService
-      .getMembers(this.workspaceId)
+      .getMembers(
+        this.workspaceId,
+        this.projectId,
+      )
       .pipe(
         finalize(() => {
           this.isLoadingMembers = false;
@@ -270,25 +275,18 @@ export class CreateTaskModalComponent
 
           if (error.status === 403) {
             this.memberLoadError =
-              'You cannot view members of this workspace.';
+              'You cannot view members of this project.';
 
             return;
           }
 
           this.memberLoadError =
-            'Unable to load workspace members.';
+            'Unable to load project members.';
         },
       });
   }
 
-  getMemberRoleLabel(
-    member: WorkspaceMember,
-  ): string {
-    return (
-      member.role.charAt(0).toUpperCase() +
-      member.role.slice(1)
-    );
-  }
+
 
   ngOnDestroy(): void {
     this.revokeSelectedImageUrls();

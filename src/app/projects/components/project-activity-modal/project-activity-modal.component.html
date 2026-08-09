@@ -1,0 +1,218 @@
+<ion-content
+  [fullscreen]="true"
+  class="project-activity-modal-page"
+>
+  <main class="project-activity-modal-shell">
+    <header class="modal-header">
+      <div class="modal-heading">
+        <span class="modal-icon">
+          <ion-icon
+            name="time-outline"
+          ></ion-icon>
+        </span>
+
+        <div>
+          <span class="modal-eyebrow">
+            Project history
+          </span>
+
+          <h1>Activity</h1>
+        </div>
+      </div>
+
+      <button
+        type="button"
+        class="modal-close"
+        aria-label="Close"
+        (click)="close()"
+      >
+        <ion-icon
+          name="close-outline"
+        ></ion-icon>
+      </button>
+    </header>
+
+    <p class="modal-description">
+      Review changes and team actions
+      recorded in the {{ project.name }}
+      project.
+    </p>
+
+    @if (isLoading) {
+    <section class="modal-state">
+      <ion-spinner
+        name="crescent"
+      ></ion-spinner>
+
+      <strong>
+        Loading project activity...
+      </strong>
+
+      <span>
+        Getting the latest project
+        history.
+      </span>
+    </section>
+    } @else {
+    @if (
+      errorMessage &&
+      activities.length === 0
+    ) {
+    <section class="modal-state">
+      <div class="state-error">
+        {{ errorMessage }}
+      </div>
+
+      <button
+        type="button"
+        class="retry-button"
+        (click)="loadActivities(true)"
+      >
+        Try again
+      </button>
+    </section>
+    } @else if (
+        activities.length === 0
+      ) {
+    <section class="modal-state">
+          <span class="empty-icon">
+            <ion-icon
+              name="time-outline"
+            ></ion-icon>
+          </span>
+
+      <strong>
+        No activity yet
+      </strong>
+
+      <span>
+            New project changes and team
+            actions will appear here.
+          </span>
+    </section>
+    } @else {
+    <section class="activity-section">
+      <header class="section-header">
+        <div>
+              <span class="section-eyebrow">
+                Timeline
+              </span>
+
+          <h2>Recent activity</h2>
+
+          <p>
+            Newest project events are
+            shown first.
+          </p>
+        </div>
+
+        <span class="activity-count">
+              {{ totalActivities }}
+            </span>
+      </header>
+
+      <div class="activity-list">
+        @for (
+        activity of activities;
+        track activity.id
+        ) {
+        <article class="activity-row">
+          <div class="timeline-column">
+            <app-user-avatar
+              class="activity-avatar"
+              [name]="
+                getActivityActorName(
+                  activity
+                )
+              "
+              [avatarPath]="
+                activity.actor
+                  ?.avatar_path ??
+                null
+              "
+              [size]="40"
+              [fontSize]="9"
+            ></app-user-avatar>
+
+            <span
+              class="timeline-line"
+            ></span>
+          </div>
+
+          <div class="activity-content">
+            <p class="activity-message">
+              <strong>
+        {{
+        getActivityActorName(
+          activity
+        )
+        }}
+        </strong>
+
+        <span>
+        {{
+        getActivityText(
+          activity
+        )
+        }}
+        </span>
+      </p>
+
+      <span class="activity-date">
+        {{
+        getActivityDate(
+          activity
+        )
+        }}
+        </span>
+      </div>
+    </article>
+        }
+      </div>
+
+      @if (errorMessage) {
+      <div
+        class="load-more-error"
+        role="alert"
+      >
+      {{ errorMessage }}
+      </div>
+      }
+
+      @if (hasMoreActivities) {
+      <button
+        type="button"
+        class="load-more-button"
+        [disabled]="isLoadingMore"
+        (click)="loadActivities(false)"
+      >
+        @if (isLoadingMore) {
+      <ion-spinner
+        name="crescent"
+      ></ion-spinner>
+
+      <span>
+                  Loading...
+                </span>
+      } @else {
+      <span>
+                  Load more activity
+                </span>
+      }
+      </button>
+      }
+
+      <footer class="activity-footer">
+            <span>
+              Showing
+              {{ activities.length }}
+              of
+              {{ totalActivities }}
+              activities
+            </span>
+      </footer>
+    </section>
+    }
+    }
+  </main>
+</ion-content>

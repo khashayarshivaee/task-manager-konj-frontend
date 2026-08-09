@@ -422,30 +422,159 @@
 </section>
 
 <section class="task-future-section">
-<header>
-  <div>
-    <span class="task-eyebrow">
-      Task attachments
-    </span>
+  <header class="attachments-header">
+    <div>
+      <span class="task-eyebrow">
+        Task attachments
+      </span>
 
-    <h3>Images and files</h3>
-  </div>
+      <h3>Images and files</h3>
 
-  <ion-icon
-    name="image-outline"
-  ></ion-icon>
+      <p>
+        Add screenshots, designs and
+        visual references to this task.
+      </p>
+    </div>
+
+
 </header>
 
-<div class="future-placeholder">
-  <strong>No attachments loaded yet</strong>
+@if (attachmentErrorMessage) {
+    <div
+      class="
+        attachment-message
+        error
+      "
+      role="alert"
+    >
+      {{ attachmentErrorMessage }}
+    </div>
+    }
 
-  <span>
-    Image upload and private previews
-    will be connected in the next step.
-  </span>
-</div>
-</section>
-@if (isLoadingWatcherState) {
+
+
+    @if (isLoadingAttachments) {
+    <div class="attachments-state">
+      <ion-spinner
+        name="crescent"
+      ></ion-spinner>
+
+      <strong>
+        Loading images...
+      </strong>
+
+      <span>
+        Getting the latest task
+        attachments.
+      </span>
+    </div>
+    } @else if (
+    attachmentItems.length === 0
+  ) {
+    <div class="attachments-state">
+      <span class="attachment-empty-icon">
+        <ion-icon
+          name="image-outline"
+        ></ion-icon>
+      </span>
+
+      <strong>
+        No images yet
+      </strong>
+
+      <span>
+        Add screenshots, references or
+        other images related to this task.
+      </span>
+    </div>
+    } @else {
+    <div class="attachment-grid">
+      @for (
+      item of attachmentItems;
+      track item.attachment.id
+      ) {
+      <article class="attachment-card">
+  <button
+    type="button"
+    class="attachment-preview"
+    [disabled]="
+      item.previewUrl === null
+    "
+    (click)="
+      openAttachment(
+        item.previewUrl
+      )
+    "
+  >
+    @if (item.isLoading) {
+      <ion-spinner
+        name="crescent"
+      ></ion-spinner>
+      } @else if (
+      item.hasError
+    ) {
+      <span class="preview-error">
+        <ion-icon
+          name="image-outline"
+        ></ion-icon>
+
+        <span>
+          Preview unavailable
+        </span>
+      </span>
+      } @else if (
+      item.previewUrl
+    ) {
+      <img
+        [src]="item.previewUrl"
+        [alt]="
+          item.attachment.original_name
+        "
+      />
+
+      <span
+        class="attachment-open-hint"
+        aria-hidden="true"
+      >
+        <ion-icon
+          name="open-outline"
+        ></ion-icon>
+      </span>
+      }
+      </button>
+
+      <div class="attachment-card-body">
+        <div class="attachment-copy">
+          <strong
+            [title]="
+              item.attachment.original_name
+            "
+          >
+      {{
+      item.attachment.original_name
+      }}
+      </strong>
+
+      <span>
+      {{
+      formatFileSize(
+        item.attachment.size
+      )
+      }}
+      ·
+      {{
+      item.attachment.uploader?.name ||
+      'Unknown uploader'
+      }}
+      </span>
+    </div>
+  </div>
+</article>
+      }
+    </div>
+    }
+    </section>
+    @if (isLoadingWatcherState) {
     <section class="comments-access-card">
       <ion-spinner
         name="crescent"

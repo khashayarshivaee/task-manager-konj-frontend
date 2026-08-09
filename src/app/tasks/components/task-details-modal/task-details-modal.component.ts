@@ -22,7 +22,7 @@ import {
   takeUntilDestroyed,
 } from '@angular/core/rxjs-interop';
 import {
-  AlertController,
+
   IonContent,
   IonIcon,
   IonSpinner,
@@ -110,8 +110,6 @@ export class TaskDetailsModalComponent
   private readonly modalController =
     inject(ModalController);
 
-  private readonly alertController =
-    inject(AlertController);
 
   private readonly taskService =
     inject(TaskService);
@@ -119,11 +117,6 @@ export class TaskDetailsModalComponent
   private readonly destroyRef =
     inject(DestroyRef);
 
-  private readonly acceptedImageTypes = [
-    'image/jpeg',
-    'image/png',
-    'image/webp',
-  ];
 
   private readonly maximumFileSize =
     10 * 1024 * 1024;
@@ -145,13 +138,10 @@ export class TaskDetailsModalComponent
 
   isLoading = true;
   isLoadingAttachments = false;
-  isUploadingAttachments = false;
 
-  attachmentDeleteId: number | null = null;
 
   errorMessage = '';
   attachmentErrorMessage = '';
-  attachmentSuccessMessage = '';
 
   constructor() {
     addIcons({
@@ -162,7 +152,7 @@ export class TaskDetailsModalComponent
       eyeOutline,
       lockClosedOutline,
       refreshOutline,
-      cloudUploadOutline,
+
       createOutline,
       flagOutline,
       imageOutline,
@@ -462,167 +452,9 @@ export class TaskDetailsModalComponent
       });
   }
 
-  onFilesSelected(
-    event: Event,
-  ): void {
-    const input =
-      event.target as HTMLInputElement;
 
-    const files = Array.from(
-      input.files ?? [],
-    );
 
-    input.value = '';
 
-    if (
-      files.length === 0 ||
-      this.isUploadingAttachments
-    ) {
-      return;
-    }
-
-    this.attachmentErrorMessage = '';
-    this.attachmentSuccessMessage = '';
-
-    if (files.length > 5) {
-      this.attachmentErrorMessage =
-        'You can upload up to 5 images at once.';
-
-      return;
-    }
-
-    if (
-      this.attachmentItems.length +
-      files.length >
-      10
-    ) {
-      this.attachmentErrorMessage =
-        'A task can contain up to 10 images.';
-
-      return;
-    }
-
-    const hasInvalidType = files.some(
-      (file) =>
-        !this.acceptedImageTypes.includes(
-          file.type,
-        ),
-    );
-
-    if (hasInvalidType) {
-      this.attachmentErrorMessage =
-        'Only JPG, PNG and WebP images are allowed.';
-
-      return;
-    }
-
-    const hasOversizedFile = files.some(
-      (file) =>
-        file.size > this.maximumFileSize,
-    );
-
-    if (hasOversizedFile) {
-      this.attachmentErrorMessage =
-        'Each image must be smaller than 10 MB.';
-
-      return;
-    }
-
-    if (!this.task) {
-      return;
-    }
-
-    this.isUploadingAttachments = true;
-
-    this.taskService
-      .uploadAttachments(
-        this.workspaceId,
-        this.projectId,
-        this.task.id,
-        files,
-      )
-      .pipe(
-        finalize(() => {
-          this.isUploadingAttachments = false;
-        }),
-
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe({
-        next: () => {
-          this.attachmentSuccessMessage =
-            files.length === 1
-              ? 'Image uploaded successfully.'
-              : `${files.length} images uploaded successfully.`;
-
-          this.loadAttachments();
-        },
-
-        error: (
-          error: HttpErrorResponse,
-        ) => {
-          if (error.status === 422) {
-            this.attachmentErrorMessage =
-              error.error?.message ||
-              'The selected images could not be uploaded.';
-
-            return;
-          }
-
-          if (error.status === 403) {
-            this.attachmentErrorMessage =
-              'You do not have permission to upload images to this task.';
-
-            return;
-          }
-
-          this.attachmentErrorMessage =
-            'Unable to upload the selected images.';
-        },
-      });
-  }
-
-  async requestDeleteAttachment(
-    attachment: TaskAttachment,
-  ): Promise<void> {
-    if (
-      this.attachmentDeleteId !== null
-    ) {
-      return;
-    }
-
-    const alert =
-      await this.alertController.create({
-        header: 'Delete image?',
-
-        message:
-          `Remove "${attachment.original_name}" from this task?`,
-
-        buttons: [
-          {
-            text: 'Cancel',
-            role: 'cancel',
-          },
-          {
-            text: 'Delete',
-            role: 'confirm',
-          },
-        ],
-      });
-
-    await alert.present();
-
-    const result =
-      await alert.onDidDismiss();
-
-    if (result.role !== 'confirm') {
-      return;
-    }
-
-    this.deleteAttachment(
-      attachment,
-    );
-  }
 
   openAttachment(
     previewUrl: string | null,
@@ -669,13 +501,14 @@ export class TaskDetailsModalComponent
 
     const result =
       await modal.onDidDismiss<ProjectTask>();
-
     if (
       result.role === 'updated' &&
       result.data
     ) {
       this.task = result.data;
+
       this.loadWatcherState();
+      this.loadAttachments();
     }
   }
 
@@ -915,84 +748,7 @@ export class TaskDetailsModalComponent
       });
   }
 
-  private deleteAttachment(
-    attachment: TaskAttachment,
-  ): void {
-    if (
-      !this.task ||
-      this.attachmentDeleteId !== null
-    ) {
-      return;
-    }
 
-    this.attachmentDeleteId =
-      attachment.id;
-
-    this.attachmentErrorMessage = '';
-    this.attachmentSuccessMessage = '';
-
-    this.taskService
-      .deleteAttachment(
-        this.workspaceId,
-        this.projectId,
-        this.task.id,
-        attachment.id,
-      )
-      .pipe(
-        finalize(() => {
-          this.attachmentDeleteId = null;
-        }),
-
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe({
-        next: () => {
-          const deletedItem =
-            this.attachmentItems.find(
-              (item) =>
-                item.attachment.id ===
-                attachment.id,
-            );
-
-          if (deletedItem?.previewUrl) {
-            URL.revokeObjectURL(
-              deletedItem.previewUrl,
-            );
-          }
-
-          this.attachmentItems =
-            this.attachmentItems.filter(
-              (item) =>
-                item.attachment.id !==
-                attachment.id,
-            );
-
-          this.attachmentSuccessMessage =
-            'Image deleted successfully.';
-        },
-
-        error: (
-          error: HttpErrorResponse,
-        ) => {
-          if (error.status === 403) {
-            this.attachmentErrorMessage =
-              'Only the uploader or a workspace administrator can delete this image.';
-
-            return;
-          }
-
-          if (error.status === 404) {
-            this.attachmentErrorMessage =
-              'This image could not be found.';
-
-            return;
-          }
-
-          this.attachmentErrorMessage =
-            'Unable to delete the image.';
-        },
-      });
-  }
 
   private applyWatcherState(
     state: TaskWatcherState,

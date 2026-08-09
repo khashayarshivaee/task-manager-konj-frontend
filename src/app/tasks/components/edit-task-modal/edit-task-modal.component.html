@@ -12,8 +12,8 @@
         <h2>Update task</h2>
 
         <p>
-          Update the task details, status,
-          priority and timeline.
+          Update the task details,
+          assignees and visual references.
         </p>
       </div>
 
@@ -21,7 +21,7 @@
         type="button"
         class="task-modal-close"
         aria-label="Close"
-        [disabled]="isSubmitting"
+        [disabled]="isBusy"
         (click)="close()"
       >
         <ion-icon
@@ -35,243 +35,591 @@
       [formGroup]="form"
       (ngSubmit)="submit()"
     >
-      <label class="task-field">
-        <span>
-          Task title
-          <em>Required</em>
-        </span>
-
-        <input
-          type="text"
-          formControlName="title"
-          maxlength="180"
-          placeholder="What needs to be done?"
-          autocomplete="off"
-        />
-
-        @if (
-        form.controls.title.touched &&
-        form.controls.title.invalid
-        ) {
-        <small class="field-error">
-          Enter a task title with at least 2
-          characters.
-        </small>
-        }
-      </label>
-
-      <label class="task-field">
-        <span>Description</span>
-
-        <textarea
-          formControlName="description"
-          rows="5"
-          maxlength="10000"
-          placeholder="Add useful details, requirements or notes..."
-        ></textarea>
-      </label>
-
-      <div class="task-form-grid">
+      <fieldset
+        class="task-form-fields"
+        [disabled]="
+          isBusy ||
+          updatedTask !== null
+        "
+      >
         <label class="task-field">
-          <span>Status</span>
-
-          <select formControlName="status">
-            <option value="backlog">
-              Backlog
-            </option>
-
-            <option value="todo">
-              Todo
-            </option>
-
-            <option value="in_progress">
-              In progress
-            </option>
-
-            <option value="in_review">
-              In review
-            </option>
-
-            <option value="completed">
-              Completed
-            </option>
-          </select>
-        </label>
-
-        <label class="task-field">
-          <span>Priority</span>
-
-          <select formControlName="priority">
-            <option value="low">
-              Low
-            </option>
-
-            <option value="medium">
-              Medium
-            </option>
-
-            <option value="high">
-              High
-            </option>
-
-            <option value="urgent">
-              Urgent
-            </option>
-          </select>
-        </label>
-      </div>
-
-      <div class="task-form-grid">
-        <label class="task-field">
-          <span>Start date</span>
+          <span>
+            Task title
+            <em>Required</em>
+          </span>
 
           <input
-            type="date"
-            formControlName="starts_at"
+            type="text"
+            formControlName="title"
+            maxlength="180"
+            placeholder="What needs to be done?"
+            autocomplete="off"
           />
+
+          @if (
+          form.controls.title.touched &&
+          form.controls.title.invalid
+          ) {
+          <small class="field-error">
+            Enter a task title with at
+            least 2 characters.
+          </small>
+          }
         </label>
 
         <label class="task-field">
-          <span>Due date</span>
+          <span>Description</span>
 
-          <input
-            type="date"
-            formControlName="due_at"
-          />
+          <textarea
+            formControlName="description"
+            rows="5"
+            maxlength="10000"
+            placeholder="Add useful details, requirements or notes..."
+          ></textarea>
         </label>
-      </div>
 
-      <section class="assignee-selector">
-        <header class="assignee-selector-header">
-          <div>
-            <strong>Assignees</strong>
+        <div class="task-form-grid">
+          <label class="task-field">
+            <span>Status</span>
+
+            <select
+              formControlName="status"
+            >
+              <option value="backlog">
+                Backlog
+              </option>
+
+              <option value="todo">
+                Todo
+              </option>
+
+              <option value="in_progress">
+                In progress
+              </option>
+
+              <option value="in_review">
+                In review
+              </option>
+
+              <option value="completed">
+                Completed
+              </option>
+            </select>
+          </label>
+
+          <label class="task-field">
+            <span>Priority</span>
+
+            <select
+              formControlName="priority"
+            >
+              <option value="low">
+                Low
+              </option>
+
+              <option value="medium">
+                Medium
+              </option>
+
+              <option value="high">
+                High
+              </option>
+
+              <option value="urgent">
+                Urgent
+              </option>
+            </select>
+          </label>
+        </div>
+
+        <div class="task-form-grid">
+          <label class="task-field">
+            <span>Start date</span>
+
+            <input
+              type="date"
+              formControlName="starts_at"
+            />
+          </label>
+
+          <label class="task-field">
+            <span>Due date</span>
+
+            <input
+              type="date"
+              formControlName="due_at"
+            />
+          </label>
+        </div>
+
+        <section
+          class="assignee-selector"
+        >
+          <header
+            class="assignee-selector-header"
+          >
+            <div>
+              <strong>
+                Assignees
+              </strong>
+
+              <span>
+                Select one or more workspace
+                members responsible for this
+                task.
+              </span>
+            </div>
+
+            <span
+              class="assignee-count"
+            >
+              {{ selectedAssigneeCount }}
+              selected
+            </span>
+          </header>
+
+          @if (isLoadingMembers) {
+          <div class="assignee-state">
+            <ion-spinner
+              name="crescent"
+            ></ion-spinner>
 
             <span>
-        Select one or more workspace
-        members responsible for this task.
-      </span>
+              Loading workspace members...
+            </span>
+          </div>
+          } @else if (
+          memberLoadError
+          ) {
+          <div
+            class="
+              assignee-state
+              assignee-state-error
+            "
+          >
+            <span>
+          {{ memberLoadError }}
+          </span>
+
+          <button
+            type="button"
+            (click)="
+              loadWorkspaceMembers()
+            "
+          >
+            Try again
+          </button>
+        </div>
+          } @else if (
+          members.length === 0
+          ) {
+          <div class="assignee-state">
+            <span>
+              This workspace has no active
+              members available for
+              assignment.
+            </span>
+          </div>
+          } @else {
+          <div
+            class="assignee-options"
+          >
+            @for (
+              member of members;
+              track member.id
+            ) {
+          <button
+            type="button"
+            class="assignee-option"
+            [class.assignee-option-selected]="
+                    isAssigneeSelected(
+                      member.user_id
+                    )
+                  "
+            [attr.aria-pressed]="
+                    isAssigneeSelected(
+                      member.user_id
+                    )
+                  "
+            (click)="
+                    toggleAssignee(
+                      member.user_id
+                    )
+                  "
+          >
+            <app-user-avatar
+              [name]="
+                      member.user.name
+                    "
+              [avatarPath]="
+                      member.user.avatar_path
+                    "
+              [size]="40"
+              [fontSize]="10"
+            ></app-user-avatar>
+
+            <span
+              class="
+                      assignee-option-copy
+                    "
+            >
+                    <strong>
+                      {{
+                      member.user.name
+                      }}
+                    </strong>
+
+                  <small>
+  {{ member.user.email }}
+                    · Project member
+</small>
+                  </span>
+
+            <span
+              class="assignee-check"
+              aria-hidden="true"
+            >
+                    @if (
+                      isAssigneeSelected(
+                        member.user_id
+                      )
+                    ) {
+              <ion-icon
+                name="
+                  checkmark-outline
+                "
+              ></ion-icon>
+                    }
+                  </span>
+          </button>
+          }
           </div>
 
-          <span class="assignee-count">
-      {{ selectedAssigneeCount }}
-            selected
-    </span>
-        </header>
-
-        @if (isLoadingMembers) {
-        <div class="assignee-state">
-          <ion-spinner
-            name="crescent"
-          ></ion-spinner>
-
-          <span>
-            Loading workspace members...
-          </span>
-        </div>
-        } @else if (memberLoadError) {
-        <div
-          class="
-            assignee-state
-            assignee-state-error
-          "
-        >
-          <span>{{ memberLoadError }}</span>
-
-      <button
-        type="button"
-        (click)="loadWorkspaceMembers()"
-      >
-        Try again
-      </button>
-    </div>
-        } @else if (members.length === 0) {
-        <div class="assignee-state">
-          <span>
-            This workspace has no active
-            members available for assignment.
-          </span>
-        </div>
-        } @else {
-        <div class="assignee-options">
-          @for (
-            member of members;
-            track member.id
+          @if (
+            selectedAssigneeCount === 0
           ) {
-        <button
-          type="button"
-          class="assignee-option"
-          [class.assignee-option-selected]="
-            isAssigneeSelected(
-              member.user_id
-            )
-          "
-          [attr.aria-pressed]="
-            isAssigneeSelected(
-              member.user_id
-            )
-          "
-          (click)="
-            toggleAssignee(
-              member.user_id
-            )
-          "
-        >
-          <app-user-avatar
-            [name]="member.user.name"
-            [avatarPath]="
-              member.user.avatar_path
-            "
-            [size]="40"
-            [fontSize]="10"
-          ></app-user-avatar>
-
-          <span class="assignee-option-copy">
-            <strong>
-              {{ member.user.name }}
-            </strong>
-
-            <small>
-              {{ member.user.email }}
-              ·
-              {{
-              getMemberRoleLabel(
-                member
-              )
-              }}
-            </small>
-          </span>
-
-          <span
-            class="assignee-check"
-            aria-hidden="true"
+          <div
+            class="
+                  assignee-selection-note
+                "
           >
-            @if (
-              isAssigneeSelected(
-                member.user_id
-              )
-            ) {
-            <ion-icon
-              name="checkmark-outline"
-            ></ion-icon>
-            }
-          </span>
-        </button>
-        }
-        </div>
+            Saving will leave this task
+            without an assignee.
+          </div>
+          } @else {
+          <div
+            class="
+                  assignee-selection-note
+                "
+          >
+            Selected assignees will also
+            automatically watch this task.
+          </div>
+          }
+          }
+        </section>
 
-        @if (selectedAssigneeCount === 0) {
-        <div class="assignee-selection-note">
-          Saving will leave this task
-          without an assignee.
+        <section
+          class="initial-images-section"
+        >
+          <div class="existing-task-images">
+            <div class="existing-task-images-header">
+              <div>
+      <span>
+        Existing images
+      </span>
+
+                <small>
+                  {{ existingImages.length }}
+                  uploaded
+                </small>
+              </div>
+            </div>
+
+            @if (isLoadingExistingImages) {
+            <div class="initial-images-empty">
+              <ion-spinner
+                name="crescent"
+              ></ion-spinner>
+
+              <div>
+                <strong>
+                  Loading existing images...
+                </strong>
+
+                <span>
+                  Getting the current task
+                  attachments.
+                </span>
+              </div>
+            </div>
+            } @else if (existingImagesError) {
+            <div class="initial-images-empty">
+              <ion-icon
+                name="image-outline"
+              ></ion-icon>
+
+              <div>
+                <strong>
+                  Images unavailable
+                </strong>
+
+                <span>
+            {{ existingImagesError }}
+            </span>
+          </div>
         </div>
-        } @else {
-        <div class="assignee-selection-note">
-          Selected assignees will also
-          automatically watch this task.
-        </div>
-        }
-        }
-      </section>
+            } @else if (
+            existingImages.length === 0
+            ) {
+            <div class="initial-images-empty">
+              <ion-icon
+                name="image-outline"
+              ></ion-icon>
+
+              <div>
+                <strong>
+                  No uploaded images
+                </strong>
+
+                <span>
+                  This task does not have any
+                  existing images yet.
+                </span>
+              </div>
+            </div>
+            } @else {
+            <div class="initial-image-grid">
+              @for (
+                image of existingImages;
+                track image.attachment.id
+              ) {
+            <article
+              class="
+            initial-image-card
+            existing-image-card
+          "
+            >
+              @if (image.isLoading) {
+              <div
+                class="
+                  existing-image-loading
+                "
+              >
+                <ion-spinner
+                  name="crescent"
+                ></ion-spinner>
+              </div>
+              } @else if (
+              image.hasError
+              ) {
+              <div
+                class="
+                  existing-image-loading
+                "
+              >
+                <ion-icon
+                  name="image-outline"
+                ></ion-icon>
+              </div>
+              } @else if (
+              image.previewUrl
+              ) {
+              <img
+                [src]="image.previewUrl"
+                [alt]="
+                  image.attachment
+                    .original_name
+                "
+              />
+              <button
+  type="button"
+  aria-label="Delete image"
+  [disabled]="
+    attachmentDeleteId !== null ||
+    updatedTask !== null
+  "
+  (click)="
+    requestDeleteExistingImage(
+      image
+    )
+  "
+>
+  @if (
+    attachmentDeleteId ===
+    image.attachment.id
+  ) {
+              <ion-spinner
+                name="crescent"
+              ></ion-spinner>
+              } @else {
+              <ion-icon
+                name="trash-outline"
+              ></ion-icon>
+              }
+              </button>
+
+              }
+
+              <span
+                [title]="
+              image.attachment
+                .original_name
+            "
+              >
+            {{
+                image.attachment
+                  .original_name
+                }}
+          </span>
+            </article>
+            }
+            </div>
+            }
+          </div>
+          <header>
+            <div>
+              <span>
+                Add task images
+              </span>
+
+              <small>
+                Optional ·
+                {{ selectedImages.length }}/5
+              </small>
+            </div>
+
+            <input
+              #imageInput
+              type="file"
+              class="initial-image-input"
+              accept="
+                image/jpeg,
+                image/png,
+                image/webp
+              "
+              multiple
+              (change)="
+                onFilesSelected($event)
+              "
+            />
+
+            <button
+              type="button"
+              class="select-images-button"
+              [disabled]="
+  selectedImages.length >=
+    maximumImages ||
+  existingImages.length +
+    selectedImages.length >=
+    maximumTaskImages
+"
+              (click)="
+                imageInput.click()
+              "
+            >
+              <ion-icon
+                name="cloud-upload-outline"
+              ></ion-icon>
+
+              <span>
+                Select images
+              </span>
+            </button>
+          </header>
+
+          @if (
+          selectedImages.length === 0
+          ) {
+          <div
+            class="initial-images-empty"
+          >
+            <ion-icon
+              name="image-outline"
+            ></ion-icon>
+
+            <div>
+              <strong>
+                No new images selected
+              </strong>
+
+              <span>
+                Existing task images stay
+                unchanged. Add new
+                screenshots, designs or
+                visual references here.
+              </span>
+            </div>
+          </div>
+          } @else {
+          <div
+            class="initial-image-grid"
+          >
+            @for (
+              selectedImage of
+                selectedImages;
+              track
+                selectedImage.previewUrl;
+              let imageIndex = $index
+            ) {
+          <article
+            class="initial-image-card"
+          >
+            <img
+              [src]="
+                      selectedImage.previewUrl
+                    "
+              [alt]="
+                      selectedImage.file.name
+                    "
+            />
+
+            <button
+              type="button"
+              aria-label="Remove image"
+              (click)="
+                      removeSelectedImage(
+                        imageIndex
+                      )
+                    "
+            >
+              <ion-icon
+                name="trash-outline"
+              ></ion-icon>
+            </button>
+
+            <span
+              [title]="
+                      selectedImage.file.name
+                    "
+            >
+                    {{
+              selectedImage.file.name
+              }}
+                  </span>
+          </article>
+          }
+          </div>
+          }
+        </section>
+      </fieldset>
+
+      @if (updatedTask) {
+      <div
+        class="task-created-warning"
+        role="status"
+      >
+        <strong>
+          Task changes saved
+        </strong>
+
+        <span>
+          The task information has already
+          been updated. Only the selected
+          images are waiting to be uploaded.
+        </span>
+      </div>
+      }
 
       @if (errorMessage) {
       <div
@@ -282,33 +630,65 @@
       </div>
       }
 
-      <footer class="task-modal-footer">
+      <footer
+        class="task-modal-footer"
+      >
         <button
           type="button"
           class="task-cancel-button"
-          [disabled]="isSubmitting"
+          [disabled]="isBusy"
           (click)="close()"
         >
-          Cancel
+          {{
+          updatedTask
+            ? 'Finish without images'
+            : 'Cancel'
+          }}
         </button>
 
         <button
           type="submit"
           class="task-submit-button"
-          [disabled]="isSubmitting"
+          [disabled]="isBusy"
         >
           @if (isSubmitting) {
           <ion-spinner
             name="crescent"
           ></ion-spinner>
 
-          <span>Saving changes...</span>
+          <span>
+            Saving changes...
+          </span>
+          } @else if (
+          isUploadingImages
+          ) {
+          <ion-spinner
+            name="crescent"
+          ></ion-spinner>
+
+          <span>
+            Uploading images...
+          </span>
+          } @else if (updatedTask) {
+          <ion-icon
+            name="cloud-upload-outline"
+          ></ion-icon>
+
+          <span>
+            Retry image upload
+          </span>
           } @else {
           <ion-icon
             name="checkmark-outline"
           ></ion-icon>
 
-          <span>Save changes</span>
+          <span>
+          {{
+          selectedImages.length > 0
+            ? 'Save changes with images'
+            : 'Save changes'
+          }}
+          </span>
           }
         </button>
       </footer>
