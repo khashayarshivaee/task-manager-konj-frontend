@@ -315,11 +315,26 @@
             type="button"
             class="navigation-item"
             [disabled]="!(activeWorkspace$ | async)"
+            (click)="openWorkspaceNotes()"
+          >
+            <ion-icon
+              name="document-text-outline"
+            ></ion-icon>
+
+            <span>Notes</span>
+          </button>
+
+          <button
+            type="button"
+            class="navigation-item"
+            [disabled]="!(activeWorkspace$ | async)"
             (click)="openWorkspaceMembers()"
           >
             <ion-icon name="people-outline"></ion-icon>
             <span>Members</span>
           </button>
+
+
         </div>
 
         <div class="navigation-group navigation-group-bottom">

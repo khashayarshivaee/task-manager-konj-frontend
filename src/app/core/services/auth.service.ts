@@ -1,8 +1,18 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable, finalize, map, tap } from 'rxjs';
+import {
+  BehaviorSubject,
+  Observable,
+  catchError,
+  finalize,
+  from,
+  map,
+  of,
+  switchMap,
+  tap,
+} from 'rxjs';
 import { Capacitor } from '@capacitor/core';
-
+import { PushNotificationService } from './push-notification.service';
 import { environment } from '../../../environments/environment';
 import {
   AuthResponse,
@@ -37,6 +47,8 @@ export class AuthService {
   constructor(
     private readonly http: HttpClient,
     private readonly tokenStorage: TokenStorageService,
+    private readonly pushNotifications:
+      PushNotificationService,
   ) {}
 
   login(credentials: LoginCredentials): Observable<AuthUser> {
@@ -164,13 +176,34 @@ export class AuthService {
     );
   }
   logout(): Observable<LogoutResponse> {
-    return this.http
-      .post<LogoutResponse>(`${this.authUrl}/logout`, {})
-      .pipe(
-        finalize(() => {
-          this.clearSession();
-        }),
-      );
+    return from(
+      this.pushNotifications
+        .unregisterCurrentDevice(),
+    ).pipe(
+      catchError((error) => {
+        console.error(
+          '[Push] Device unregister failed during logout:',
+          error,
+        );
+
+        /*
+         * Push unregister failure must not
+         * prevent the user from logging out.
+         */
+        return of(undefined);
+      }),
+
+      switchMap(() =>
+        this.http.post<LogoutResponse>(
+          `${this.authUrl}/logout`,
+          {},
+        )
+      ),
+
+      finalize(() => {
+        this.clearSession();
+      }),
+    );
   }
 
   isAuthenticated(): boolean {

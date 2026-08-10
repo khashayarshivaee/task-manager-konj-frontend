@@ -1,0 +1,411 @@
+<ion-content
+  [fullscreen]="true"
+  class="note-editor-content"
+>
+  <div class="editor-shell">
+    <header class="editor-header">
+      <div>
+        <span class="editor-eyebrow">
+          {{ workspace.name }}
+        </span>
+
+        <h2>
+          @if (isCreateMode) {
+          Create note
+          } @else if (editable) {
+          Edit note
+          } @else {
+          View note
+          }
+        </h2>
+
+        @if (!editable) {
+        <p class="view-only-message">
+          <ion-icon
+            name="eye-outline"
+          ></ion-icon>
+
+          This note is view only.
+        </p>
+        }
+      </div>
+
+      <button
+        type="button"
+        class="icon-button close-button"
+        aria-label="Close"
+        (click)="close()"
+      >
+        <ion-icon
+          name="close-outline"
+        ></ion-icon>
+      </button>
+    </header>
+
+    <form
+      class="note-form"
+      [formGroup]="noteForm"
+      (ngSubmit)="submit()"
+    >
+      <div class="field-group">
+        <div class="field-heading">
+          <label for="note-title">
+            Title
+          </label>
+
+          <span>
+            {{
+            noteForm.controls
+              .title.value.length
+            }}/180
+          </span>
+        </div>
+
+        <input
+          id="note-title"
+          type="text"
+          maxlength="180"
+          autocomplete="off"
+          formControlName="title"
+          placeholder="Give this note a title..."
+        >
+
+        @if (
+        noteForm.controls.title.touched &&
+        noteForm.controls.title.invalid
+        ) {
+        <small class="field-error">
+          A note title is required.
+        </small>
+        }
+      </div>
+
+      <div class="field-group">
+        <label for="note-content">
+          Note
+        </label>
+
+        <textarea
+          id="note-content"
+          rows="10"
+          formControlName="content"
+          placeholder="Write notes, ideas, meeting details or anything your team should remember..."
+        ></textarea>
+      </div>
+
+      <label class="pin-control">
+        <span class="pin-icon">
+          <ion-icon
+            name="pin-outline"
+          ></ion-icon>
+        </span>
+
+        <span class="pin-copy">
+          <strong>Pin this note</strong>
+
+          <small>
+            Pinned notes appear first
+            for everyone in the workspace.
+          </small>
+        </span>
+
+        <input
+          type="checkbox"
+          formControlName="is_pinned"
+        >
+
+        <span class="toggle-track">
+          <span></span>
+        </span>
+      </label>
+
+      <section class="images-section">
+        <div class="images-heading">
+          <div>
+            <strong>
+              Images
+            </strong>
+
+            <p>
+              Add up to 10 JPG, PNG or WebP
+              images. Maximum 8 MB each.
+            </p>
+          </div>
+
+          <span class="image-counter">
+            {{ totalImageCount }}/10
+          </span>
+        </div>
+
+        @if (isLoadingImages) {
+        <div class="images-loading">
+          <ion-spinner
+            name="crescent"
+          ></ion-spinner>
+
+          Loading images...
+        </div>
+        }
+
+        @if (
+        existingAttachments.length > 0 ||
+        selectedImages.length > 0
+        ) {
+        <div class="image-grid">
+          @for (
+            attachment
+            of existingAttachments;
+            track attachment.id
+          ) {
+        <div class="image-card">
+          @if (
+          attachmentPreviewUrls[
+          attachment.id
+          ]
+          ) {
+          <img
+            [src]="
+              attachmentPreviewUrls[
+                attachment.id
+              ]
+            "
+            [alt]="
+              attachment.original_name
+            "
+          >
+          } @else {
+          <div class="image-placeholder">
+            <ion-icon
+              name="image-outline"
+            ></ion-icon>
+          </div>
+          }
+
+          @if (editable) {
+          <button
+            type="button"
+            class="remove-image-button"
+            aria-label="Delete image"
+            [disabled]="
+              deletingAttachmentId !== null
+            "
+            (click)="
+              deleteAttachment(
+                attachment
+              )
+            "
+          >
+            @if (
+              deletingAttachmentId ===
+              attachment.id
+            ) {
+          <ion-spinner
+            name="crescent"
+          ></ion-spinner>
+          } @else {
+          <ion-icon
+            name="trash-outline"
+          ></ion-icon>
+          }
+          </button>
+          }
+        </div>
+        }
+
+        @for (
+          preview
+          of selectedImages;
+          track preview.url;
+          let index = $index
+        ) {
+        <div
+          class="
+                  image-card
+                  pending-image
+                "
+        >
+          <img
+            [src]="preview.url"
+            [alt]="preview.file.name"
+          >
+
+          <span class="new-image-badge">
+                  New
+                </span>
+
+          <button
+            type="button"
+            class="remove-image-button"
+            aria-label="Remove selected image"
+            (click)="
+                    removeSelectedImage(
+                      index
+                    )
+                  "
+          >
+            <ion-icon
+              name="close-outline"
+            ></ion-icon>
+          </button>
+        </div>
+        }
+        </div>
+        }
+
+        @if (
+        editable &&
+        totalImageCount < 10
+        ) {
+        <label class="upload-box">
+          <input
+            type="file"
+            multiple
+            accept="
+              image/jpeg,
+              image/png,
+              image/webp
+            "
+            (change)="
+              onImagesSelected(
+                $event
+              )
+            "
+          >
+
+          <span class="upload-icon">
+            <ion-icon
+              name="cloud-upload-outline"
+            ></ion-icon>
+          </span>
+
+          <span>
+            <strong>
+              Add images
+            </strong>
+
+            <small>
+              Choose one or multiple files
+            </small>
+          </span>
+        </label>
+        }
+      </section>
+
+      @if (errorMessage) {
+      <div class="form-error">
+      {{ errorMessage }}
+      </div>
+      }
+
+      @if (
+      showDeleteConfirmation &&
+      note
+      ) {
+      <section class="delete-confirmation">
+        <div>
+          <strong>
+            Delete this note?
+          </strong>
+
+          <p>
+            The note and all of its images
+            will be permanently removed.
+          </p>
+        </div>
+
+        <div class="delete-actions">
+          <button
+            type="button"
+            class="cancel-delete-button"
+            [disabled]="isDeletingNote"
+            (click)="cancelDeleteNote()"
+          >
+            Keep note
+          </button>
+
+          <button
+            type="button"
+            class="confirm-delete-button"
+            [disabled]="isDeletingNote"
+            (click)="confirmDeleteNote()"
+          >
+            @if (isDeletingNote) {
+      <ion-spinner
+        name="crescent"
+      ></ion-spinner>
+
+      Deleting...
+      } @else {
+      Delete permanently
+      }
+      </button>
+    </div>
+  </section>
+      }
+
+      <footer class="editor-footer">
+        <div>
+          @if (
+          note &&
+          editable &&
+          !showDeleteConfirmation
+          ) {
+          <button
+            type="button"
+            class="delete-note-button"
+            [disabled]="
+              isSubmitting ||
+              isDeletingNote
+            "
+            (click)="requestDeleteNote()"
+          >
+            <ion-icon
+              name="trash-outline"
+            ></ion-icon>
+
+            Delete note
+          </button>
+          }
+        </div>
+
+        <div class="footer-actions">
+          <button
+            type="button"
+            class="cancel-button"
+            [disabled]="
+              isSubmitting ||
+              isDeletingNote
+            "
+            (click)="close()"
+          >
+            {{ editable ? 'Cancel' : 'Close' }}
+          </button>
+
+          @if (editable) {
+          <button
+            type="submit"
+            class="save-button"
+            [disabled]="
+              isSubmitting ||
+              isDeletingNote ||
+              deletingAttachmentId !== null
+            "
+          >
+            @if (isSubmitting) {
+          <ion-spinner
+            name="crescent"
+          ></ion-spinner>
+
+          Saving...
+          } @else if (isCreateMode) {
+          Create note
+          } @else {
+          Save changes
+          }
+          </button>
+          }
+        </div>
+      </footer>
+    </form>
+  </div>
+</ion-content>

@@ -1,6 +1,6 @@
 export const environment = {
   production: false,
-
+  apnsEnvironment: 'development' as const,
   apiUrl: 'https://api.konj.pro/api',
 
   reverb: {

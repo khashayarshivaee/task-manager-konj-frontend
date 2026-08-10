@@ -46,6 +46,9 @@ export const routes: Routes = [
       ),
   },
 
+
+
+
   {
     path: 'verify-email',
     title: 'Verify email | Konj Task Manager',
@@ -91,6 +94,25 @@ export const routes: Routes = [
         ).then(
         (module) =>
           module.WorkspacesPage,
+      ),
+  },
+
+  {
+    path: 'workspaces/:workspaceId/notes',
+    title:
+      'Workspace Notes | Konj Task Manager',
+
+    canActivate: [
+      authGuard,
+      verifiedGuard,
+    ],
+
+    loadComponent: () =>
+      import(
+        './notes/pages/notes/notes.page'
+        ).then(
+        (module) =>
+          module.NotesPage,
       ),
   },
 

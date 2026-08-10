@@ -1,0 +1,268 @@
+<ion-content
+  [fullscreen]="true"
+  class="notes-page"
+>
+  <main class="notes-shell">
+    <header class="notes-topbar">
+      <button
+        type="button"
+        class="back-button"
+        (click)="goBack()"
+      >
+        <ion-icon
+          name="arrow-back-outline"
+        ></ion-icon>
+
+        <span>Back to dashboard</span>
+      </button>
+
+      <div class="brand-mark">
+        K
+      </div>
+    </header>
+
+    @if (workspace) {
+    <section class="notes-hero">
+      <div class="hero-main">
+        <span class="hero-icon">
+          <ion-icon
+            name="document-text-outline"
+          ></ion-icon>
+        </span>
+
+        <div>
+          <span class="eyebrow">
+            Workspace notes
+          </span>
+
+          <h1>
+    {{ workspace.name }}
+    </h1>
+
+    <p>
+      Keep shared ideas, meeting notes,
+      references and team information
+      in one place.
+    </p>
+  </div>
+</div>
+
+<button
+  type="button"
+  class="new-note-button"
+  (click)="openCreateNote()"
+>
+  <ion-icon
+    name="add-outline"
+  ></ion-icon>
+
+  <span>New note</span>
+</button>
+</section>
+
+<section class="notes-toolbar">
+<div class="search-field">
+  <ion-icon
+    name="search-outline"
+  ></ion-icon>
+
+  <input
+    type="search"
+    placeholder="Search notes..."
+    [value]="searchTerm"
+    (input)="onSearchInput($event)"
+  >
+
+  @if (searchTerm) {
+    <button
+      type="button"
+      (click)="clearSearch()"
+    >
+      Clear
+    </button>
+    }
+    </div>
+
+    <span class="notes-count">
+    {{ pagination?.total ?? notes.length }}
+    notes
+  </span>
+</section>
+    }
+
+    @if (isLoading) {
+    <section class="page-state">
+      <ion-spinner
+        name="crescent"
+      ></ion-spinner>
+
+      <strong>
+        Loading notes...
+      </strong>
+    </section>
+    } @else if (pageErrorMessage) {
+    <section class="page-state">
+      <span class="state-icon">
+        <ion-icon
+          name="document-text-outline"
+        ></ion-icon>
+      </span>
+
+      <strong>
+        Notes unavailable
+      </strong>
+
+      <p>
+    {{ pageErrorMessage }}
+    </p>
+
+    <button
+      type="button"
+      class="secondary-button"
+      (click)="loadNotes()"
+    >
+      <ion-icon
+        name="refresh-outline"
+      ></ion-icon>
+
+      Try again
+    </button>
+  </section>
+    } @else if (
+    workspace &&
+    notes.length === 0
+    ) {
+    <section class="page-state empty">
+      <span class="state-icon">
+        <ion-icon
+          name="document-text-outline"
+        ></ion-icon>
+      </span>
+
+      <strong>
+        @if (searchTerm) {
+    No matching notes
+    } @else {
+    No notes yet
+    }
+    </strong>
+
+    <p>
+      @if (searchTerm) {
+    Try another search term.
+    } @else {
+    Create the first shared note
+    for {{ workspace.name }}.
+    }
+    </p>
+
+    @if (!searchTerm) {
+    <button
+      type="button"
+      class="primary-button"
+      (click)="openCreateNote()"
+    >
+      <ion-icon
+        name="add-outline"
+      ></ion-icon>
+
+      Create first note
+    </button>
+    }
+    </section>
+    } @else {
+    <section class="notes-grid">
+      @for (
+        note of notes;
+        track note.id
+      ) {
+    <article
+      class="note-card"
+      role="button"
+      tabindex="0"
+      (click)="openNote(note)"
+      (keydown.enter)="openNote(note)"
+    >
+      <header class="note-card-header">
+        <div class="note-title">
+
+          @if (note.is_pinned) {
+          <span
+            class="pin-badge"
+            title="Pinned note"
+          >
+            <ion-icon
+              name="pin-outline"
+            ></ion-icon>
+          </span>
+          }
+
+          <h2>
+            {{ note.title }}
+          </h2>
+        </div>
+        <span class="note-card-action">
+  {{
+          canEditNote(note)
+            ? 'Edit'
+            : 'View'
+          }}
+</span>
+      </header>
+
+      @if (note.content) {
+      <p class="note-preview">
+      {{ note.content }}
+      </p>
+      } @else {
+      <p
+        class="
+          note-preview
+          note-preview-empty
+        "
+      >
+        No text content.
+      </p>
+      }
+
+      @if (
+      note.attachments.length > 0
+      ) {
+      <div class="attachment-count">
+        <ion-icon
+          name="image-outline"
+        ></ion-icon>
+
+        <span>
+      {{ note.attachments.length }}
+      {{
+      note.attachments.length === 1
+        ? 'image'
+        : 'images'
+      }}
+      </span>
+    </div>
+      }
+
+      <footer class="note-footer">
+              <span>
+                {{ note.author?.name ?? 'Former member' }}
+              </span>
+
+        <span class="footer-dot"></span>
+
+        <span>
+                Updated
+          {{
+          formatUpdatedAt(
+            note.updated_at
+          )
+          }}
+              </span>
+      </footer>
+    </article>
+    }
+    </section>
+    }
+  </main>
+</ion-content>

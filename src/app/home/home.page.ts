@@ -68,6 +68,7 @@ import {
   menuOutline,
   notificationsOutline,
   peopleOutline,
+  documentTextOutline,
   rocketOutline,
   searchOutline,
   settingsOutline,
@@ -181,6 +182,7 @@ export class HomePage implements OnInit {
 
   constructor() {
     addIcons({
+      documentTextOutline,
       addOutline,
       calendarOutline,
       checkmarkCircleOutline,
@@ -942,6 +944,24 @@ export class HomePage implements OnInit {
       '/workspaces',
       workspace.id,
       'members',
+    ]);
+  }
+  openWorkspaceNotes(): void {
+    const workspace =
+      this.workspaceService
+        .getActiveWorkspace();
+
+    if (!workspace) {
+      return;
+    }
+
+    this.closeWorkspaceMenu();
+    this.closeSidebar();
+
+    void this.router.navigate([
+      '/workspaces',
+      workspace.id,
+      'notes',
     ]);
   }
 

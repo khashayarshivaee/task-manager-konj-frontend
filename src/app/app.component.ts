@@ -11,6 +11,11 @@ import {
 import {
   Router,
 } from '@angular/router';
+
+import {
+  PushNotificationService,
+} from './core/services/push-notification.service';
+
 import {
   firstValueFrom,
   Subscription,
@@ -79,6 +84,9 @@ export class AppComponent implements OnDestroy {
     private readonly notificationService:
       NotificationService,
 
+    private readonly pushNotificationService:
+      PushNotificationService,
+
     private readonly searchLauncher:
       GlobalSearchLauncherService,
 
@@ -129,6 +137,15 @@ export class AppComponent implements OnDestroy {
                  * Realtime remains connected
                  * if the initial request fails.
                  */
+              });
+
+            void this.pushNotificationService
+              .initialize()
+              .catch((error) => {
+                console.error(
+                  '[Push] Initialization failed:',
+                  error,
+                );
               });
 
             return;
