@@ -17,6 +17,7 @@ import {
 
 import {
   firstValueFrom,
+  Subject,
 } from 'rxjs';
 
 import {
@@ -39,6 +40,12 @@ export class PushNotificationService {
 
   private readonly tokenStorageKey =
     `konj-apns-token-${environment.apnsEnvironment}`;
+
+  private readonly actionSubject =
+    new Subject<Record<string, unknown>>();
+
+  readonly action$ =
+    this.actionSubject.asObservable();
 
   async initialize(): Promise<void> {
     if (
@@ -140,6 +147,20 @@ export class PushNotificationService {
         console.log(
           '[Push] Notification action:',
           action,
+        );
+
+        const data =
+          action.notification.data;
+
+        if (
+          !data ||
+          typeof data !== 'object'
+        ) {
+          return;
+        }
+
+        this.actionSubject.next(
+          data as Record<string, unknown>,
         );
       },
     );

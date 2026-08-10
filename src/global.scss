@@ -45,6 +45,15 @@ body {
 ion-app {
   --background: #f7f7f5;
 }
+ion-content {
+  --background: #f7f7f5;
+
+  --padding-top:
+    env(safe-area-inset-top, 0px);
+
+  --padding-bottom:
+    env(safe-area-inset-bottom, 0px);
+}
 
 /**
  * Ionic Dark Mode

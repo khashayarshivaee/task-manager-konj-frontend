@@ -22,6 +22,21 @@
 .home-page {
   --background: var(--app-background);
 }
+.home-page::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 100;
+  width: 100%;
+  height: env(
+      safe-area-inset-top,
+      0px
+  );
+  pointer-events: none;
+  background:
+    var(--app-background);
+}
 
 .home-page::part(scroll) {
   min-height: 100%;
@@ -78,6 +93,7 @@ button {
 .sidebar-header {
   justify-content: space-between;
   padding: 0 8px;
+  margin-top: 39%;
 }
 
 .brand {

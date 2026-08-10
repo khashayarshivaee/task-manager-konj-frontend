@@ -67,6 +67,9 @@ export class AppComponent implements OnDestroy {
   private readonly searchSubscription:
     Subscription;
 
+  private readonly pushActionSubscription:
+    Subscription;
+
   private activeUserId:
     | number
     | null = null;
@@ -161,6 +164,15 @@ export class AppComponent implements OnDestroy {
       this.searchLauncher.open$
         .subscribe(() => {
           void this.openGlobalSearch();
+        });
+
+    this.pushActionSubscription =
+      this.pushNotificationService
+        .action$
+        .subscribe((data) => {
+          void this.openPushNotification(
+            data,
+          );
         });
   }
 
@@ -375,10 +387,147 @@ export class AppComponent implements OnDestroy {
     await modal.present();
     await modal.onDidDismiss();
   }
+  private async openPushNotification(
+    data: Record<string, unknown>,
+  ): Promise<void> {
+    const currentUser =
+      this.authService.getCurrentUser();
+
+    if (
+      !currentUser ||
+      !currentUser.email_verified_at
+    ) {
+      return;
+    }
+
+    const workspaceId =
+      this.pushNumber(
+        data['workspace_id'],
+      );
+
+    const projectId =
+      this.pushNumber(
+        data['project_id'],
+      );
+
+    const taskId =
+      this.pushNumber(
+        data['task_id'],
+      );
+
+    const notificationId =
+      this.pushNumber(
+        data['notification_id'],
+      );
+
+    const activityType =
+      typeof data['activity_type'] ===
+      'string'
+        ? data['activity_type']
+        : null;
+
+    if (
+      workspaceId === null ||
+      projectId === null
+    ) {
+      return;
+    }
+
+    /*
+     * Marking the notification as read
+     * must never block navigation.
+     */
+    if (notificationId !== null) {
+      try {
+        await this.notificationService
+          .markAsRead(
+            notificationId,
+          );
+      } catch {
+        // Continue navigation.
+      }
+    }
+
+    /*
+     * A deleted task no longer has a
+     * Task Details endpoint to open.
+     */
+    if (
+      taskId !== null &&
+      activityType !== 'task_deleted'
+    ) {
+      const currentModal =
+        await this.modalController
+          .getTop();
+
+      if (currentModal) {
+        await currentModal.dismiss();
+      }
+
+      const modal =
+        await this.modalController.create({
+          component:
+          TaskDetailsModalComponent,
+
+          componentProps: {
+            workspaceId,
+            projectId,
+            taskId,
+          },
+
+          cssClass:
+            'project-create-modal',
+
+          backdropDismiss: false,
+        });
+
+      await modal.present();
+      await modal.onDidDismiss();
+
+      return;
+    }
+
+    await this.router.navigate([
+      '/workspaces',
+      workspaceId,
+      'projects',
+      projectId,
+    ]);
+  }
+
+  private pushNumber(
+    value: unknown,
+  ): number | null {
+    if (
+      typeof value === 'number' &&
+      Number.isInteger(value) &&
+      value > 0
+    ) {
+      return value;
+    }
+
+    if (
+      typeof value === 'string' &&
+      value.trim() !== ''
+    ) {
+      const parsed =
+        Number(value);
+
+      if (
+        Number.isInteger(parsed) &&
+        parsed > 0
+      ) {
+        return parsed;
+      }
+    }
+
+    return null;
+  }
 
   ngOnDestroy(): void {
     this.authSubscription.unsubscribe();
     this.searchSubscription.unsubscribe();
+    this.pushActionSubscription.unsubscribe();
 
     this.notificationService.reset();
     this.realtimeService.disconnect();
