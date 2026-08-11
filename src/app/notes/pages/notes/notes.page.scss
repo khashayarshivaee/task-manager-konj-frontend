@@ -76,18 +76,17 @@ button {
 }
 
 .back-button {
-  display: inline-flex;
+  display: flex;
+  min-height: 42px;
   align-items: center;
-  gap: 8px;
-
-  padding: 9px 0;
-
-  color: var(--muted);
-  background: transparent;
-
-  font-size: 12px;
-  font-weight: 700;
-
+  gap: 9px;
+  padding: 0 14px;
+  color: #5f5f59;
+  font-size: 11px;
+  font-weight: 750;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
   cursor: pointer;
 }
 

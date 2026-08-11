@@ -399,14 +399,20 @@
     <main class="main-area">
       <header class="topbar">
         <div class="topbar-start">
+
+          @if (isMobileViewport) {
           <button
             type="button"
             class="mobile-menu-button"
             aria-label="Open navigation"
             (click)="toggleSidebar()"
           >
-            <ion-icon name="menu-outline"></ion-icon>
+            <ion-icon
+              class="mobile-menu-icon"
+              name="menu"
+            ></ion-icon>
           </button>
+          }
 
           <div class="page-location">
             <span>Overview</span>

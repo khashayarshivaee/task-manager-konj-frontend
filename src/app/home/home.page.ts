@@ -55,6 +55,7 @@ import { addIcons } from 'ionicons';
 import {
   addOutline,
   calendarOutline,
+  menu,
   createOutline,
   trashOutline,
   checkmarkCircleOutline,
@@ -177,6 +178,25 @@ export class HomePage implements OnInit {
   showWorkspaceUpdatedNotice = false;
   showWorkspaceDeletedNotice = false;
   isWorkspaceMenuOpen = false;
+
+  isMobileViewport =
+    window.matchMedia(
+      '(max-width: 900px)',
+    ).matches;
+  @HostListener('window:resize')
+  handleViewportResize(): void {
+    this.isMobileViewport =
+      window.matchMedia(
+        '(max-width: 900px)',
+      ).matches;
+
+    if (
+      !this.isMobileViewport &&
+      this.isSidebarOpen
+    ) {
+      this.isSidebarOpen = false;
+    }
+  }
   @ViewChild('workspaceSwitcher')
   private workspaceSwitcher?: ElementRef<HTMLElement>;
 
@@ -184,6 +204,7 @@ export class HomePage implements OnInit {
     addIcons({
       documentTextOutline,
       addOutline,
+      menu,
       calendarOutline,
       checkmarkCircleOutline,
       checkboxOutline,

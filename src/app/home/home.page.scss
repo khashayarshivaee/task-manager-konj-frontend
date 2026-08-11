@@ -93,7 +93,30 @@ button {
 .sidebar-header {
   justify-content: space-between;
   padding: 0 8px;
-  margin-top: 39%;
+
+}
+@media (max-width: 900px) {
+  .sidebar {
+    height: 100dvh;
+
+    padding-top:
+      calc(
+        22px +
+        env(safe-area-inset-top, 0px)
+      );
+
+    padding-bottom:
+      calc(
+        16px +
+        env(safe-area-inset-bottom, 0px)
+      );
+
+    box-sizing: border-box;
+  }
+
+  .sidebar-header {
+    margin-top: 0;
+  }
 }
 
 .brand {
@@ -144,6 +167,10 @@ button {
 .sidebar-close,
 .mobile-menu-button {
   display: none;
+}
+.mobile-menu-icon{
+  font-size: 25px;
+  color: black;
 }
 
 .workspace-switcher {
@@ -1633,6 +1660,24 @@ button {
   background: var(--surface);
   box-shadow:
     0 24px 60px rgba(0, 0, 0, 0.12);
+}
+@media (max-width: 700px) {
+  .notification-popover {
+    position: fixed;
+
+    top: calc(
+      env(safe-area-inset-top, 0px) +
+      88px
+    );
+
+    left: 16px;
+    right: 16px;
+
+    width: auto;
+    max-width: none;
+
+    transform: none;
+  }
 }
 
 .notification-popover-header {

@@ -1570,7 +1570,7 @@
   border-radius: inherit;
   background: linear-gradient(
       90deg,
-      var(--orange),
+      #643310,
       #ff9346
   );
   box-shadow:
@@ -1604,6 +1604,12 @@
     repeat(5, minmax(0, 1fr));
   gap: 9px;
   margin-top: 22px;
+}
+@media (max-width: 700px) {
+  .project-status-breakdown {
+    grid-template-columns:
+      repeat(4, minmax(0, 1fr));
+  }
 }
 
 .project-status-breakdown article {
