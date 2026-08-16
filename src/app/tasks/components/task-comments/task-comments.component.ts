@@ -31,8 +31,12 @@ import {
 } from 'ionicons';
 import {
   checkmarkOutline,
+  micOutline,
+  stopCircleOutline,
   closeOutline,
   createOutline,
+  playOutline,
+  pauseOutline,
   imageOutline,
   imagesOutline,
   openOutline,
@@ -63,6 +67,16 @@ interface SelectedCommentImage {
   previewUrl: string;
 }
 
+interface SelectedVoiceRecording {
+  file: File;
+  previewUrl: string;
+  durationMs: number;
+}
+
+type VoiceRecordingTarget =
+  | 'comment'
+  | 'reply';
+
 interface CommentAttachmentView {
   attachment: TaskCommentAttachment;
   previewUrl: string | null;
@@ -72,7 +86,17 @@ interface CommentAttachmentView {
 
 interface TaskCommentView {
   comment: TaskComment;
+
   attachments: CommentAttachmentView[];
+
+  voicePreviewUrl: string | null;
+  isVoiceLoading: boolean;
+  hasVoiceError: boolean;
+
+  isVoicePlaying: boolean;
+  voiceCurrentTimeMs: number;
+  voiceAudio: HTMLAudioElement | null;
+
   replies: TaskCommentView[];
 }
 
@@ -140,11 +164,24 @@ export class TaskCommentsComponent
   selectedCommentImages:
     SelectedCommentImage[] = [];
 
+  selectedCommentVoice:
+    SelectedVoiceRecording | null = null;
+
+  commentVoiceElapsedMs = 0;
+  isRecordingCommentVoice = false;
+
   replyToCommentId: number | null = null;
   replyToAuthorName = '';
   replyBody = '';
+
   selectedReplyImages:
     SelectedCommentImage[] = [];
+
+  selectedReplyVoice:
+    SelectedVoiceRecording | null = null;
+
+  replyVoiceElapsedMs = 0;
+  isRecordingReplyVoice = false;
 
   editingCommentId: number | null = null;
   editBody = '';
@@ -159,8 +196,32 @@ export class TaskCommentsComponent
   private shouldMarkCommentsReadAgain =
     false;
 
+
+  private activeMediaRecorder:
+    MediaRecorder | null = null;
+
+  private activeVoiceStream:
+    MediaStream | null = null;
+
+  private activeVoiceTarget:
+    VoiceRecordingTarget | null = null;
+
+  private voiceChunks: Blob[] = [];
+
+  private voiceRecordingStartedAt = 0;
+
+  private voiceTimerId:
+    ReturnType<typeof setInterval> | null =
+    null;
+
+  private discardActiveVoice = false;
+
+  private readonly maximumVoiceDurationMs =
+    180000;
+
   deletingCommentId: number | null = null;
   deletingAttachmentId: number | null = null;
+  deletingVoiceCommentId: number | null = null;
 
   errorMessage = '';
   successMessage = '';
@@ -168,8 +229,12 @@ export class TaskCommentsComponent
   constructor() {
     addIcons({
       checkmarkOutline,
+      micOutline,
+      stopCircleOutline,
       closeOutline,
       createOutline,
+      playOutline,
+      pauseOutline,
       imageOutline,
       imagesOutline,
       openOutline,
@@ -214,6 +279,16 @@ export class TaskCommentsComponent
 
     this.revokeSelectedImages(
       this.selectedReplyImages,
+    );
+
+    this.cancelActiveVoiceRecording();
+
+    this.revokeSelectedVoice(
+      this.selectedCommentVoice,
+    );
+
+    this.revokeSelectedVoice(
+      this.selectedReplyVoice,
     );
   }
 
@@ -355,6 +430,168 @@ export class TaskCommentsComponent
       );
   }
 
+  async startCommentVoiceRecording(): Promise<void> {
+    await this.startVoiceRecording(
+      'comment',
+    );
+  }
+
+  stopCommentVoiceRecording(): void {
+    this.stopVoiceRecording(
+      'comment',
+    );
+  }
+
+  cancelCommentVoiceRecording(): void {
+    if (
+      this.activeVoiceTarget ===
+      'comment'
+    ) {
+      this.cancelActiveVoiceRecording();
+    }
+
+    this.revokeSelectedVoice(
+      this.selectedCommentVoice,
+    );
+
+    this.selectedCommentVoice = null;
+    this.commentVoiceElapsedMs = 0;
+  }
+
+  async startReplyVoiceRecording(): Promise<void> {
+    await this.startVoiceRecording(
+      'reply',
+    );
+  }
+
+  stopReplyVoiceRecording(): void {
+    this.stopVoiceRecording(
+      'reply',
+    );
+  }
+
+  cancelReplyVoiceRecording(): void {
+    if (
+      this.activeVoiceTarget ===
+      'reply'
+    ) {
+      this.cancelActiveVoiceRecording();
+    }
+
+    this.revokeSelectedVoice(
+      this.selectedReplyVoice,
+    );
+
+    this.selectedReplyVoice = null;
+    this.replyVoiceElapsedMs = 0;
+  }
+
+  formatVoiceDuration(
+    durationMs: number,
+  ): string {
+    const totalSeconds =
+      Math.floor(durationMs / 1000);
+
+    const minutes =
+      Math.floor(totalSeconds / 60);
+
+    const seconds =
+      totalSeconds % 60;
+
+    return (
+      `${minutes}:` +
+      seconds
+        .toString()
+        .padStart(
+          2,
+          '0',
+        )
+    );
+  }
+
+  toggleVoicePlayback(
+    view: TaskCommentView,
+  ): void {
+    if (!view.voicePreviewUrl) {
+      return;
+    }
+
+    if (!view.voiceAudio) {
+      const audio =
+        new Audio(
+          view.voicePreviewUrl,
+        );
+
+      audio.preload = 'metadata';
+
+      audio.ontimeupdate = () => {
+        view.voiceCurrentTimeMs =
+          Math.round(
+            audio.currentTime * 1000,
+          );
+
+        this.touchComments();
+      };
+
+      audio.onended = () => {
+        view.isVoicePlaying = false;
+
+        view.voiceCurrentTimeMs = 0;
+
+        audio.currentTime = 0;
+
+        this.touchComments();
+      };
+
+      audio.onpause = () => {
+        view.isVoicePlaying = false;
+
+        this.touchComments();
+      };
+
+      audio.onplay = () => {
+        view.isVoicePlaying = true;
+
+        this.touchComments();
+      };
+
+      view.voiceAudio = audio;
+    }
+
+    if (view.voiceAudio.paused) {
+      this.pauseOtherVoicePlayers(
+        view.comment.id,
+      );
+
+      void view.voiceAudio.play();
+    } else {
+      view.voiceAudio.pause();
+    }
+  }
+  seekVoice(
+    view: TaskCommentView,
+    event: Event,
+  ): void {
+    const input =
+      event.target as HTMLInputElement;
+
+    const value =
+      Number(input.value);
+
+    if (
+      Number.isNaN(value) ||
+      !view.voiceAudio
+    ) {
+      return;
+    }
+
+    view.voiceCurrentTimeMs =
+      value;
+
+    view.voiceAudio.currentTime =
+      value / 1000;
+  }
+
   createComment(): void {
     if (this.isSubmittingComment) {
       return;
@@ -365,10 +602,11 @@ export class TaskCommentsComponent
 
     if (
       body === '' &&
-      this.selectedCommentImages.length === 0
+      this.selectedCommentImages.length === 0 &&
+      this.selectedCommentVoice === null
     ) {
       this.errorMessage =
-        'Write a comment or attach at least one image.';
+        'Write a comment, attach an image, or record a voice message.';
 
       return;
     }
@@ -394,6 +632,14 @@ export class TaskCommentsComponent
             this.selectedCommentImages.map(
               (image) => image.file,
             ),
+          voice:
+            this.selectedCommentVoice?.file ??
+            null,
+
+          voiceDurationMs:
+            this.selectedCommentVoice
+              ?.durationMs ??
+            null,
         },
       )
       .pipe(
@@ -416,6 +662,13 @@ export class TaskCommentsComponent
           );
 
           this.selectedCommentImages = [];
+
+          this.revokeSelectedVoice(
+            this.selectedCommentVoice,
+          );
+
+          this.selectedCommentVoice = null;
+          this.commentVoiceElapsedMs = 0;
 
           this.successMessage =
             'Comment added successfully.';
@@ -463,6 +716,7 @@ export class TaskCommentsComponent
     );
 
     this.selectedReplyImages = [];
+    this.cancelReplyVoiceRecording();
   }
 
   submitReply(): void {
@@ -478,10 +732,11 @@ export class TaskCommentsComponent
 
     if (
       body === '' &&
-      this.selectedReplyImages.length === 0
+      this.selectedReplyImages.length === 0 &&
+      this.selectedReplyVoice === null
     ) {
       this.errorMessage =
-        'Write a reply or attach at least one image.';
+        'Write a reply, attach an image, or record a voice message.';
 
       return;
     }
@@ -508,6 +763,14 @@ export class TaskCommentsComponent
             this.selectedReplyImages.map(
               (image) => image.file,
             ),
+          voice:
+            this.selectedReplyVoice?.file ??
+            null,
+
+          voiceDurationMs:
+            this.selectedReplyVoice
+              ?.durationMs ??
+            null,
         },
       )
       .pipe(
@@ -580,10 +843,11 @@ export class TaskCommentsComponent
 
     if (
       body === '' &&
-      view.attachments.length === 0
+      view.attachments.length === 0 &&
+      view.comment.voice_message === null
     ) {
       this.errorMessage =
-        'A comment must contain text or at least one image.';
+        'A comment must contain text, at least one image, or a voice message.';
 
       return;
     }
@@ -735,6 +999,50 @@ export class TaskCommentsComponent
     this.deleteAttachment(
       view,
       attachmentView,
+    );
+  }
+
+  async requestDeleteVoice(
+    view: TaskCommentView,
+  ): Promise<void> {
+    if (
+      view.comment.is_deleted ||
+      view.comment.voice_message === null ||
+      this.deletingVoiceCommentId !== null
+    ) {
+      return;
+    }
+
+    const alert =
+      await this.alertController.create({
+        header: 'Delete voice message?',
+
+        message:
+          'Remove this voice message from the comment?',
+
+        buttons: [
+          {
+            text: 'Cancel',
+            role: 'cancel',
+          },
+          {
+            text: 'Delete',
+            role: 'confirm',
+          },
+        ],
+      });
+
+    await alert.present();
+
+    const result =
+      await alert.onDidDismiss();
+
+    if (result.role !== 'confirm') {
+      return;
+    }
+
+    this.deleteVoice(
+      view,
     );
   }
 
@@ -936,14 +1244,22 @@ export class TaskCommentsComponent
       existingView.attachments,
     );
 
+    this.clearVoiceView(
+      existingView,
+    );
+
     existingView.attachments = [];
 
     existingView.comment = {
       ...existingView.comment,
 
       body: null,
+
       is_deleted: true,
+
       attachments: [],
+
+      voice_message: null,
     };
 
     if (
@@ -951,6 +1267,13 @@ export class TaskCommentsComponent
       event.comment_id
     ) {
       this.cancelEdit();
+    }
+
+    if (
+      this.replyToCommentId ===
+      event.comment_id
+    ) {
+      this.cancelReply();
     }
 
     this.touchComments();
@@ -962,6 +1285,9 @@ export class TaskCommentsComponent
   ): void {
     this.revokeAttachmentUrls(
       view.attachments,
+    );
+    this.clearVoiceView(
+      view,
     );
 
     this.revokeCommentUrls(
@@ -1052,6 +1378,19 @@ export class TaskCommentsComponent
           }),
         ),
 
+      voicePreviewUrl: null,
+
+      isVoicePlaying: false,
+
+      voiceCurrentTimeMs: 0,
+
+      voiceAudio: null,
+
+      isVoiceLoading:
+        comment.voice_message !== null,
+
+      hasVoiceError: false,
+
       replies:
         comment.replies.map(
           (reply) =>
@@ -1138,6 +1477,14 @@ export class TaskCommentsComponent
           view.comment.id,
           attachmentView
             .attachment.id,
+        );
+      }
+
+      if (
+        view.comment.voice_message !== null
+      ) {
+        this.loadVoicePreview(
+          view.comment.id,
         );
       }
 
@@ -1247,6 +1594,110 @@ export class TaskCommentsComponent
       });
   }
 
+  private loadVoicePreview(
+    commentId: number,
+  ): void {
+    const view =
+      this.findCommentView(
+        commentId,
+      );
+
+    if (
+      !view ||
+      view.comment.voice_message === null
+    ) {
+      return;
+    }
+
+    view.isVoiceLoading = true;
+    view.hasVoiceError = false;
+
+    this.commentService
+      .getVoiceFile(
+        this.workspaceId,
+        this.projectId,
+        this.taskId,
+        commentId,
+      )
+      .pipe(
+        finalize(() => {
+          const currentView =
+            this.findCommentView(
+              commentId,
+            );
+
+          if (!currentView) {
+            return;
+          }
+
+          currentView.isVoiceLoading =
+            false;
+
+          this.touchComments();
+        }),
+
+        takeUntilDestroyed(
+          this.destroyRef,
+        ),
+      )
+      .subscribe({
+        next: (blob) => {
+          const previewUrl =
+            URL.createObjectURL(
+              blob,
+            );
+
+          const currentView =
+            this.findCommentView(
+              commentId,
+            );
+
+          if (!currentView) {
+            URL.revokeObjectURL(
+              previewUrl,
+            );
+
+            return;
+          }
+
+          if (
+            currentView.voicePreviewUrl
+          ) {
+            URL.revokeObjectURL(
+              currentView.voicePreviewUrl,
+            );
+          }
+
+          currentView.voicePreviewUrl =
+            previewUrl;
+
+          currentView.hasVoiceError =
+            false;
+
+          this.touchComments();
+        },
+
+        error: () => {
+          const currentView =
+            this.findCommentView(
+              commentId,
+            );
+
+          if (!currentView) {
+            return;
+          }
+
+          currentView.voicePreviewUrl =
+            null;
+
+          currentView.hasVoiceError =
+            true;
+
+          this.touchComments();
+        },
+      });
+  }
+
   private deleteComment(
     view: TaskCommentView,
   ): void {
@@ -1265,10 +1716,13 @@ export class TaskCommentsComponent
       )
       .pipe(
         finalize(() => {
-          this.deletingCommentId = null;
+          this.deletingCommentId =
+            null;
         }),
 
-        takeUntilDestroyed(this.destroyRef),
+        takeUntilDestroyed(
+          this.destroyRef,
+        ),
       )
       .subscribe({
         next: () => {
@@ -1276,15 +1730,23 @@ export class TaskCommentsComponent
             view.attachments,
           );
 
+          this.clearVoiceView(
+            view,
+          );
+
           view.attachments = [];
 
           view.comment = {
             ...view.comment,
-            body: null,
-            is_deleted: true,
-          };
 
-          this.touchComments();
+            body: null,
+
+            is_deleted: true,
+
+            attachments: [],
+
+            voice_message: null,
+          };
 
           if (
             this.editingCommentId ===
@@ -1292,6 +1754,15 @@ export class TaskCommentsComponent
           ) {
             this.cancelEdit();
           }
+
+          if (
+            this.replyToCommentId ===
+            view.comment.id
+          ) {
+            this.cancelReply();
+          }
+
+          this.touchComments();
 
           this.successMessage =
             'Comment deleted successfully.';
@@ -1379,6 +1850,61 @@ export class TaskCommentsComponent
           this.handleWriteError(
             error,
             'Unable to delete the image.',
+          );
+        },
+      });
+  }
+
+  private deleteVoice(
+    view: TaskCommentView,
+  ): void {
+    this.deletingVoiceCommentId =
+      view.comment.id;
+
+    this.errorMessage = '';
+    this.successMessage = '';
+
+    this.commentService
+      .deleteVoice(
+        this.workspaceId,
+        this.projectId,
+        this.taskId,
+        view.comment.id,
+      )
+      .pipe(
+        finalize(() => {
+          this.deletingVoiceCommentId =
+            null;
+        }),
+
+        takeUntilDestroyed(
+          this.destroyRef,
+        ),
+      )
+      .subscribe({
+        next: () => {
+          this.clearVoiceView(
+            view,
+          );
+
+          view.comment = {
+            ...view.comment,
+
+            voice_message: null,
+          };
+
+          this.touchComments();
+
+          this.successMessage =
+            'Voice message deleted successfully.';
+        },
+
+        error: (
+          error: HttpErrorResponse,
+        ) => {
+          this.handleWriteError(
+            error,
+            'Unable to delete the voice message.',
           );
         },
       });
@@ -1523,12 +2049,39 @@ export class TaskCommentsComponent
     ];
   }
 
+  private clearVoiceView(
+    view: TaskCommentView,
+  ): void {
+    if (view.voiceAudio) {
+      view.voiceAudio.pause();
+      view.voiceAudio.src = '';
+      view.voiceAudio = null;
+    }
+
+    if (view.voicePreviewUrl) {
+      URL.revokeObjectURL(
+        view.voicePreviewUrl,
+      );
+
+      view.voicePreviewUrl = null;
+    }
+
+    view.isVoicePlaying = false;
+    view.voiceCurrentTimeMs = 0;
+    view.isVoiceLoading = false;
+    view.hasVoiceError = false;
+  }
+
   private revokeCommentUrls(
     views: TaskCommentView[],
   ): void {
     for (const view of views) {
       this.revokeAttachmentUrls(
         view.attachments,
+      );
+
+      this.clearVoiceView(
+        view,
       );
 
       this.revokeCommentUrls(
@@ -1563,6 +2116,345 @@ export class TaskCommentsComponent
     }
   }
 
+  private async startVoiceRecording(
+    target: VoiceRecordingTarget,
+  ): Promise<void> {
+    if (this.activeMediaRecorder) {
+      return;
+    }
+
+    if (
+      !navigator.mediaDevices
+        ?.getUserMedia ||
+      typeof MediaRecorder ===
+      'undefined'
+    ) {
+      this.errorMessage =
+        'Voice recording is not supported on this device.';
+
+      return;
+    }
+
+    this.errorMessage = '';
+    this.successMessage = '';
+
+    try {
+      const stream =
+        await navigator.mediaDevices
+          .getUserMedia({
+            audio: true,
+          });
+
+      const recorder =
+        new MediaRecorder(
+          stream,
+        );
+
+      this.activeVoiceStream =
+        stream;
+
+      this.activeMediaRecorder =
+        recorder;
+
+      this.activeVoiceTarget =
+        target;
+
+      this.voiceChunks = [];
+
+      this.discardActiveVoice =
+        false;
+
+      this.voiceRecordingStartedAt =
+        Date.now();
+
+      if (target === 'comment') {
+        this.revokeSelectedVoice(
+          this.selectedCommentVoice,
+        );
+
+        this.selectedCommentVoice =
+          null;
+
+        this.commentVoiceElapsedMs =
+          0;
+
+        this.isRecordingCommentVoice =
+          true;
+      } else {
+        this.revokeSelectedVoice(
+          this.selectedReplyVoice,
+        );
+
+        this.selectedReplyVoice =
+          null;
+
+        this.replyVoiceElapsedMs =
+          0;
+
+        this.isRecordingReplyVoice =
+          true;
+      }
+
+      recorder.ondataavailable = (
+        event: BlobEvent,
+      ) => {
+        if (event.data.size > 0) {
+          this.voiceChunks.push(
+            event.data,
+          );
+        }
+      };
+
+      recorder.onstop = () => {
+        this.finishVoiceRecording();
+      };
+
+      recorder.start();
+
+      this.voiceTimerId =
+        setInterval(
+          () => {
+            const elapsed =
+              Math.min(
+                Date.now() -
+                this.voiceRecordingStartedAt,
+                this.maximumVoiceDurationMs,
+              );
+
+            if (
+              this.activeVoiceTarget ===
+              'comment'
+            ) {
+              this.commentVoiceElapsedMs =
+                elapsed;
+            } else if (
+              this.activeVoiceTarget ===
+              'reply'
+            ) {
+              this.replyVoiceElapsedMs =
+                elapsed;
+            }
+
+            if (
+              elapsed >=
+              this.maximumVoiceDurationMs
+            ) {
+              this.stopVoiceRecording(
+                this.activeVoiceTarget,
+              );
+            }
+          },
+          250,
+        );
+    } catch {
+      this.releaseVoiceStream();
+
+      this.errorMessage =
+        'Microphone access is required to record a voice message.';
+    }
+  }
+
+  private stopVoiceRecording(
+    target: VoiceRecordingTarget | null,
+  ): void {
+    if (
+      target === null ||
+      this.activeVoiceTarget !== target ||
+      !this.activeMediaRecorder ||
+      this.activeMediaRecorder.state ===
+      'inactive'
+    ) {
+      return;
+    }
+
+    this.activeMediaRecorder.stop();
+  }
+
+  private cancelActiveVoiceRecording(): void {
+    this.discardActiveVoice = true;
+
+    if (
+      this.activeMediaRecorder &&
+      this.activeMediaRecorder.state !==
+      'inactive'
+    ) {
+      this.activeMediaRecorder.stop();
+
+      return;
+    }
+
+    this.resetVoiceRecorder();
+  }
+
+  private finishVoiceRecording(): void {
+    const target =
+      this.activeVoiceTarget;
+
+    const recorder =
+      this.activeMediaRecorder;
+
+    const durationMs =
+      Math.min(
+        Date.now() -
+        this.voiceRecordingStartedAt,
+        this.maximumVoiceDurationMs,
+      );
+
+    if (
+      !this.discardActiveVoice &&
+      target !== null &&
+      recorder !== null &&
+      this.voiceChunks.length > 0
+    ) {
+      const mimeType =
+        recorder.mimeType ||
+        this.voiceChunks[0]?.type ||
+        'audio/webm';
+
+      const blob =
+        new Blob(
+          this.voiceChunks,
+          {
+            type: mimeType,
+          },
+        );
+
+      const extension =
+        this.voiceExtensionFromMimeType(
+          mimeType,
+        );
+
+      const file =
+        new File(
+          [blob],
+          `voice-message.${extension}`,
+          {
+            type: mimeType,
+          },
+        );
+
+      const selectedVoice: SelectedVoiceRecording =
+        {
+          file,
+          previewUrl:
+            URL.createObjectURL(
+              blob,
+            ),
+          durationMs:
+            Math.max(
+              1,
+              Math.round(
+                durationMs,
+              ),
+            ),
+        };
+
+      if (target === 'comment') {
+        this.selectedCommentVoice =
+          selectedVoice;
+
+        this.commentVoiceElapsedMs =
+          selectedVoice.durationMs;
+      } else {
+        this.selectedReplyVoice =
+          selectedVoice;
+
+        this.replyVoiceElapsedMs =
+          selectedVoice.durationMs;
+      }
+    }
+
+    this.resetVoiceRecorder();
+  }
+
+  private resetVoiceRecorder(): void {
+    if (
+      this.voiceTimerId !== null
+    ) {
+      clearInterval(
+        this.voiceTimerId,
+      );
+
+      this.voiceTimerId = null;
+    }
+
+    this.releaseVoiceStream();
+
+    this.activeMediaRecorder = null;
+    this.activeVoiceTarget = null;
+    this.voiceChunks = [];
+    this.voiceRecordingStartedAt = 0;
+    this.discardActiveVoice = false;
+
+    this.isRecordingCommentVoice =
+      false;
+
+    this.isRecordingReplyVoice =
+      false;
+  }
+
+  private releaseVoiceStream(): void {
+    if (!this.activeVoiceStream) {
+      return;
+    }
+
+    for (
+      const track of
+      this.activeVoiceStream.getTracks()
+      ) {
+      track.stop();
+    }
+
+    this.activeVoiceStream = null;
+  }
+
+  private revokeSelectedVoice(
+    voice:
+      | SelectedVoiceRecording
+      | null,
+  ): void {
+    if (!voice) {
+      return;
+    }
+
+    URL.revokeObjectURL(
+      voice.previewUrl,
+    );
+  }
+
+  private voiceExtensionFromMimeType(
+    mimeType: string,
+  ): string {
+    if (
+      mimeType.includes(
+        'mp4',
+      ) ||
+      mimeType.includes(
+        'm4a',
+      )
+    ) {
+      return 'm4a';
+    }
+
+    if (
+      mimeType.includes(
+        'mpeg',
+      )
+    ) {
+      return 'mp3';
+    }
+
+    if (
+      mimeType.includes(
+        'aac',
+      )
+    ) {
+      return 'aac';
+    }
+
+    return 'webm';
+  }
+
   private handleWriteError(
     error: HttpErrorResponse,
     fallback: string,
@@ -1590,5 +2482,26 @@ export class TaskCommentsComponent
     }
 
     this.errorMessage = fallback;
+  }
+
+  private pauseOtherVoicePlayers(
+    activeCommentId: number,
+    views: TaskCommentView[] =
+    this.comments,
+  ): void {
+    for (const view of views) {
+      if (
+        view.comment.id !==
+        activeCommentId &&
+        view.voiceAudio
+      ) {
+        view.voiceAudio.pause();
+      }
+
+      this.pauseOtherVoicePlayers(
+        activeCommentId,
+        view.replies,
+      );
+    }
   }
 }

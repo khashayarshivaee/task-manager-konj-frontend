@@ -14,6 +14,7 @@ import {
 } from '../../../environments/environment';
 import {
   CreateTaskCommentPayload,
+  DeleteTaskCommentVoiceResponse,
   MarkTaskCommentsReadResponse,
   CreateTaskCommentResponse,
   DeleteTaskCommentAttachmentResponse,
@@ -91,6 +92,22 @@ export class TaskCommentService {
         image.name,
       );
     }
+    if (payload.voice !== null) {
+      formData.append(
+        'voice',
+        payload.voice,
+        payload.voice.name,
+      );
+
+      if (
+        payload.voiceDurationMs !== null
+      ) {
+        formData.append(
+          'voice_duration_ms',
+          payload.voiceDurationMs.toString(),
+        );
+      }
+    }
 
     return this.http.post<CreateTaskCommentResponse>(
       this.getCommentsUrl(
@@ -156,6 +173,25 @@ export class TaskCommentService {
     );
   }
 
+  getVoiceFile(
+    workspaceId: number,
+    projectId: number,
+    taskId: number,
+    commentId: number,
+  ): Observable<Blob> {
+    return this.http.get(
+      `${this.getCommentUrl(
+        workspaceId,
+        projectId,
+        taskId,
+        commentId,
+      )}/voice/file`,
+      {
+        responseType: 'blob',
+      },
+    );
+  }
+
   deleteAttachment(
     workspaceId: number,
     projectId: number,
@@ -172,6 +208,24 @@ export class TaskCommentService {
       )}/attachments/${attachmentId}`,
     );
   }
+
+
+  deleteVoice(
+    workspaceId: number,
+    projectId: number,
+    taskId: number,
+    commentId: number,
+  ): Observable<DeleteTaskCommentVoiceResponse> {
+    return this.http.delete<DeleteTaskCommentVoiceResponse>(
+      `${this.getCommentUrl(
+        workspaceId,
+        projectId,
+        taskId,
+        commentId,
+      )}/voice`,
+    );
+  }
+
 
   private getCommentsUrl(
     workspaceId: number,

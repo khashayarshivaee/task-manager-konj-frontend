@@ -10,9 +10,9 @@
       <p>
         {{ commentCount }}
         {{
-        commentCount === 1
-          ? 'comment'
-          : 'comments'
+          commentCount === 1
+            ? 'comment'
+            : 'comments'
         }}
       </p>
     </div>
@@ -31,6 +31,10 @@
     </button>
   </header>
 
+  <!-- ========================= -->
+  <!-- NEW COMMENT COMPOSER -->
+  <!-- ========================= -->
+
   <form
     class="comment-composer"
     (ngSubmit)="createComment()"
@@ -45,40 +49,142 @@
     ></textarea>
 
     @if (
-    selectedCommentImages.length > 0
-    ) {
-    <div class="selected-image-grid">
-      @for (
-        image of selectedCommentImages;
-        track image.previewUrl;
-        let imageIndex = $index
+      selectedCommentImages.length > 0
       ) {
-    <article class="selected-image-card">
-      <img
-        [src]="image.previewUrl"
-        [alt]="image.file.name"
-      />
+      <div class="selected-image-grid">
+        @for (
+          image of selectedCommentImages;
+          track image.previewUrl;
+          let imageIndex = $index
+          ) {
+          <article
+            class="selected-image-card"
+          >
+            <img
+              [src]="image.previewUrl"
+              [alt]="image.file.name"
+            />
 
-      <button
-        type="button"
-        aria-label="Remove image"
-        [disabled]="isSubmittingComment"
-        (click)="
+            <button
+              type="button"
+              aria-label="Remove image"
+              [disabled]="
+                isSubmittingComment
+              "
+              (click)="
                 removeCommentImage(
                   imageIndex
                 )
               "
-      >
-        <ion-icon
-          name="close-outline"
-        ></ion-icon>
-      </button>
-    </article>
-    }
-    </div>
+            >
+              <ion-icon
+                name="close-outline"
+              ></ion-icon>
+            </button>
+          </article>
+        }
+      </div>
     }
 
-    <footer class="composer-footer">
+    <!-- COMMENT VOICE RECORDING -->
+
+    @if (
+      isRecordingCommentVoice
+      ) {
+      <div
+        class="voice-recording-panel"
+      >
+        <div
+          class="voice-recording-status"
+        >
+          <span
+            class="recording-dot"
+          ></span>
+
+          <strong>
+            Recording
+          </strong>
+
+          <span>
+            {{
+              formatVoiceDuration(
+                commentVoiceElapsedMs
+              )
+            }}
+          </span>
+        </div>
+
+        <div
+          class="voice-recording-actions"
+        >
+          <button
+            type="button"
+            class="secondary-button"
+            (click)="
+              cancelCommentVoiceRecording()
+            "
+          >
+            Cancel
+          </button>
+
+          <button
+            type="button"
+            class="stop-voice-button"
+            (click)="
+              stopCommentVoiceRecording()
+            "
+          >
+            <ion-icon
+              name="stop-circle-outline"
+            ></ion-icon>
+
+            <span>
+              Stop
+            </span>
+          </button>
+        </div>
+      </div>
+    } @else if (
+      selectedCommentVoice
+      ) {
+      <div
+        class="selected-voice-preview"
+      >
+        <audio
+          controls
+          preload="metadata"
+          [src]="
+            selectedCommentVoice
+              .previewUrl
+          "
+        ></audio>
+
+        <span>
+          {{
+            formatVoiceDuration(
+              selectedCommentVoice
+                .durationMs
+            )
+          }}
+        </span>
+
+        <button
+          type="button"
+          aria-label="Remove voice message"
+          (click)="
+            cancelCommentVoiceRecording()
+          "
+        >
+          <ion-icon
+            name="close-outline"
+          ></ion-icon>
+        </button>
+      </div>
+    }
+
+    <footer
+      class="composer-footer"
+    >
       <div>
         <input
           #commentImageInput
@@ -87,7 +193,9 @@
           accept="image/jpeg,image/png,image/webp"
           multiple
           (change)="
-            onCommentImagesSelected($event)
+            onCommentImagesSelected(
+              $event
+            )
           "
         />
 
@@ -113,624 +221,1146 @@
         </button>
 
         <small>
-          {{ selectedCommentImages.length }}/5
+          {{
+            selectedCommentImages.length
+          }}/5
         </small>
+
+        <button
+          type="button"
+          class="record-voice-button"
+          [disabled]="
+            isSubmittingComment ||
+            isRecordingCommentVoice ||
+            selectedCommentVoice !== null
+          "
+          (click)="
+            startCommentVoiceRecording()
+          "
+        >
+          <ion-icon
+            name="mic-outline"
+          ></ion-icon>
+
+          <span>
+            Record voice
+          </span>
+        </button>
       </div>
 
       <button
         type="submit"
         class="send-comment-button"
-        [disabled]="isSubmittingComment"
+        [disabled]="
+          isSubmittingComment ||
+          isRecordingCommentVoice
+        "
       >
-        @if (isSubmittingComment) {
-        <ion-spinner
-          name="crescent"
-        ></ion-spinner>
+        @if (
+          isSubmittingComment
+          ) {
+          <ion-spinner
+            name="crescent"
+          ></ion-spinner>
 
-        <span>Sending...</span>
+          <span>
+            Sending...
+          </span>
         } @else {
-        <ion-icon
-          name="send-outline"
-        ></ion-icon>
+          <ion-icon
+            name="send-outline"
+          ></ion-icon>
 
-        <span>Comment</span>
+          <span>
+            Comment
+          </span>
         }
       </button>
     </footer>
   </form>
 
+  <!-- ========================= -->
+  <!-- MESSAGES -->
+  <!-- ========================= -->
+
   @if (errorMessage) {
-  <div
-    class="comment-message error"
-    role="alert"
-  >
-  {{ errorMessage }}
-  </div>
+    <div
+      class="comment-message error"
+      role="alert"
+    >
+      {{ errorMessage }}
+    </div>
   }
 
   @if (successMessage) {
-  <div
-    class="comment-message success"
-    role="status"
-  >
-  {{ successMessage }}
-  </div>
+    <div
+      class="comment-message success"
+      role="status"
+    >
+      {{ successMessage }}
+    </div>
   }
 
+  <!-- ========================= -->
+  <!-- COMMENTS STATE -->
+  <!-- ========================= -->
+
   @if (isLoadingComments) {
-  <div class="comments-state">
-    <ion-spinner
-      name="crescent"
-    ></ion-spinner>
-
-    <strong>Loading comments...</strong>
-  </div>
-  } @else if (comments.length === 0) {
-  <div class="comments-state">
-    <ion-icon
-      name="image-outline"
-    ></ion-icon>
-
-    <strong>No comments yet</strong>
-
-    <span>
-      Start the discussion for this task.
-    </span>
-  </div>
-  } @else {
-  <div class="comments-thread">
-    @for (
-      view of comments;
-      track view.comment.id
-    ) {
-  <article
-    class="comment-card"
-    [class.is-deleted]="
-            view.comment.is_deleted
-          "
-  >
-    <header class="comment-header">
-            <span class="comment-avatar">
-              {{
-              getInitials(
-                view.comment.author?.name
-              )
-              }}
-            </span>
-
-      <div class="comment-author">
-        <strong>
-          {{
-          view.comment.author?.name ||
-          'Deleted user'
-          }}
-        </strong>
-
-        <span>
-                {{
-          formatDate(
-            view.comment.created_at
-          )
-          }}
-
-          @if (
-                  view.comment.is_edited &&
-                  !view.comment.is_deleted
-                ) {
-          · Edited
-                }
-              </span>
-      </div>
-
-      @if (
-      !view.comment.is_deleted
-      ) {
-      <div class="comment-actions">
-        <button
-          type="button"
-          aria-label="Edit comment"
-          (click)="
-            startEdit(view.comment)
-          "
-        >
-          <ion-icon
-            name="create-outline"
-          ></ion-icon>
-        </button>
-
-        <button
-          type="button"
-          class="danger"
-          aria-label="Delete comment"
-          [disabled]="
-            deletingCommentId ===
-            view.comment.id
-          "
-          (click)="
-            requestDeleteComment(view)
-          "
-        >
-          @if (
-            deletingCommentId ===
-            view.comment.id
-          ) {
+    <div class="comments-state">
       <ion-spinner
         name="crescent"
       ></ion-spinner>
-      } @else {
+
+      <strong>
+        Loading comments...
+      </strong>
+    </div>
+  } @else if (
+    comments.length === 0
+    ) {
+    <div class="comments-state">
       <ion-icon
-        name="trash-outline"
+        name="image-outline"
       ></ion-icon>
-      }
-      </button>
+
+      <strong>
+        No comments yet
+      </strong>
+
+      <span>
+        Start the discussion for this task.
+      </span>
     </div>
-      }
-    </header>
-
-    @if (view.comment.is_deleted) {
-    <div class="deleted-comment">
-      Comment deleted
-    </div>
-    } @else if (
-    editingCommentId ===
-    view.comment.id
-    ) {
-    <div class="edit-comment-form">
-      <textarea
-        name="editBody"
-        [(ngModel)]="editBody"
-        rows="3"
-        maxlength="10000"
-      ></textarea>
-
-      <div>
-        <button
-          type="button"
-          class="secondary-button"
-          [disabled]="isUpdatingComment"
-          (click)="cancelEdit()"
-        >
-          Cancel
-        </button>
-
-        <button
-          type="button"
-          class="primary-small-button"
-          [disabled]="isUpdatingComment"
-          (click)="saveEdit(view)"
-        >
-          @if (isUpdatingComment) {
-    <ion-spinner
-      name="crescent"
-    ></ion-spinner>
-    } @else {
-    <ion-icon
-      name="checkmark-outline"
-    ></ion-icon>
-    }
-
-    <span>Save</span>
-  </button>
-</div>
-</div>
-    } @else if (view.comment.body) {
-    <p class="comment-body">
-    {{ view.comment.body }}
-    </p>
-    }
-
-    @if (
-    view.attachments.length > 0
-    ) {
-    <div class="comment-attachment-grid">
+  } @else {
+    <div class="comments-thread">
       @for (
-        attachmentView of
-          view.attachments;
-        track
-          attachmentView.attachment.id
-      ) {
-    <article
-      class="comment-attachment"
-    >
-      <button
-        type="button"
-        class="comment-attachment-preview"
-        [disabled]="
-                      !attachmentView.previewUrl
-                    "
-        (click)="
-                      openAttachment(
-                        attachmentView.previewUrl
-                      )
-                    "
-      >
-        @if (
-        attachmentView.isLoading
+        view of comments;
+        track view.comment.id
         ) {
-        <ion-spinner
-          name="crescent"
-        ></ion-spinner>
-        } @else if (
-        attachmentView.previewUrl
-        ) {
-        <img
-          [src]="
-            attachmentView.previewUrl
-          "
-          [alt]="
-            attachmentView
-              .attachment
-              .original_name
-          "
-        />
+        <!-- ========================= -->
+          <!-- ROOT COMMENT -->
+          <!-- ========================= -->
 
-        <ion-icon
-          name="open-outline"
-        ></ion-icon>
-        } @else {
-        <span>
-          Preview unavailable
-        </span>
-        }
-      </button>
+        <article
+          class="comment-card"
+          [class.is-deleted]="
+            view.comment.is_deleted
+          "
+        >
+          <header
+            class="comment-header"
+          >
+            <span
+              class="comment-avatar"
+            >
+              {{
+                getInitials(
+                  view.comment.author
+                    ?.name
+                )
+              }}
+            </span>
 
-      <footer>
-                    <span>
+            <div
+              class="comment-author"
+            >
+              <strong>
+                {{
+                  view.comment.author
+                    ?.name ||
+                  'Deleted user'
+                }}
+              </strong>
+
+              <span>
+                {{
+                  formatDate(
+                    view.comment
+                      .created_at
+                  )
+                }}
+
+                @if (
+                  view.comment
+                    .is_edited &&
+                  !view.comment
+                    .is_deleted
+                  ) {
+                  · Edited
+                }
+              </span>
+            </div>
+
+            @if (
+              !view.comment.is_deleted
+              ) {
+              <div
+                class="comment-actions"
+              >
+                <button
+                  type="button"
+                  aria-label="Edit comment"
+                  (click)="
+                    startEdit(
+                      view.comment
+                    )
+                  "
+                >
+                  <ion-icon
+                    name="create-outline"
+                  ></ion-icon>
+                </button>
+
+                <button
+                  type="button"
+                  class="danger"
+                  aria-label="Delete comment"
+                  [disabled]="
+                    deletingCommentId ===
+                    view.comment.id
+                  "
+                  (click)="
+                    requestDeleteComment(
+                      view
+                    )
+                  "
+                >
+                  @if (
+                    deletingCommentId ===
+                    view.comment.id
+                    ) {
+                    <ion-spinner
+                      name="crescent"
+                    ></ion-spinner>
+                  } @else {
+                    <ion-icon
+                      name="trash-outline"
+                    ></ion-icon>
+                  }
+                </button>
+              </div>
+            }
+          </header>
+
+          <!-- ROOT COMMENT BODY -->
+
+          @if (
+            view.comment.is_deleted
+            ) {
+            <div
+              class="deleted-comment"
+            >
+              Comment deleted
+            </div>
+          } @else if (
+            editingCommentId ===
+            view.comment.id
+            ) {
+            <div
+              class="edit-comment-form"
+            >
+              <textarea
+                name="editBody"
+                [(ngModel)]="editBody"
+                rows="3"
+                maxlength="10000"
+              ></textarea>
+
+              <div>
+                <button
+                  type="button"
+                  class="secondary-button"
+                  [disabled]="
+                    isUpdatingComment
+                  "
+                  (click)="cancelEdit()"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="button"
+                  class="primary-small-button"
+                  [disabled]="
+                    isUpdatingComment
+                  "
+                  (click)="
+                    saveEdit(view)
+                  "
+                >
+                  @if (
+                    isUpdatingComment
+                    ) {
+                    <ion-spinner
+                      name="crescent"
+                    ></ion-spinner>
+                  } @else {
+                    <ion-icon
+                      name="checkmark-outline"
+                    ></ion-icon>
+                  }
+
+                  <span>
+                    Save
+                  </span>
+                </button>
+              </div>
+            </div>
+          } @else if (
+            view.comment.body
+            ) {
+            <p
+              class="comment-body"
+            >
+              {{
+                view.comment.body
+              }}
+            </p>
+          }
+
+          <!-- ========================= -->
+          <!-- ROOT COMMENT VOICE PLAYER -->
+          <!-- ========================= -->
+
+          @if (
+            !view.comment.is_deleted &&
+            view.comment.voice_message
+            ) {
+            <div
+              class="comment-voice-message"
+            >
+              @if (
+                view.isVoiceLoading
+                ) {
+                <div
+                  class="voice-loading"
+                >
+                  <ion-spinner
+                    name="crescent"
+                  ></ion-spinner>
+
+                  <span>
+                    Loading voice...
+                  </span>
+                </div>
+              } @else if (
+                view.voicePreviewUrl
+                ) {
+                <div
+                  class="custom-voice-player"
+                >
+                  <div
+                    class="voice-player-header"
+                  >
+                    <!-- PLAY -->
+
+                    <button
+                      type="button"
+                      class="voice-play-button"
+                      [attr.aria-label]="
+                        view.isVoicePlaying
+                          ? 'Pause voice'
+                          : 'Play voice'
+                      "
+                      (click)="
+                        toggleVoicePlayback(
+                          view
+                        )
+                      "
+                    >
+                      <ion-icon
+                        [name]="
+                          view.isVoicePlaying
+                            ? 'pause-outline'
+                            : 'play-outline'
+                        "
+                      ></ion-icon>
+                    </button>
+
+                    <!-- TIME -->
+
+                    <span
+                      class="voice-player-time"
+                    >
                       {{
-                      formatFileSize(
-                        attachmentView
-                          .attachment.size
-                      )
+                        formatVoiceDuration(
+                          view.voiceCurrentTimeMs
+                        )
+                      }}
+
+                      /
+
+                      {{
+                        formatVoiceDuration(
+                          view.comment
+                            .voice_message
+                            .duration_ms
+                        )
                       }}
                     </span>
 
-        <button
-          type="button"
-          aria-label="Delete image"
-          [disabled]="
+                    <!-- DELETE ROOT VOICE -->
+
+                    <button
+                      type="button"
+                      class="voice-delete-button"
+                      aria-label="Delete voice message"
+                      [disabled]="
+                        deletingVoiceCommentId ===
+                        view.comment.id
+                      "
+                      (click)="
+                        requestDeleteVoice(
+                          view
+                        )
+                      "
+                    >
+                      @if (
+                        deletingVoiceCommentId ===
+                        view.comment.id
+                        ) {
+                        <ion-spinner
+                          name="crescent"
+                        ></ion-spinner>
+                      } @else {
+                        <ion-icon
+                          name="trash-outline"
+                        ></ion-icon>
+                      }
+                    </button>
+                  </div>
+
+                  <!-- SEEK -->
+
+                  <input
+                    class="voice-progress"
+                    type="range"
+                    min="0"
+                    [max]="
+                      view.comment
+                        .voice_message
+                        .duration_ms
+                    "
+                    step="100"
+                    [value]="
+                      view.voiceCurrentTimeMs
+                    "
+                    (input)="
+                      seekVoice(
+                        view,
+                        $event
+                      )
+                    "
+                    aria-label="Voice playback position"
+                  />
+                </div>
+              } @else {
+                <span
+                  class="voice-error"
+                >
+                  Voice unavailable
+                </span>
+              }
+            </div>
+          }
+
+          <!-- ========================= -->
+          <!-- ROOT COMMENT IMAGES -->
+          <!-- ========================= -->
+
+          @if (
+            view.attachments.length > 0
+            ) {
+            <div
+              class="comment-attachment-grid"
+            >
+              @for (
+                attachmentView of
+                  view.attachments;
+                track
+                  attachmentView
+                    .attachment.id
+                ) {
+                <article
+                  class="comment-attachment"
+                >
+                  <button
+                    type="button"
+                    class="comment-attachment-preview"
+                    [disabled]="
+                      !attachmentView
+                        .previewUrl
+                    "
+                    (click)="
+                      openAttachment(
+                        attachmentView
+                          .previewUrl
+                      )
+                    "
+                  >
+                    @if (
+                      attachmentView
+                        .isLoading
+                      ) {
+                      <ion-spinner
+                        name="crescent"
+                      ></ion-spinner>
+                    } @else if (
+                      attachmentView
+                        .previewUrl
+                      ) {
+                      <img
+                        [src]="
+                          attachmentView
+                            .previewUrl
+                        "
+                        [alt]="
+                          attachmentView
+                            .attachment
+                            .original_name
+                        "
+                      />
+
+                      <ion-icon
+                        name="open-outline"
+                      ></ion-icon>
+                    } @else {
+                      <span>
+                        Preview unavailable
+                      </span>
+                    }
+                  </button>
+
+                  <footer>
+                    <span>
+                      {{
+                        formatFileSize(
+                          attachmentView
+                            .attachment
+                            .size
+                        )
+                      }}
+                    </span>
+
+                    <button
+                      type="button"
+                      aria-label="Delete image"
+                      [disabled]="
                         deletingAttachmentId ===
                         attachmentView
                           .attachment.id
                       "
-          (click)="
+                      (click)="
                         requestDeleteAttachment(
                           view,
                           attachmentView
                         )
                       "
-        >
-          @if (
-          deletingAttachmentId ===
-          attachmentView
-          .attachment.id
-          ) {
-          <ion-spinner
-            name="crescent"
-          ></ion-spinner>
-          } @else {
-          <ion-icon
-            name="trash-outline"
-          ></ion-icon>
+                    >
+                      @if (
+                        deletingAttachmentId ===
+                        attachmentView
+                          .attachment.id
+                        ) {
+                        <ion-spinner
+                          name="crescent"
+                        ></ion-spinner>
+                      } @else {
+                        <ion-icon
+                          name="trash-outline"
+                        ></ion-icon>
+                      }
+                    </button>
+                  </footer>
+                </article>
+              }
+            </div>
           }
-        </button>
-      </footer>
-    </article>
-    }
-    </div>
-    }
 
-    @if (
-    !view.comment.is_deleted
-    ) {
-    <button
-      type="button"
-      class="reply-button"
-      (click)="
-        startReply(view.comment)
-      "
-    >
-      <ion-icon
-        name="return-down-forward-outline"
-      ></ion-icon>
+          <!-- ROOT COMMENT REPLY BUTTON -->
 
-      <span>Reply</span>
-    </button>
-    }
+          @if (
+            !view.comment.is_deleted
+            ) {
+            <button
+              type="button"
+              class="reply-button"
+              (click)="
+                startReply(
+                  view.comment
+                )
+              "
+            >
+              <ion-icon
+                name="return-down-forward-outline"
+              ></ion-icon>
 
-    @if (
-    replyToCommentId ===
-    view.comment.id
-    ) {
-    <ng-container
-      *ngTemplateOutlet="
-        replyComposer
-      "
-    ></ng-container>
-    }
+              <span>
+                Reply
+              </span>
+            </button>
+          }
 
-    @if (view.replies.length > 0) {
-    <div class="comment-replies">
-      @for (
-        replyView of view.replies;
-        track replyView.comment.id
-      ) {
-    <article
-      class="comment-card reply-card"
-      [class.is-deleted]="
+          @if (
+            replyToCommentId ===
+            view.comment.id
+            ) {
+            <ng-container
+              *ngTemplateOutlet="
+                replyComposer
+              "
+            ></ng-container>
+          }
+
+          <!-- ========================= -->
+          <!-- REPLIES -->
+          <!-- ========================= -->
+
+          @if (
+            view.replies.length > 0
+            ) {
+            <div
+              class="comment-replies"
+            >
+              @for (
+                replyView of
+                  view.replies;
+                track
+                  replyView.comment.id
+                ) {
+                <article
+                  class="comment-card reply-card"
+                  [class.is-deleted]="
                     replyView.comment
                       .is_deleted
                   "
-    >
-      <header class="comment-header">
-                    <span class="comment-avatar">
+                >
+                  <header
+                    class="comment-header"
+                  >
+                    <span
+                      class="comment-avatar"
+                    >
                       {{
-                      getInitials(
-                        replyView.comment
-                          .author?.name
-                      )
+                        getInitials(
+                          replyView
+                            .comment
+                            .author
+                            ?.name
+                        )
                       }}
                     </span>
 
-        <div class="comment-author">
-          <strong>
-            {{
-            replyView.comment
-              .author?.name ||
-            'Deleted user'
-            }}
-          </strong>
-
-          <span>
+                    <div
+                      class="comment-author"
+                    >
+                      <strong>
                         {{
-            formatDate(
-              replyView.comment
-                .created_at
-            )
-            }}
+                          replyView
+                            .comment
+                            .author
+                            ?.name ||
+                          'Deleted user'
+                        }}
+                      </strong>
 
-            @if (
-                          replyView.comment
+                      <span>
+                        {{
+                          formatDate(
+                            replyView
+                              .comment
+                              .created_at
+                          )
+                        }}
+
+                        @if (
+                          replyView
+                            .comment
                             .is_edited &&
-                          !replyView.comment
+                          !replyView
+                            .comment
                             .is_deleted
-                        ) {
-            · Edited
+                          ) {
+                          · Edited
                         }
                       </span>
-        </div>
+                    </div>
 
-        @if (
-        !replyView.comment
-        .is_deleted
-        ) {
-        <div class="comment-actions">
-          <button
-            type="button"
-            aria-label="Edit reply"
-            (click)="
-              startEdit(
-                replyView.comment
-              )
-            "
-          >
-            <ion-icon
-              name="create-outline"
-            ></ion-icon>
-          </button>
+                    @if (
+                      !replyView
+                        .comment
+                        .is_deleted
+                      ) {
+                      <div
+                        class="comment-actions"
+                      >
+                        <button
+                          type="button"
+                          aria-label="Edit reply"
+                          (click)="
+                            startEdit(
+                              replyView
+                                .comment
+                            )
+                          "
+                        >
+                          <ion-icon
+                            name="create-outline"
+                          ></ion-icon>
+                        </button>
 
-          <button
-            type="button"
-            class="danger"
-            aria-label="Delete reply"
-            [disabled]="
-              deletingCommentId ===
-              replyView.comment.id
-            "
-            (click)="
-              requestDeleteComment(
-                replyView
-              )
-            "
-          >
-            @if (
-              deletingCommentId ===
-              replyView.comment.id
-            ) {
-        <ion-spinner
-          name="crescent"
-        ></ion-spinner>
-        } @else {
-        <ion-icon
-          name="trash-outline"
-        ></ion-icon>
-        }
-        </button>
-      </div>
-        }
-      </header>
+                        <button
+                          type="button"
+                          class="danger"
+                          aria-label="Delete reply"
+                          [disabled]="
+                            deletingCommentId ===
+                            replyView
+                              .comment.id
+                          "
+                          (click)="
+                            requestDeleteComment(
+                              replyView
+                            )
+                          "
+                        >
+                          @if (
+                            deletingCommentId ===
+                            replyView
+                              .comment.id
+                            ) {
+                            <ion-spinner
+                              name="crescent"
+                            ></ion-spinner>
+                          } @else {
+                            <ion-icon
+                              name="trash-outline"
+                            ></ion-icon>
+                          }
+                        </button>
+                      </div>
+                    }
+                  </header>
 
-      @if (
-      replyView.comment.is_deleted
-      ) {
-      <div class="deleted-comment">
-        Comment deleted
-      </div>
-      } @else if (
-      editingCommentId ===
-      replyView.comment.id
-      ) {
-      <div class="edit-comment-form">
-        <textarea
-          name="replyEditBody"
-          [(ngModel)]="editBody"
-          rows="3"
-        ></textarea>
+                  <!-- REPLY BODY -->
 
-        <div>
-          <button
-            type="button"
-            class="secondary-button"
-            (click)="cancelEdit()"
-          >
-            Cancel
-          </button>
+                  @if (
+                    replyView
+                      .comment
+                      .is_deleted
+                    ) {
+                    <div
+                      class="deleted-comment"
+                    >
+                      Comment deleted
+                    </div>
+                  } @else if (
+                    editingCommentId ===
+                    replyView
+                      .comment.id
+                    ) {
+                    <div
+                      class="edit-comment-form"
+                    >
+                      <textarea
+                        name="replyEditBody"
+                        [(ngModel)]="
+                          editBody
+                        "
+                        rows="3"
+                        maxlength="10000"
+                      ></textarea>
 
-          <button
-            type="button"
-            class="primary-small-button"
-            [disabled]="
-              isUpdatingComment
-            "
-            (click)="
-              saveEdit(replyView)
-            "
-          >
-            <span>Save</span>
-          </button>
-        </div>
-      </div>
-      } @else if (
-      replyView.comment.body
-      ) {
-      <p class="comment-body">
-      {{
-      replyView.comment.body
-      }}
-      </p>
-      }
+                      <div>
+                        <button
+                          type="button"
+                          class="secondary-button"
+                          [disabled]="
+                            isUpdatingComment
+                          "
+                          (click)="
+                            cancelEdit()
+                          "
+                        >
+                          Cancel
+                        </button>
 
-      @if (
-      replyView.attachments
-      .length > 0
-      ) {
-      <div
-        class="comment-attachment-grid"
-      >
-        @for (
-          attachmentView of
-            replyView.attachments;
-          track
-            attachmentView
-              .attachment.id
-        ) {
-      <article
-        class="comment-attachment"
-      >
-        <button
-          type="button"
-          class="comment-attachment-preview"
-          [disabled]="
+                        <button
+                          type="button"
+                          class="primary-small-button"
+                          [disabled]="
+                            isUpdatingComment
+                          "
+                          (click)="
+                            saveEdit(
+                              replyView
+                            )
+                          "
+                        >
+                          @if (
+                            isUpdatingComment
+                            ) {
+                            <ion-spinner
+                              name="crescent"
+                            ></ion-spinner>
+                          } @else {
+                            <ion-icon
+                              name="checkmark-outline"
+                            ></ion-icon>
+                          }
+
+                          <span>
+                            Save
+                          </span>
+                        </button>
+                      </div>
+                    </div>
+                  } @else if (
+                    replyView
+                      .comment.body
+                    ) {
+                    <p
+                      class="comment-body"
+                    >
+                      {{
+                        replyView
+                          .comment.body
+                      }}
+                    </p>
+                  }
+
+                  <!-- ========================= -->
+                  <!-- REPLY VOICE PLAYER -->
+                  <!-- ========================= -->
+
+                  @if (
+                    !replyView
+                      .comment
+                      .is_deleted &&
+                    replyView
+                      .comment
+                      .voice_message
+                    ) {
+                    <div
+                      class="comment-voice-message"
+                    >
+                      @if (
+                        replyView
+                          .isVoiceLoading
+                        ) {
+                        <div
+                          class="voice-loading"
+                        >
+                          <ion-spinner
+                            name="crescent"
+                          ></ion-spinner>
+
+                          <span>
+                            Loading voice...
+                          </span>
+                        </div>
+                      } @else if (
+                        replyView
+                          .voicePreviewUrl
+                        ) {
+                        <div
+                          class="custom-voice-player"
+                        >
+                          <div
+                            class="voice-player-header"
+                          >
+                            <!-- PLAY -->
+
+                            <button
+                              type="button"
+                              class="voice-play-button"
+                              [attr.aria-label]="
+                                replyView
+                                  .isVoicePlaying
+                                  ? 'Pause voice'
+                                  : 'Play voice'
+                              "
+                              (click)="
+                                toggleVoicePlayback(
+                                  replyView
+                                )
+                              "
+                            >
+                              <ion-icon
+                                [name]="
+                                  replyView
+                                    .isVoicePlaying
+                                    ? 'pause-outline'
+                                    : 'play-outline'
+                                "
+                              ></ion-icon>
+                            </button>
+
+                            <!-- TIME -->
+
+                            <span
+                              class="voice-player-time"
+                            >
+                              {{
+                                formatVoiceDuration(
+                                  replyView
+                                    .voiceCurrentTimeMs
+                                )
+                              }}
+
+                              /
+
+                              {{
+                                formatVoiceDuration(
+                                  replyView
+                                    .comment
+                                    .voice_message
+                                    .duration_ms
+                                )
+                              }}
+                            </span>
+
+                            <!-- DELETE REPLY VOICE -->
+
+                            <button
+                              type="button"
+                              class="voice-delete-button"
+                              aria-label="Delete voice message"
+                              [disabled]="
+                                deletingVoiceCommentId ===
+                                replyView
+                                  .comment.id
+                              "
+                              (click)="
+                                requestDeleteVoice(
+                                  replyView
+                                )
+                              "
+                            >
+                              @if (
+                                deletingVoiceCommentId ===
+                                replyView
+                                  .comment.id
+                                ) {
+                                <ion-spinner
+                                  name="crescent"
+                                ></ion-spinner>
+                              } @else {
+                                <ion-icon
+                                  name="trash-outline"
+                                ></ion-icon>
+                              }
+                            </button>
+                          </div>
+
+                          <!-- SEEK -->
+
+                          <input
+                            class="voice-progress"
+                            type="range"
+                            min="0"
+                            [max]="
+                              replyView
+                                .comment
+                                .voice_message
+                                .duration_ms
+                            "
+                            step="100"
+                            [value]="
+                              replyView
+                                .voiceCurrentTimeMs
+                            "
+                            (input)="
+                              seekVoice(
+                                replyView,
+                                $event
+                              )
+                            "
+                            aria-label="Voice playback position"
+                          />
+                        </div>
+                      } @else {
+                        <span
+                          class="voice-error"
+                        >
+                          Voice unavailable
+                        </span>
+                      }
+                    </div>
+                  }
+
+                  <!-- ========================= -->
+                  <!-- REPLY IMAGES -->
+                  <!-- ========================= -->
+
+                  @if (
+                    replyView
+                      .attachments
+                      .length > 0
+                    ) {
+                    <div
+                      class="comment-attachment-grid"
+                    >
+                      @for (
+                        attachmentView of
+                          replyView
+                            .attachments;
+                        track
+                          attachmentView
+                            .attachment
+                            .id
+                        ) {
+                        <article
+                          class="comment-attachment"
+                        >
+                          <button
+                            type="button"
+                            class="comment-attachment-preview"
+                            [disabled]="
                               !attachmentView
                                 .previewUrl
                             "
-          (click)="
+                            (click)="
                               openAttachment(
                                 attachmentView
                                   .previewUrl
                               )
                             "
-        >
-          @if (
-          attachmentView
-          .isLoading
-          ) {
-          <ion-spinner
-            name="crescent"
-          ></ion-spinner>
-          } @else if (
-          attachmentView
-          .previewUrl
-          ) {
-          <img
-            [src]="
-              attachmentView
-                .previewUrl
-            "
-            [alt]="
-              attachmentView
-                .attachment
-                .original_name
-            "
-          />
-          } @else {
-          <span>
-            Preview unavailable
-          </span>
-          }
-        </button>
+                          >
+                            @if (
+                              attachmentView
+                                .isLoading
+                              ) {
+                              <ion-spinner
+                                name="crescent"
+                              ></ion-spinner>
+                            } @else if (
+                              attachmentView
+                                .previewUrl
+                              ) {
+                              <img
+                                [src]="
+                                  attachmentView
+                                    .previewUrl
+                                "
+                                [alt]="
+                                  attachmentView
+                                    .attachment
+                                    .original_name
+                                "
+                              />
 
-        <footer>
+                              <ion-icon
+                                name="open-outline"
+                              ></ion-icon>
+                            } @else {
+                              <span>
+                                Preview unavailable
+                              </span>
+                            }
+                          </button>
+
+                          <footer>
                             <span>
                               {{
-                              formatFileSize(
-                                attachmentView
-                                  .attachment
-                                  .size
-                              )
+                                formatFileSize(
+                                  attachmentView
+                                    .attachment
+                                    .size
+                                )
                               }}
                             </span>
 
-          <button
-            type="button"
-            (click)="
+                            <button
+                              type="button"
+                              aria-label="Delete image"
+                              [disabled]="
+                                deletingAttachmentId ===
+                                attachmentView
+                                  .attachment.id
+                              "
+                              (click)="
                                 requestDeleteAttachment(
                                   replyView,
                                   attachmentView
                                 )
                               "
-          >
-            <ion-icon
-              name="trash-outline"
-            ></ion-icon>
-          </button>
-        </footer>
-      </article>
-      }
-      </div>
-      }
+                            >
+                              @if (
+                                deletingAttachmentId ===
+                                attachmentView
+                                  .attachment.id
+                                ) {
+                                <ion-spinner
+                                  name="crescent"
+                                ></ion-spinner>
+                              } @else {
+                                <ion-icon
+                                  name="trash-outline"
+                                ></ion-icon>
+                              }
+                            </button>
+                          </footer>
+                        </article>
+                      }
+                    </div>
+                  }
 
-      @if (
-      !replyView.comment
-      .is_deleted
-      ) {
-      <button
-        type="button"
-        class="reply-button"
-        (click)="
-          startReply(
-            replyView.comment
-          )
-        "
-      >
-        <ion-icon
-          name="return-down-forward-outline"
-        ></ion-icon>
+                  <!-- REPLY BUTTON -->
 
-        <span>Reply</span>
-      </button>
-      }
+                  @if (
+                    !replyView
+                      .comment
+                      .is_deleted
+                    ) {
+                    <button
+                      type="button"
+                      class="reply-button"
+                      (click)="
+                        startReply(
+                          replyView
+                            .comment
+                        )
+                      "
+                    >
+                      <ion-icon
+                        name="return-down-forward-outline"
+                      ></ion-icon>
 
-      @if (
-      replyToCommentId ===
-      replyView.comment.id
-      ) {
-      <ng-container
-        *ngTemplateOutlet="
-          replyComposer
-        "
-      ></ng-container>
+                      <span>
+                        Reply
+                      </span>
+                    </button>
+                  }
+
+                  @if (
+                    replyToCommentId ===
+                    replyView
+                      .comment.id
+                    ) {
+                    <ng-container
+                      *ngTemplateOutlet="
+                        replyComposer
+                      "
+                    ></ng-container>
+                  }
+                </article>
+              }
+            </div>
+          }
+        </article>
       }
-    </article>
-    }
     </div>
-    }
-  </article>
-  }
-  </div>
   }
 </section>
 
-<ng-template #replyComposer>
+<!-- ========================= -->
+<!-- REPLY COMPOSER TEMPLATE -->
+<!-- ========================= -->
+
+<ng-template
+  #replyComposer
+>
   <form
     class="reply-composer"
     (ngSubmit)="submitReply()"
@@ -738,6 +1368,7 @@
     <header>
       <span>
         Replying to
+
         <strong>
           {{ replyToAuthorName }}
         </strong>
@@ -745,6 +1376,7 @@
 
       <button
         type="button"
+        aria-label="Cancel reply"
         (click)="cancelReply()"
       >
         <ion-icon
@@ -759,39 +1391,155 @@
       rows="3"
       maxlength="10000"
       placeholder="Write a reply..."
+      [disabled]="isSubmittingReply"
     ></textarea>
 
+    <!-- REPLY SELECTED IMAGES -->
+
     @if (
-    selectedReplyImages.length > 0
-    ) {
-    <div class="selected-image-grid">
-      @for (
-        image of selectedReplyImages;
-        track image.previewUrl;
-        let imageIndex = $index
+      selectedReplyImages.length > 0
       ) {
-    <article class="selected-image-card">
-      <img
-        [src]="image.previewUrl"
-        [alt]="image.file.name"
-      />
-
-      <button
-        type="button"
-        (click)="
-                removeReplyImage(imageIndex)
-              "
+      <div
+        class="selected-image-grid"
       >
-        <ion-icon
-          name="close-outline"
-        ></ion-icon>
-      </button>
-    </article>
-    }
-    </div>
+        @for (
+          image of selectedReplyImages;
+          track image.previewUrl;
+          let imageIndex = $index
+          ) {
+          <article
+            class="selected-image-card"
+          >
+            <img
+              [src]="image.previewUrl"
+              [alt]="image.file.name"
+            />
+
+            <button
+              type="button"
+              aria-label="Remove image"
+              [disabled]="
+                isSubmittingReply
+              "
+              (click)="
+                removeReplyImage(
+                  imageIndex
+                )
+              "
+            >
+              <ion-icon
+                name="close-outline"
+              ></ion-icon>
+            </button>
+          </article>
+        }
+      </div>
     }
 
-    <footer class="composer-footer">
+    <!-- REPLY VOICE RECORDING -->
+
+    @if (
+      isRecordingReplyVoice
+      ) {
+      <div
+        class="voice-recording-panel"
+      >
+        <div
+          class="voice-recording-status"
+        >
+          <span
+            class="recording-dot"
+          ></span>
+
+          <strong>
+            Recording
+          </strong>
+
+          <span>
+            {{
+              formatVoiceDuration(
+                replyVoiceElapsedMs
+              )
+            }}
+          </span>
+        </div>
+
+        <div
+          class="voice-recording-actions"
+        >
+          <button
+            type="button"
+            class="secondary-button"
+            (click)="
+              cancelReplyVoiceRecording()
+            "
+          >
+            Cancel
+          </button>
+
+          <button
+            type="button"
+            class="stop-voice-button"
+            (click)="
+              stopReplyVoiceRecording()
+            "
+          >
+            <ion-icon
+              name="stop-circle-outline"
+            ></ion-icon>
+
+            <span>
+              Stop
+            </span>
+          </button>
+        </div>
+      </div>
+    } @else if (
+      selectedReplyVoice
+      ) {
+      <div
+        class="selected-voice-preview"
+      >
+        <audio
+          controls
+          preload="metadata"
+          [src]="
+            selectedReplyVoice
+              .previewUrl
+          "
+        ></audio>
+
+        <span>
+          {{
+            formatVoiceDuration(
+              selectedReplyVoice
+                .durationMs
+            )
+          }}
+        </span>
+
+        <button
+          type="button"
+          aria-label="Remove voice message"
+          [disabled]="
+            isSubmittingReply
+          "
+          (click)="
+            cancelReplyVoiceRecording()
+          "
+        >
+          <ion-icon
+            name="close-outline"
+          ></ion-icon>
+        </button>
+      </div>
+    }
+
+    <!-- REPLY COMPOSER FOOTER -->
+
+    <footer
+      class="composer-footer"
+    >
       <div>
         <input
           #replyImageInput
@@ -800,13 +1548,20 @@
           accept="image/jpeg,image/png,image/webp"
           multiple
           (change)="
-            onReplyImagesSelected($event)
+            onReplyImagesSelected(
+              $event
+            )
           "
         />
 
         <button
           type="button"
           class="attach-image-button"
+          [disabled]="
+            isSubmittingReply ||
+            selectedReplyImages.length >=
+              maximumImages
+          "
           (click)="
             replyImageInput.click()
           "
@@ -815,26 +1570,62 @@
             name="images-outline"
           ></ion-icon>
 
-          <span>Attach images</span>
+          <span>
+            Attach images
+          </span>
+        </button>
+
+        <small>
+          {{
+            selectedReplyImages.length
+          }}/5
+        </small>
+
+        <button
+          type="button"
+          class="record-voice-button"
+          [disabled]="
+            isSubmittingReply ||
+            isRecordingReplyVoice ||
+            selectedReplyVoice !== null
+          "
+          (click)="
+            startReplyVoiceRecording()
+          "
+        >
+          <ion-icon
+            name="mic-outline"
+          ></ion-icon>
+
+          <span>
+            Record voice
+          </span>
         </button>
       </div>
 
       <button
         type="submit"
         class="send-comment-button"
-        [disabled]="isSubmittingReply"
+        [disabled]="
+          isSubmittingReply ||
+          isRecordingReplyVoice
+        "
       >
-        @if (isSubmittingReply) {
-        <ion-spinner
-          name="crescent"
-        ></ion-spinner>
+        @if (
+          isSubmittingReply
+          ) {
+          <ion-spinner
+            name="crescent"
+          ></ion-spinner>
         } @else {
-        <ion-icon
-          name="send-outline"
-        ></ion-icon>
+          <ion-icon
+            name="send-outline"
+          ></ion-icon>
         }
 
-        <span>Reply</span>
+        <span>
+          Reply
+        </span>
       </button>
     </footer>
   </form>

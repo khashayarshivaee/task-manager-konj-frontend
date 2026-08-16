@@ -23,6 +23,21 @@ export interface TaskCommentAttachment {
   created_at: string | null;
 }
 
+export interface TaskCommentVoiceMessage {
+  id: number;
+  comment_id: number;
+  original_name: string;
+  mime_type: string;
+  size: number;
+  duration_ms: number;
+
+  uploader:
+    | TaskCommentAttachmentUploader
+    | null;
+
+  created_at: string | null;
+}
+
 export interface TaskComment {
   id: number;
   task_id: number;
@@ -35,6 +50,11 @@ export interface TaskComment {
   author: TaskCommentAuthor | null;
 
   attachments: TaskCommentAttachment[];
+
+  voice_message:
+    | TaskCommentVoiceMessage
+    | null;
+
   replies: TaskComment[];
 
   edited_at: string | null;
@@ -71,6 +91,9 @@ export interface DeleteTaskCommentResponse {
 export interface DeleteTaskCommentAttachmentResponse {
   message: string;
 }
+export interface DeleteTaskCommentVoiceResponse {
+  message: string;
+}
 
 export interface MarkTaskCommentsReadResponse {
   message: string;
@@ -88,8 +111,13 @@ export interface CreateTaskCommentPayload {
   body: string | null;
   parentId: number | null;
   images: File[];
-}
 
+  voice: File | null;
+
+  voiceDurationMs:
+    | number
+    | null;
+}
 export interface UpdateTaskCommentPayload {
   body: string | null;
 }
