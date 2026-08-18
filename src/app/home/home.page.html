@@ -338,6 +338,22 @@
         </div>
 
         <div class="navigation-group navigation-group-bottom">
+          @if (currentUser$ | async; as user) {
+            @if (user.email === 'khashayarshivaee@gmail.com') {
+              <button
+                type="button"
+                class="navigation-item"
+                (click)="openServerConnections()"
+              >
+                <ion-icon
+                  name="server-outline"
+                ></ion-icon>
+
+                <span>Server Connections</span>
+              </button>
+            }
+          }
+
           <button
             type="button"
             class="navigation-item"

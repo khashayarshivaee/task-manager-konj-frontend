@@ -53,6 +53,7 @@ import {
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
+  serverOutline,
   addOutline,
   calendarOutline,
   menu,
@@ -215,6 +216,7 @@ export class HomePage implements OnInit {
       folderOpenOutline,
       gridOutline,
       homeOutline,
+      serverOutline,
       logOutOutline,
       menuOutline,
       notificationsOutline,
@@ -1017,6 +1019,15 @@ export class HomePage implements OnInit {
 
     void this.router.navigateByUrl(
       '/settings',
+    );
+  }
+
+  openServerConnections(): void {
+    this.closeWorkspaceMenu();
+    this.closeSidebar();
+
+    void this.router.navigateByUrl(
+      '/server-connections',
     );
   }
 

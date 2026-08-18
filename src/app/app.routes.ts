@@ -3,6 +3,10 @@ import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 
 import {
+  serverConnectionsGuard,
+} from './core/guards/server-connections.guard';
+
+import {
   verifiedGuard,
 } from './core/guards/verified.guard';
 
@@ -145,6 +149,23 @@ export const routes: Routes = [
         ).then(
         (module) =>
           module.TasksPage,
+      ),
+  },
+
+  {
+    path: 'server-connections',
+    title: 'Server Connections | Konj Task Manager',
+    canActivate: [
+      authGuard,
+      verifiedGuard,
+      serverConnectionsGuard,
+    ],
+    loadComponent: () =>
+      import(
+        './server-connections/pages/server-connections/server-connections.page'
+        ).then(
+        (module) =>
+          module.ServerConnectionsPage,
       ),
   },
 

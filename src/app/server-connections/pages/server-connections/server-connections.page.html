@@ -1,0 +1,1190 @@
+<ion-content>
+  <div class="server-connections-page">
+
+    <!-- Header -->
+    <header class="server-connections-header">
+      <button
+        type="button"
+        class="back-button"
+        aria-label="Go back"
+        (click)="goBack()"
+      >
+        <ion-icon
+          name="arrow-back-outline"
+        ></ion-icon>
+      </button>
+
+      <div class="header-copy">
+        <div class="header-icon">
+          <ion-icon
+            name="server-outline"
+          ></ion-icon>
+        </div>
+
+        <div>
+          <span class="header-eyebrow">
+            VPN MANAGER
+          </span>
+
+          <h1>
+            Server Connections
+          </h1>
+
+          <p>
+            Manage Xray VPN users and monitor
+            active server connections.
+          </p>
+
+          @if (lastUpdatedAt) {
+            <span class="last-updated">
+              Last updated
+              {{
+                lastUpdatedAt
+                  | date:'mediumTime'
+              }}
+            </span>
+          }
+        </div>
+      </div>
+
+      <button
+        type="button"
+        class="refresh-button"
+        [disabled]="
+          isVpnUsersLoading ||
+          isConnectionsLoading
+        "
+        (click)="refresh()"
+      >
+        @if (
+          isVpnUsersLoading ||
+          isConnectionsLoading
+          ) {
+          <ion-spinner
+            name="crescent"
+          ></ion-spinner>
+        } @else {
+          <ion-icon
+            name="refresh-outline"
+          ></ion-icon>
+        }
+
+        <span>
+          Refresh
+        </span>
+      </button>
+    </header>
+
+
+    <!-- VPN Manager -->
+    <section class="vpn-manager-section">
+
+      <div class="section-heading">
+        <div>
+          <span class="section-eyebrow">
+            XRAY
+          </span>
+
+          <h2>
+            VPN Manager
+          </h2>
+        </div>
+
+        <span class="connections-count">
+          {{ vpnUsers.length }}
+        </span>
+      </div>
+
+
+      <!-- Create VPN -->
+      <form
+        class="vpn-create-form"
+        (submit)="
+          createVpnUser();
+          $event.preventDefault()
+        "
+      >
+        <div class="vpn-create-field">
+          <label
+            for="vpn-user-name"
+          >
+            Device / user name
+          </label>
+
+          <input
+            id="vpn-user-name"
+            type="text"
+            maxlength="100"
+            autocomplete="off"
+            placeholder="e.g. Khashayar iPhone"
+            [value]="vpnUserName"
+            [disabled]="isCreatingVpnUser"
+            (input)="
+              vpnUserName =
+                $any($event.target).value
+            "
+          >
+        </div>
+
+        <button
+          type="submit"
+          class="vpn-create-button"
+          [disabled]="
+            isCreatingVpnUser ||
+            !vpnUserName.trim()
+          "
+        >
+          @if (isCreatingVpnUser) {
+            <ion-spinner
+              name="crescent"
+            ></ion-spinner>
+          } @else {
+            <ion-icon
+              name="add-outline"
+            ></ion-icon>
+          }
+
+          <span>
+            Create VPN
+          </span>
+        </button>
+      </form>
+
+
+      @if (createVpnError) {
+        <div class="inline-error">
+          {{ createVpnError }}
+        </div>
+      }
+
+
+      <!-- VPN Loading -->
+      @if (
+        isVpnUsersLoading &&
+        vpnUsers.length === 0
+        ) {
+        <div class="state-card">
+          <ion-spinner
+            name="crescent"
+          ></ion-spinner>
+
+          <span>
+            Loading VPN users...
+          </span>
+        </div>
+      }
+
+
+      <!-- VPN Error -->
+      @if (vpnUsersLoadError) {
+        <div
+          class="
+            state-card
+            state-card-error
+          "
+        >
+          <span>
+            {{ vpnUsersLoadError }}
+          </span>
+
+          <button
+            type="button"
+            (click)="loadVpnUsers()"
+          >
+            Try again
+          </button>
+        </div>
+      }
+
+
+      <!-- VPN Empty -->
+      @if (
+        !isVpnUsersLoading &&
+        !vpnUsersLoadError &&
+        vpnUsers.length === 0
+        ) {
+        <div class="state-card">
+          No VPN users created yet.
+        </div>
+      }
+
+
+      <!-- VPN Users -->
+      @if (vpnUsers.length > 0) {
+        <div class="vpn-users-list">
+
+          @for (
+            vpnUser of vpnUsers;
+            track vpnUser.id
+            ) {
+            <article
+              class="vpn-user-card"
+              [class.vpn-user-card-revoked]="
+                !vpnUser.is_active
+              "
+            >
+
+              <!-- Identity -->
+              <div class="vpn-user-identity">
+                <div class="vpn-user-title-row">
+
+                  <div>
+                    <h3>
+                      {{ vpnUser.name }}
+                    </h3>
+
+                    <span class="vpn-user-email">
+                      {{ vpnUser.xray_email }}
+                    </span>
+                  </div>
+
+
+                  <!-- Status -->
+                  <div class="vpn-status-stack">
+
+                    <span
+                      class="vpn-user-status"
+                      [class.vpn-user-status-active]="
+                        vpnUser.is_active
+                      "
+                      [class.vpn-user-status-revoked]="
+                        !vpnUser.is_active
+                      "
+                    >
+                      {{
+                        vpnUser.is_active
+                          ? 'Active'
+                          : 'Revoked'
+                      }}
+                    </span>
+
+
+                    @if (
+                      vpnUser.is_active &&
+                      vpnUser.online_available
+                      ) {
+                      <span
+                        class="vpn-online-status"
+                        [class.vpn-online-status-online]="
+                          vpnUser.is_online
+                        "
+                        [class.vpn-online-status-offline]="
+                          !vpnUser.is_online
+                        "
+                      >
+                        <span
+                          class="vpn-online-dot"
+                        ></span>
+
+                        @if (vpnUser.is_online) {
+                          Online
+
+                          @if (
+                            vpnUser.online_sessions > 0
+                            ) {
+                            ·
+                            {{
+                              vpnUser.online_sessions
+                            }}
+
+                            {{
+                              vpnUser.online_sessions === 1
+                                ? 'session'
+                                : 'sessions'
+                            }}
+                          }
+                        } @else {
+                          Offline
+                        }
+                      </span>
+                    }
+
+
+                    @if (
+                      vpnUser.is_active &&
+                      !vpnUser.online_available
+                      ) {
+                      <span
+                        class="
+                          vpn-online-status
+                          vpn-online-status-unknown
+                        "
+                      >
+                        Status unavailable
+                      </span>
+                    }
+
+                  </div>
+                </div>
+              </div>
+
+
+              <!-- Actions -->
+              <div class="vpn-user-actions">
+
+                @if (
+                  vpnUser.is_active &&
+                  vpnUser.connection_available &&
+                  vpnUser.connection
+                  ) {
+                  <button
+                    type="button"
+                    class="
+                      vpn-action-button
+                      vpn-action-button-copy
+                    "
+                    (click)="copyVpnLink(vpnUser)"
+                  >
+                    <ion-icon
+                      [name]="
+                        copiedVpnUserId === vpnUser.id
+                          ? 'checkmark-outline'
+                          : 'copy-outline'
+                      "
+                    ></ion-icon>
+
+                    <span>
+                      {{
+                        copiedVpnUserId === vpnUser.id
+                          ? 'Copied'
+                          : 'Copy link'
+                      }}
+                    </span>
+                  </button>
+                }
+
+
+                @if (vpnUser.is_active) {
+                  <button
+                    type="button"
+                    class="
+                      vpn-action-button
+                      vpn-action-button-danger
+                    "
+                    [disabled]="
+                      processingVpnUserId ===
+                      vpnUser.id
+                    "
+                    (click)="
+                      revokeVpnUser(vpnUser)
+                    "
+                  >
+                    @if (
+                      processingVpnUserId ===
+                      vpnUser.id
+                      ) {
+                      <ion-spinner
+                        name="crescent"
+                      ></ion-spinner>
+                    } @else {
+                      <ion-icon
+                        name="power-outline"
+                      ></ion-icon>
+                    }
+
+                    <span>
+                      Disable
+                    </span>
+                  </button>
+                } @else {
+                  <button
+                    type="button"
+                    class="
+                      vpn-action-button
+                      vpn-action-button-enable
+                    "
+                    [disabled]="
+                      processingVpnUserId ===
+                      vpnUser.id
+                    "
+                    (click)="
+                      enableVpnUser(vpnUser)
+                    "
+                  >
+                    @if (
+                      processingVpnUserId ===
+                      vpnUser.id
+                      ) {
+                      <ion-spinner
+                        name="crescent"
+                      ></ion-spinner>
+                    } @else {
+                      <ion-icon
+                        name="power-outline"
+                      ></ion-icon>
+                    }
+
+                    <span>
+                      Enable
+                    </span>
+                  </button>
+                }
+
+              </div>
+
+
+              <!-- Stats -->
+              <div class="vpn-stats-grid">
+
+                <div class="vpn-stat">
+                  <span>
+                    Upload
+                  </span>
+
+                  <strong>
+                    {{
+                      formatBytes(
+                        vpnUser.stats.uplink_bytes
+                      )
+                    }}
+                  </strong>
+                </div>
+
+
+                <div class="vpn-stat">
+                  <span>
+                    Download
+                  </span>
+
+                  <strong>
+                    {{
+                      formatBytes(
+                        vpnUser.stats.downlink_bytes
+                      )
+                    }}
+                  </strong>
+                </div>
+
+
+                <div
+                  class="
+                    vpn-stat
+                    vpn-stat-total
+                  "
+                >
+                  <span>
+                    Total Usage
+                  </span>
+
+                  <strong>
+                    {{
+                      formatBytes(
+                        vpnUser.stats.total_bytes
+                      )
+                    }}
+                  </strong>
+                </div>
+
+
+                <div class="vpn-stat">
+                  <span>
+                    Server
+                  </span>
+
+                  <strong>
+                    @if (
+                      vpnUser.connection;
+                      as connection
+                      ) {
+                      {{ connection.server }}
+                    } @else {
+                      —
+                    }
+                  </strong>
+                </div>
+
+              </div>
+
+
+              <!-- Destinations Button -->
+              <button
+                type="button"
+                class="vpn-destinations-open-button"
+                (click)="openDestinations(vpnUser)"
+              >
+                <div class="vpn-destinations-open-copy">
+                  <strong>
+                    Destinations
+                  </strong>
+
+                  @if (
+                    destinationsByUserId[vpnUser.id];
+                    as destinations
+                    ) {
+                    <span>
+                      {{ destinations.length }}
+                      destinations recorded
+                    </span>
+                  } @else {
+                    <span>
+                      View recent destinations
+                    </span>
+                  }
+                </div>
+
+                <span class="vpn-destinations-open-arrow">
+                  ›
+                </span>
+              </button>
+
+
+              <!-- Notes -->
+              @if (!vpnUser.stats_available) {
+                <div class="vpn-card-note">
+                  Traffic statistics are
+                  currently unavailable.
+                </div>
+              }
+
+              @if (
+                vpnUser.is_active &&
+                !vpnUser.connection_available
+                ) {
+                <div class="vpn-card-note">
+                  VPN connection information is
+                  currently unavailable.
+                </div>
+              }
+
+
+              <!-- Meta -->
+              <div class="vpn-user-meta">
+
+                <span>
+                  VLESS · REALITY
+                </span>
+
+                <span>
+                  {{ vpnUser.flow }}
+                </span>
+
+                @if (vpnUser.created_at) {
+                  <span>
+                    Created
+                    {{
+                      vpnUser.created_at
+                        | date:'medium'
+                    }}
+                  </span>
+                }
+
+                @if (
+                  !vpnUser.is_active &&
+                  vpnUser.revoked_at
+                  ) {
+                  <span>
+                    Disabled
+                    {{
+                      vpnUser.revoked_at
+                        | date:'medium'
+                    }}
+                  </span>
+                }
+
+              </div>
+
+            </article>
+          }
+
+        </div>
+      }
+
+    </section>
+
+
+    <!-- Server Activity -->
+    <section class="server-activity-section">
+
+      <div class="section-heading">
+        <div>
+          <span class="section-eyebrow">
+            SERVER
+          </span>
+
+          <h2>
+            Server Activity
+          </h2>
+        </div>
+      </div>
+
+
+      @if (
+        isConnectionsLoading &&
+        !data
+        ) {
+        <div class="state-card">
+          <ion-spinner
+            name="crescent"
+          ></ion-spinner>
+
+          <span>
+            Loading server connections...
+          </span>
+        </div>
+      }
+
+
+      @if (connectionsLoadError) {
+        <div
+          class="
+            state-card
+            state-card-error
+          "
+        >
+          <span>
+            {{ connectionsLoadError }}
+          </span>
+
+          <button
+            type="button"
+            (click)="loadConnections()"
+          >
+            Try again
+          </button>
+        </div>
+      }
+
+
+      @if (data; as connectionData) {
+
+        <!-- Summary -->
+        <section class="summary-grid">
+
+          <article class="summary-card">
+            <span class="summary-label">
+              Active TCP Connections
+            </span>
+
+            <strong>
+              {{ connectionData.total }}
+            </strong>
+          </article>
+
+
+          <article class="summary-card">
+            <span class="summary-label">
+              Unique Client IPs
+            </span>
+
+            <strong>
+              {{
+                connectionData
+                  .summary
+                  .unique_client_ips
+              }}
+            </strong>
+          </article>
+
+
+          <article class="summary-card">
+            <span class="summary-label">
+              SSH VPN
+            </span>
+
+            <strong>
+              {{
+                connectionData
+                  .summary
+                  .ssh_vpn_sessions
+              }}
+            </strong>
+          </article>
+
+
+          <article class="summary-card">
+            <span class="summary-label">
+              Outline TCP
+            </span>
+
+            <strong>
+              {{
+                connectionData
+                  .summary
+                  .outline_tcp_connections
+              }}
+            </strong>
+          </article>
+
+        </section>
+
+
+        <!-- Active Clients -->
+        <section class="connections-section">
+
+          <div class="section-heading">
+            <div>
+              <span class="section-eyebrow">
+                LIVE
+              </span>
+
+              <h2>
+                Active clients
+              </h2>
+            </div>
+
+            <span class="connections-count">
+              {{ connectionGroups.length }}
+            </span>
+          </div>
+
+
+          @if (
+            connectionGroups.length === 0
+            ) {
+            <div class="state-card">
+              No active connections.
+            </div>
+          } @else {
+
+            <div class="connections-list">
+
+              @for (
+                group of connectionGroups;
+                track
+                group.type +
+                '-' +
+                group.clientIp
+                ) {
+                <article class="connection-card">
+
+                  <div class="connection-main">
+
+                    <div class="connection-identity">
+
+                      <div class="connection-type-row">
+
+                        <span
+                          class="connection-type"
+                          [class.connection-type-vpn]="
+                            group.type ===
+                            'ssh_vpn'
+                          "
+                          [class.connection-type-outline]="
+                            group.type ===
+                            'outline'
+                          "
+                          [class.connection-type-admin]="
+                            group.type ===
+                            'ssh_admin'
+                          "
+                          [class.connection-type-web]="
+                            group.type ===
+                            'web'
+                          "
+                          [class.connection-type-warning]="
+                            group.type ===
+                              'ssh_preauth' ||
+                            group.type ===
+                              'ssh_other'
+                          "
+                        >
+                          {{
+                            connectionTypeLabel(
+                              group.type
+                            )
+                          }}
+                        </span>
+
+
+                        @if (
+                          group.connectionCount > 1
+                          ) {
+                          <span class="connection-count-pill">
+                            {{
+                              group.connectionCount
+                            }}
+                            connections
+                          </span>
+                        }
+
+                      </div>
+
+
+                      <strong class="connection-ip">
+                        {{ group.clientIp }}
+                      </strong>
+
+                    </div>
+
+
+                    <span class="connection-service">
+                      {{ group.service }}
+                    </span>
+
+                  </div>
+
+
+                  <div class="connection-meta">
+
+                    <span>
+                      Protocol:
+                      {{
+                        group
+                          .protocol
+                          .toUpperCase()
+                      }}
+                    </span>
+
+
+                    <span>
+                      Server:
+                      {{
+                        formatServerPorts(
+                          group.serverPorts
+                        )
+                      }}
+                    </span>
+
+
+                    @if (
+                      group.connectionCount === 1
+                      ) {
+                      <span>
+                        Client:
+                        {{
+                          group.clientPorts[0]
+                        }}
+                      </span>
+                    }
+
+
+                    @if (group.sshUser) {
+                      <span>
+                        User:
+                        {{ group.sshUser }}
+                      </span>
+                    }
+
+
+                    @if (
+                      group.elapsedSeconds !==
+                      undefined
+                      ) {
+                      <span class="connection-duration">
+                        @if (
+                          group.connectionCount > 1
+                          ) {
+                          Longest:
+                        } @else {
+                          Connected:
+                        }
+
+                        {{
+                          formatDuration(
+                            group.elapsedSeconds
+                          )
+                        }}
+                      </span>
+                    }
+
+
+                    @if (
+                      group.proxiedConnections !==
+                      undefined
+                      ) {
+                      <span>
+                        Proxied:
+                        {{
+                          group.proxiedConnections
+                        }}
+                      </span>
+                    }
+
+                  </div>
+
+                </article>
+              }
+
+            </div>
+          }
+
+        </section>
+      }
+
+    </section>
+
+  </div>
+
+
+  <!-- Destinations Modal -->
+  <ion-modal
+    cssClass="vpn-destinations-modal"
+    [isOpen]="isDestinationsModalOpen"
+    (didDismiss)="onDestinationsModalDismissed()"
+  >
+    <ng-template>
+
+      @if (destinationsModalUser; as vpnUser) {
+        <div class="destinations-modal-shell">
+
+          <!-- Modal Header -->
+          <header class="destinations-modal-header">
+
+            <div class="destinations-modal-title">
+              <span class="section-eyebrow">
+                VPN DESTINATIONS
+              </span>
+
+              <h2>
+                {{ vpnUser.name }}
+              </h2>
+
+              <p>
+                Websites and services recently
+                accessed through this VPN.
+              </p>
+            </div>
+
+
+            <button
+              type="button"
+              class="destinations-modal-close"
+              aria-label="Close destinations"
+              (click)="closeDestinations()"
+            >
+              ×
+            </button>
+
+          </header>
+
+
+          <!-- Modal Summary -->
+          <div class="destinations-modal-summary">
+
+            <div>
+              <span>
+                User
+              </span>
+
+              <strong>
+                {{ vpnUser.name }}
+              </strong>
+            </div>
+
+
+            <div>
+              <span>
+                Status
+              </span>
+
+              <strong
+                [class.is-online]="
+                  vpnUser.is_online
+                "
+              >
+                {{
+                  vpnUser.is_online
+                    ? 'Online'
+                    : 'Offline'
+                }}
+              </strong>
+            </div>
+
+
+            <div>
+              <span>
+                Destinations
+              </span>
+
+              <strong>
+                {{
+                  destinationsByUserId[
+                    vpnUser.id
+                    ]?.length ?? 0
+                }}
+              </strong>
+            </div>
+
+          </div>
+
+
+          <!-- Modal Content -->
+          <div class="destinations-modal-content">
+
+            @if (
+              destinationsLoadingUserId ===
+              vpnUser.id
+              ) {
+              <div class="vpn-destinations-state">
+                <ion-spinner
+                  name="crescent"
+                ></ion-spinner>
+
+                <span>
+                  Loading destinations...
+                </span>
+              </div>
+            }
+
+
+            @if (
+              destinationsErrorByUserId[
+                vpnUser.id
+                ]
+              ) {
+              <div
+                class="
+                  vpn-destinations-state
+                  vpn-destinations-state-error
+                "
+              >
+                <span>
+                  {{
+                    destinationsErrorByUserId[
+                      vpnUser.id
+                      ]
+                  }}
+                </span>
+
+                <button
+                  type="button"
+                  (click)="
+                    refreshDestinations(
+                      vpnUser.id
+                    )
+                  "
+                >
+                  Try again
+                </button>
+              </div>
+            }
+
+
+            @if (
+              destinationsLoadingUserId !==
+              vpnUser.id &&
+              !destinationsErrorByUserId[
+                vpnUser.id
+                ]
+              ) {
+
+              @if (
+                destinationsByUserId[
+                  vpnUser.id
+                  ];
+                as destinations
+                ) {
+
+                @if (
+                  destinations.length === 0
+                  ) {
+                  <div class="vpn-destinations-state">
+                    No destinations recorded yet.
+                  </div>
+                } @else {
+
+                  <div class="destinations-modal-list-header">
+
+                    <div>
+                      <strong>
+                        Recent destinations
+                      </strong>
+
+                      <span>
+                        {{
+                          destinations.length
+                        }}
+                        recorded
+                      </span>
+                    </div>
+
+
+                    <button
+                      type="button"
+                      class="destinations-modal-refresh"
+                      (click)="
+                        refreshDestinations(
+                          vpnUser.id
+                        )
+                      "
+                    >
+                      <ion-icon
+                        name="refresh-outline"
+                      ></ion-icon>
+
+                      Refresh
+                    </button>
+
+                  </div>
+
+
+                  <div class="vpn-destinations-list">
+
+                    @for (
+                      destination of destinations;
+                      track destination.id
+                      ) {
+                      <article class="vpn-destination-item">
+
+                        <div class="vpn-destination-main">
+
+                          <strong>
+                            {{
+                              destination.destination
+                            }}
+                          </strong>
+
+                          <span>
+                            {{
+                              destination.connection_count
+                            }}
+
+                            {{
+                              destination.connection_count === 1
+                                ? 'connection'
+                                : 'connections'
+                            }}
+                          </span>
+
+                        </div>
+
+
+                        <div class="vpn-destination-meta">
+
+                          @if (
+                            destination.last_seen_at
+                            ) {
+                            <span>
+                              Last seen
+                              {{
+                                destination.last_seen_at
+                                  | date:'short'
+                              }}
+                            </span>
+                          }
+
+
+                          @if (
+                            destination.first_seen_at
+                            ) {
+                            <span>
+                              First seen
+                              {{
+                                destination.first_seen_at
+                                  | date:'short'
+                              }}
+                            </span>
+                          }
+
+                        </div>
+
+                      </article>
+                    }
+
+                  </div>
+
+                }
+
+              }
+
+            }
+
+          </div>
+
+        </div>
+      }
+
+    </ng-template>
+  </ion-modal>
+
+</ion-content>
