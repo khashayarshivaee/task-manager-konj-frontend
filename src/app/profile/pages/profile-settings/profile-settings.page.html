@@ -195,6 +195,35 @@
             </small>
           </span>
         </button>
+
+        @if (isSystemAdmin) {
+          <button
+            type="button"
+            class="settings-navigation-item"
+            [class.settings-navigation-item-active]="
+    activeSection === 'instagram-access'
+  "
+            (click)="
+    selectSection('instagram-access')
+  "
+          >
+  <span class="settings-navigation-icon">
+    <ion-icon
+      name="lock-closed-outline"
+    ></ion-icon>
+  </span>
+
+            <span>
+    <strong>
+      Instagram Access
+    </strong>
+
+    <small>
+      User permissions
+    </small>
+  </span>
+          </button>
+        }
       </aside>
 
       <section class="settings-content">
@@ -848,6 +877,205 @@
               </span>
     </section>
     }
+
+        @if (
+          activeSection === 'instagram-access' &&
+          isSystemAdmin
+          ) {
+          <div class="settings-section-heading">
+  <span class="eyebrow">
+    Instagram
+  </span>
+
+            <h2>
+              Instagram access
+            </h2>
+
+            <p>
+              Choose which users can access
+              Instagram Manager for the active
+              workspace.
+            </p>
+          </div>
+
+          @if (activeWorkspace) {
+            <div class="instagram-access-workspace">
+  <span>
+    Active workspace
+  </span>
+
+              <strong>
+                {{ activeWorkspace.name }}
+              </strong>
+            </div>
+          }
+
+          @if (instagramAccessSuccessMessage) {
+            <div
+              class="success-notice"
+              role="status"
+            >
+              <ion-icon
+                name="checkmark-circle-outline"
+              ></ion-icon>
+
+              <span>
+    {{
+                  instagramAccessSuccessMessage
+                }}
+  </span>
+            </div>
+          }
+
+          @if (instagramAccessErrorMessage) {
+            <div
+              class="error-notice"
+              role="alert"
+            >
+              {{
+                instagramAccessErrorMessage
+              }}
+            </div>
+          }
+
+          <section class="settings-card instagram-access-card">
+            @if (isLoadingInstagramAccess) {
+              <div class="instagram-access-state">
+                <ion-spinner
+                  name="crescent"
+                ></ion-spinner>
+
+                <span>
+      Loading Instagram access...
+    </span>
+              </div>
+            } @else if (
+              instagramAccessUsers.length === 0
+              ) {
+              <div class="instagram-access-state">
+                <strong>
+                  No users available
+                </strong>
+
+                <span>
+      There are no users to manage.
+    </span>
+              </div>
+            } @else {
+              <div class="instagram-access-list">
+                @for (
+                  accessUser of instagramAccessUsers;
+                  track accessUser.id
+                  ) {
+                  <article class="instagram-access-user">
+                    <div class="instagram-access-user-main">
+                      <app-user-avatar
+                        [name]="accessUser.name"
+                        [avatarPath]="null"
+                        [size]="44"
+                        [fontSize]="14"
+                      ></app-user-avatar>
+
+                      <div class="instagram-access-user-copy">
+                        <div class="instagram-access-user-name">
+                          <strong>
+                            {{ accessUser.name }}
+                          </strong>
+
+                          @if (accessUser.is_admin) {
+                            <span class="instagram-access-admin-badge">
+              Admin
+            </span>
+                          }
+                        </div>
+
+                        <span>
+            {{ accessUser.email }}
+          </span>
+
+                        @if (!accessUser.is_active) {
+                          <small class="instagram-access-inactive">
+                            Account inactive
+                          </small>
+                        }
+                      </div>
+                    </div>
+
+                    <div class="instagram-access-control">
+                      @if (accessUser.is_admin) {
+                        <div class="instagram-access-fixed">
+                          <strong>
+                            Access enabled
+                          </strong>
+
+                          <small>
+                            System admins always have access.
+                          </small>
+                        </div>
+                      } @else {
+                        <div class="instagram-access-status">
+          <span
+            [class.instagram-access-status-enabled]="
+              accessUser.instagram_access
+            "
+          >
+            {{
+              accessUser.instagram_access
+                ? 'Access enabled'
+                : 'No access'
+            }}
+          </span>
+                        </div>
+
+                        <button
+                          type="button"
+                          class="instagram-access-toggle"
+                          [class.instagram-access-toggle-enabled]="
+            accessUser.instagram_access
+          "
+                          [disabled]="
+            !accessUser.can_manage_access ||
+            isUpdatingInstagramAccess(
+              accessUser.id
+            )
+          "
+                          [attr.aria-label]="
+            accessUser.instagram_access
+              ? 'Revoke Instagram access from ' +
+                accessUser.name
+              : 'Grant Instagram access to ' +
+                accessUser.name
+          "
+                          [attr.aria-pressed]="
+            accessUser.instagram_access
+          "
+                          (click)="
+            toggleInstagramAccess(
+              accessUser
+            )
+          "
+                        >
+                          @if (
+                            isUpdatingInstagramAccess(
+                              accessUser.id
+                            )
+                            ) {
+                            <ion-spinner
+                              name="crescent"
+                            ></ion-spinner>
+                          } @else {
+                            <span class="instagram-access-toggle-knob">
+          </span>
+                          }
+                        </button>
+                      }
+                    </div>
+                  </article>
+                }
+              </div>
+            }
+          </section>
+        }
     </section>
   </div>
     }

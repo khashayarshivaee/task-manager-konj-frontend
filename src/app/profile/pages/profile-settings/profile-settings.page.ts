@@ -13,6 +13,14 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
+
+import {
+  InstagramAccessUser,
+} from '../../../instagram/models/instagram-access.model';
+import {
+  InstagramAccessService,
+} from '../../../instagram/services/instagram-access.service';
+
 import {
   takeUntilDestroyed,
 } from '@angular/core/rxjs-interop';
@@ -62,7 +70,8 @@ type SettingsSection =
   | 'profile'
   | 'security'
   | 'preferences'
-  | 'notifications';
+  | 'notifications'
+  | 'instagram-access';
 
 @Component({
   selector: 'app-profile-settings',
@@ -89,6 +98,9 @@ export class ProfileSettingsPage
 
   private readonly workspaceService =
     inject(WorkspaceService);
+
+  private readonly instagramAccessService =
+    inject(InstagramAccessService);
 
   private readonly router =
     inject(Router);
@@ -166,6 +178,16 @@ export class ProfileSettingsPage
   workspaceErrorMessage = '';
   workspaceSuccessMessage = '';
 
+  instagramAccessUsers: InstagramAccessUser[] = [];
+
+  isLoadingInstagramAccess = false;
+
+  instagramAccessErrorMessage = '';
+  instagramAccessSuccessMessage = '';
+
+  readonly instagramAccessUpdatingUserIds =
+    new Set<number>();
+
   constructor() {
     addIcons({
       arrowBackOutline,
@@ -223,6 +245,13 @@ export class ProfileSettingsPage
   selectSection(
     section: SettingsSection,
   ): void {
+    if (
+      section === 'instagram-access' &&
+      !this.isSystemAdmin
+    ) {
+      return;
+    }
+
     this.activeSection = section;
 
     this.successMessage = '';
@@ -230,8 +259,16 @@ export class ProfileSettingsPage
 
     this.passwordErrorMessage = '';
     this.workspaceSuccessMessage = '';
-  }
 
+    this.instagramAccessErrorMessage = '';
+    this.instagramAccessSuccessMessage = '';
+
+    if (
+      section === 'instagram-access'
+    ) {
+      this.loadInstagramAccessUsers();
+    }
+  }
   handleAvatarSelection(
     event: Event,
   ): void {
@@ -532,6 +569,13 @@ export class ProfileSettingsPage
 
     this.workspaceSuccessMessage =
       `${workspace.name} is now your active workspace.`;
+    if (
+      this.activeSection ===
+      'instagram-access' &&
+      this.isSystemAdmin
+    ) {
+      this.loadInstagramAccessUsers();
+    }
   }
 
   openWorkspaceManagement(): void {
@@ -594,6 +638,92 @@ export class ProfileSettingsPage
   get passwordConfirmationControl() {
     return this.passwordForm
       .controls.passwordConfirmation;
+
+
+  }
+
+  get isSystemAdmin(): boolean {
+    return this.user?.role === 'admin';
+  }
+
+  isUpdatingInstagramAccess(
+    userId: number,
+  ): boolean {
+    return this.instagramAccessUpdatingUserIds
+      .has(userId);
+  }
+
+  toggleInstagramAccess(
+    user: InstagramAccessUser,
+  ): void {
+    if (
+      !this.isSystemAdmin ||
+      !this.activeWorkspace ||
+      !user.can_manage_access ||
+      this.isUpdatingInstagramAccess(
+        user.id,
+      )
+    ) {
+      return;
+    }
+
+    this.instagramAccessErrorMessage = '';
+    this.instagramAccessSuccessMessage = '';
+
+    const shouldGrant =
+      !user.instagram_access;
+
+    this.instagramAccessUpdatingUserIds
+      .add(user.id);
+
+    const request$ = shouldGrant
+      ? this.instagramAccessService
+        .grantAccess(
+          this.activeWorkspace.id,
+          user.id,
+        )
+      : this.instagramAccessService
+        .revokeAccess(
+          this.activeWorkspace.id,
+          user.id,
+        );
+
+    request$
+      .pipe(
+        finalize(() => {
+          this.instagramAccessUpdatingUserIds
+            .delete(user.id);
+        }),
+
+        takeUntilDestroyed(
+          this.destroyRef,
+        ),
+      )
+      .subscribe({
+        next: (response) => {
+          user.instagram_access =
+            response.instagram_access;
+
+          this.instagramAccessSuccessMessage =
+            shouldGrant
+              ? `Instagram access granted to ${user.name}.`
+              : `Instagram access revoked from ${user.name}.`;
+        },
+
+        error: (
+          error: HttpErrorResponse,
+        ) => {
+          if (error.status === 403) {
+            this.instagramAccessErrorMessage =
+              'You are not allowed to manage Instagram access.';
+
+            return;
+          }
+
+          this.instagramAccessErrorMessage =
+            `Unable to update Instagram access for ${user.name}.`;
+        },
+      });
   }
 
   goBack(): void {
@@ -634,6 +764,67 @@ export class ProfileSettingsPage
 
           this.workspaceErrorMessage =
             'Unable to load your workspace preferences.';
+        },
+      });
+  }
+
+  private loadInstagramAccessUsers(): void {
+    if (
+      !this.isSystemAdmin
+    ) {
+      this.instagramAccessUsers = [];
+
+      return;
+    }
+
+    if (!this.activeWorkspace) {
+      this.instagramAccessUsers = [];
+
+      this.instagramAccessErrorMessage =
+        'Select an active workspace first.';
+
+      return;
+    }
+
+    this.isLoadingInstagramAccess = true;
+
+    this.instagramAccessErrorMessage = '';
+    this.instagramAccessSuccessMessage = '';
+
+    this.instagramAccessService
+      .getUsers(
+        this.activeWorkspace.id,
+      )
+      .pipe(
+        finalize(() => {
+          this.isLoadingInstagramAccess =
+            false;
+        }),
+
+        takeUntilDestroyed(
+          this.destroyRef,
+        ),
+      )
+      .subscribe({
+        next: (response) => {
+          this.instagramAccessUsers =
+            response.users;
+        },
+
+        error: (
+          error: HttpErrorResponse,
+        ) => {
+          this.instagramAccessUsers = [];
+
+          if (error.status === 403) {
+            this.instagramAccessErrorMessage =
+              'You are not allowed to manage Instagram access.';
+
+            return;
+          }
+
+          this.instagramAccessErrorMessage =
+            'Unable to load Instagram access settings.';
         },
       });
   }
