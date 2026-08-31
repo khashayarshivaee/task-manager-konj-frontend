@@ -1,0 +1,2317 @@
+<ion-content>
+  <div class="instagram-manager-page">
+
+    <!-- Header -->
+    <header class="instagram-header">
+      <button
+        type="button"
+        class="back-button"
+        aria-label="Go back"
+        (click)="goBack()"
+      >
+        <ion-icon
+          name="arrow-back-outline"
+        ></ion-icon>
+      </button>
+
+      <div class="header-copy">
+        <div class="header-icon">
+          <ion-icon
+            name="logo-instagram"
+          ></ion-icon>
+        </div>
+
+        <div>
+          <span class="header-eyebrow">
+            SOCIAL MANAGER
+          </span>
+
+          <h1>
+            Instagram Manager
+          </h1>
+
+          <p>
+            Manage publishing, scheduled content,
+            comments, insights and messages.
+          </p>
+
+          @if (
+            connection?.connected &&
+            connection?.account
+            ) {
+            <span class="instagram-account">
+              @{{ connection?.account?.username }}
+            </span>
+          }
+        </div>
+      </div>
+
+      <button
+        type="button"
+        class="refresh-button"
+        [disabled]="isLoading"
+        (click)="refresh()"
+      >
+        @if (isLoading) {
+          <ion-spinner
+            name="crescent"
+          ></ion-spinner>
+        } @else {
+          <ion-icon
+            name="refresh-outline"
+          ></ion-icon>
+        }
+
+        <span>
+          Refresh
+        </span>
+      </button>
+    </header>
+
+
+    <!-- Loading -->
+    @if (
+      isLoading &&
+      !connection
+      ) {
+      <div class="state-card">
+        <ion-spinner
+          name="crescent"
+        ></ion-spinner>
+
+        <span>
+          Loading Instagram Manager...
+        </span>
+      </div>
+    }
+
+
+    <!-- Error -->
+    @if (loadError) {
+      <div
+        class="
+          state-card
+          state-card-error
+        "
+      >
+        <span>
+          {{ loadError }}
+        </span>
+
+        <button
+          type="button"
+          (click)="load()"
+        >
+          Try again
+        </button>
+      </div>
+    }
+
+
+    <!-- Not Connected -->
+    @if (
+      !isLoading &&
+      !loadError &&
+      connection &&
+      !connection.connected
+      ) {
+      <section class="not-connected-card">
+        <div class="not-connected-icon">
+          <ion-icon
+            name="logo-instagram"
+          ></ion-icon>
+        </div>
+
+        <div>
+          <span class="section-eyebrow">
+            INSTAGRAM
+          </span>
+
+          <h2>
+            Instagram is not connected
+          </h2>
+
+          <p>
+            Connect an Instagram Business account
+            to start managing content and messages.
+          </p>
+        </div>
+      </section>
+    }
+
+
+    <!-- Connected Manager -->
+    @if (
+      connection?.connected &&
+      !loadError
+      ) {
+
+      <!-- Navigation -->
+      <nav class="instagram-navigation">
+
+        <button
+          type="button"
+          [class.is-active]="
+            isSectionActive('overview')
+          "
+          (click)="setSection('overview')"
+        >
+          <ion-icon
+            name="stats-chart-outline"
+          ></ion-icon>
+
+          <span>
+            Overview
+          </span>
+        </button>
+
+
+        <button
+          type="button"
+          [class.is-active]="
+            isSectionActive('publish')
+          "
+          (click)="setSection('publish')"
+        >
+          <ion-icon
+            name="cloud-upload-outline"
+          ></ion-icon>
+
+          <span>
+            Publish
+          </span>
+        </button>
+
+
+        <button
+          type="button"
+          [class.is-active]="
+            isSectionActive('scheduled')
+          "
+          (click)="setSection('scheduled')"
+        >
+          <ion-icon
+            name="calendar-outline"
+          ></ion-icon>
+
+          <span>
+            Scheduled
+          </span>
+
+          @if (
+            scheduledPublications.length > 0
+            ) {
+            <span class="nav-count">
+              {{ scheduledPublications.length }}
+            </span>
+          }
+        </button>
+
+
+        <button
+          type="button"
+          [class.is-active]="
+            isSectionActive('comments')
+          "
+          (click)="setSection('comments')"
+        >
+          <ion-icon
+            name="chatbubble-ellipses-outline"
+          ></ion-icon>
+
+          <span>
+            Comments
+          </span>
+        </button>
+
+
+        <button
+          type="button"
+          [class.is-active]="
+            isSectionActive('inbox')
+          "
+          (click)="setSection('inbox')"
+        >
+          <ion-icon
+            name="mail-outline"
+          ></ion-icon>
+
+          <span>
+            Inbox
+          </span>
+        </button>
+
+      </nav>
+
+
+      <!-- Overview -->
+      @if (
+        isSectionActive('overview')
+        ) {
+        <section class="instagram-section">
+
+          <div class="section-heading">
+            <div>
+              <span class="section-eyebrow">
+                OVERVIEW
+              </span>
+
+              <h2>
+                Account overview
+              </h2>
+            </div>
+          </div>
+
+
+          @if (
+            dashboard?.profile;
+            as profile
+            ) {
+            <div class="overview-grid">
+
+              <article class="overview-card">
+                <span>
+                  Followers
+                </span>
+
+                <strong>
+                  {{
+                    profile.followers_count ?? 0
+                  }}
+                </strong>
+              </article>
+
+
+              <article class="overview-card">
+                <span>
+                  Following
+                </span>
+
+                <strong>
+                  {{
+                    profile.follows_count ?? 0
+                  }}
+                </strong>
+              </article>
+
+
+              <article class="overview-card">
+                <span>
+                  Media
+                </span>
+
+                <strong>
+                  {{
+                    profile.media_count ?? 0
+                  }}
+                </strong>
+              </article>
+
+
+              <article class="overview-card">
+                <span>
+                  Publications
+                </span>
+
+                <strong>
+                  {{ publications.length }}
+                </strong>
+              </article>
+
+            </div>
+          }
+
+
+          @if (
+            dashboard?.media;
+            as media
+            ) {
+            <div class="overview-subsection">
+
+              <div class="subsection-heading">
+                <div>
+                  <span class="section-eyebrow">
+                    CONTENT
+                  </span>
+
+                  <h3>
+                    Recent media
+                  </h3>
+                </div>
+
+                <span class="item-count">
+                  {{ media.length }}
+                </span>
+              </div>
+
+
+              @if (
+                media.length === 0
+                ) {
+                <div class="empty-state">
+                  No media found.
+                </div>
+              } @else {
+                <div class="media-grid">
+
+                  @for (
+                    item of media;
+                    track item.id
+                    ) {
+                    <article class="media-card">
+
+                      @if (
+                        item.thumbnail_url ||
+                        item.media_url
+                        ) {
+                        <div class="media-preview">
+                          <img
+                            [src]="getMediaPreviewUrl(item)"
+                            alt=""
+                          >
+                        </div>
+                      }
+
+
+                      <div class="media-card-copy">
+                        <span class="media-type">
+                          {{ item.media_type }}
+                        </span>
+
+                        <p>
+                          {{
+                            item.caption ||
+                            'No caption'
+                          }}
+                        </p>
+                      </div>
+
+                    </article>
+                  }
+
+                </div>
+              }
+
+            </div>
+          }
+
+        </section>
+      }
+
+
+      <!-- Publish -->
+      @if (
+        isSectionActive('publish')
+        ) {
+        <section class="instagram-section">
+
+          <div class="section-heading">
+            <div>
+              <span class="section-eyebrow">
+                CREATE
+              </span>
+
+              <h2>
+                Publish content
+              </h2>
+            </div>
+          </div>
+
+
+          <!-- Content Type -->
+          <div class="publish-type-selector">
+
+            <button
+              type="button"
+              [class.is-active]="
+                publishType === 'image'
+              "
+              (click)="setPublishType('image')"
+            >
+              Image Post
+            </button>
+
+            <button
+              type="button"
+              [class.is-active]="
+                publishType === 'reel'
+              "
+              (click)="setPublishType('reel')"
+            >
+              Reel
+            </button>
+
+            <button
+              type="button"
+              [class.is-active]="
+                publishType === 'story'
+              "
+              (click)="setPublishType('story')"
+            >
+              Story
+            </button>
+
+          </div>
+
+
+          <!-- Story Media Type -->
+          @if (
+            publishType === 'story'
+            ) {
+            <div class="story-type-selector">
+
+              <span>
+                Story type
+              </span>
+
+              <div>
+                <button
+                  type="button"
+                  [class.is-active]="
+                    storyMediaKind === 'image'
+                  "
+                  (click)="
+                    setStoryMediaKind('image')
+                  "
+                >
+                  Image
+                </button>
+
+                <button
+                  type="button"
+                  [class.is-active]="
+                    storyMediaKind === 'video'
+                  "
+                  (click)="
+                    setStoryMediaKind('video')
+                  "
+                >
+                  Video
+                </button>
+              </div>
+
+            </div>
+          }
+
+
+          <!-- Publish Timing -->
+          <div class="publish-timing-panel">
+
+            <span class="publish-timing-label">
+              Publish timing
+            </span>
+
+            <div class="publish-timing-selector">
+
+              <button
+                type="button"
+                [class.is-active]="
+                  publishTiming === 'now'
+                "
+                [disabled]="isPublishing"
+                (click)="
+                  setPublishTiming('now')
+                "
+              >
+                Publish now
+              </button>
+
+              <button
+                type="button"
+                [class.is-active]="
+                  publishTiming === 'scheduled'
+                "
+                [disabled]="isPublishing"
+                (click)="
+                  setPublishTiming('scheduled')
+                "
+              >
+                Schedule
+              </button>
+
+            </div>
+
+          </div>
+
+
+          <!-- Scheduled Date -->
+          @if (
+            publishTiming === 'scheduled'
+            ) {
+            <div class="publish-schedule-field">
+
+              <label for="publish-scheduled-at">
+                Date and time
+              </label>
+
+              <input
+                id="publish-scheduled-at"
+                type="datetime-local"
+                [value]="publishScheduledAt"
+                [disabled]="isPublishing"
+                (input)="
+                  publishScheduledAt =
+                    $any($event.target).value
+                "
+              >
+
+            </div>
+          }
+
+
+          <div class="publish-layout">
+
+            <!-- Media -->
+            <!-- Media -->
+            <div class="publish-media-column">
+
+              @if (publishType === 'image') {
+
+                <!-- Image / Carousel Upload -->
+                @if (publishImages.length < 10) {
+                <label
+                  class="publish-upload publish-upload-images"
+                  [class.has-images]="publishImages.length > 0"
+                >
+
+                    <input
+                      type="file"
+                      accept="image/jpeg"
+                      multiple
+                      [disabled]="isPublishing"
+                      (change)="
+            onPublishFileSelected($event)
+          "
+                    >
+
+                    <div class="publish-upload-empty">
+
+                      <ion-icon
+                        name="cloud-upload-outline"
+                      ></ion-icon>
+
+                      <strong>
+                        {{
+                          publishImages.length === 0
+                            ? 'Select images'
+                            : 'Add more images'
+                        }}
+                      </strong>
+
+                      <span>
+            JPEG · up to 10 images
+          </span>
+
+                    </div>
+
+                  </label>
+                }
+
+
+                <!-- Image / Carousel Previews -->
+                @if (publishImages.length > 0) {
+
+                  <div class="publish-images-header">
+
+                    <div>
+                      <strong>
+                        {{
+                          publishImages.length === 1
+                            ? 'Image Post'
+                            : 'Carousel Post'
+                        }}
+                      </strong>
+
+                      <span>
+            {{ publishImages.length }}
+                        / 10 images
+          </span>
+                    </div>
+
+                    <button
+                      type="button"
+                      [disabled]="isPublishing"
+                      (click)="clearPublishFile()"
+                    >
+                      Remove all
+                    </button>
+
+                  </div>
+
+
+                  <div class="publish-images-grid">
+
+                    @for (
+                      image of publishImages;
+                      track image.previewUrl;
+                      let index = $index
+                      ) {
+
+                      <div class="publish-image-item">
+
+                        <div class="publish-image-preview">
+
+                          <img
+                            [src]="image.previewUrl"
+                            [alt]="
+                  'Instagram image ' +
+                  (index + 1)
+                "
+                          >
+
+                          <span class="publish-image-position">
+                {{ index + 1 }}
+              </span>
+
+                        </div>
+
+
+                        <div class="publish-image-info">
+
+                          <div>
+                            <strong>
+                              {{ image.file.name }}
+                            </strong>
+
+                            <span>
+                  {{
+                                (
+                                  image.file.size /
+                                  1024 /
+                                  1024
+                                ).toFixed(2)
+                              }}
+                              MB
+                </span>
+                          </div>
+
+
+                          <div class="publish-image-actions">
+
+                            <button
+                              type="button"
+                              aria-label="Move image left"
+                              title="Move left"
+                              [disabled]="
+                    isPublishing ||
+                    index === 0
+                  "
+                              (click)="
+                    movePublishImage(
+                      index,
+                      -1
+                    )
+                  "
+                            >
+                              ←
+                            </button>
+
+                            <button
+                              type="button"
+                              aria-label="Move image right"
+                              title="Move right"
+                              [disabled]="
+                    isPublishing ||
+                    index ===
+                      publishImages.length - 1
+                  "
+                              (click)="
+                    movePublishImage(
+                      index,
+                      1
+                    )
+                  "
+                            >
+                              →
+                            </button>
+
+                            <button
+                              type="button"
+                              class="is-remove"
+                              [disabled]="isPublishing"
+                              (click)="
+                    removePublishImage(index)
+                  "
+                            >
+                              Remove
+                            </button>
+
+                          </div>
+
+                        </div>
+
+                      </div>
+
+                    }
+
+                  </div>
+
+                }
+
+              } @else {
+
+                <!-- Reel / Story Upload -->
+                @if (!publishFile) {
+                  <label class="publish-upload">
+
+                    <input
+                      type="file"
+                      [accept]="
+            (
+              publishType === 'story' &&
+              storyMediaKind === 'image'
+            )
+              ? 'image/jpeg'
+              : 'video/mp4,video/quicktime'
+          "
+                      [disabled]="isPublishing"
+                      (change)="
+            onPublishFileSelected($event)
+          "
+                    >
+
+                    <div class="publish-upload-empty">
+
+                      <ion-icon
+                        name="cloud-upload-outline"
+                      ></ion-icon>
+
+                      <strong>
+                        Select media
+                      </strong>
+
+                      <span>
+            @if (
+              publishType === 'story' &&
+              storyMediaKind === 'image'
+              ) {
+              JPEG image
+            } @else {
+              MP4 or MOV video
+            }
+          </span>
+
+                    </div>
+
+                  </label>
+                }
+
+
+                <!-- Reel / Story Preview -->
+                @if (
+                  publishFile &&
+                  publishPreviewUrl
+                  ) {
+                  <div class="publish-preview">
+
+                    @if (
+                      publishType === 'story' &&
+                      storyMediaKind === 'image'
+                      ) {
+                      <img
+                        [src]="publishPreviewUrl"
+                        alt="Instagram media preview"
+                      >
+                    } @else {
+                      <video
+                        [src]="publishPreviewUrl"
+                        controls
+                        playsinline
+                      ></video>
+                    }
+
+
+                    <div class="publish-preview-footer">
+
+                      <div>
+                        <strong>
+                          {{ publishFile.name }}
+                        </strong>
+
+                        <span>
+              {{
+                            (
+                              publishFile.size /
+                              1024 /
+                              1024
+                            ).toFixed(2)
+                          }}
+                          MB
+            </span>
+                      </div>
+
+                      <button
+                        type="button"
+                        [disabled]="isPublishing"
+                        (click)="clearPublishFile()"
+                      >
+                        Remove
+                      </button>
+
+                    </div>
+
+                  </div>
+                }
+
+              }
+
+            </div>
+
+
+            <!-- Options -->
+            <div class="publish-options-column">
+
+              <div class="publish-summary">
+
+                <span>
+                  Publishing as
+                </span>
+
+                <strong>
+                  @if (
+                    publishType === 'image'
+                    ) {
+                    {{
+                      publishImages.length > 1
+                        ? 'Carousel Post'
+                        : 'Image Post'
+                    }}
+                  } @else if (
+                    publishType === 'reel'
+                    ) {
+                    Reel
+                  } @else if (
+                    storyMediaKind === 'image'
+                    ) {
+                    Image Story
+                  } @else {
+                    Video Story
+                  }
+                </strong>
+
+              </div>
+
+
+              @if (
+                publishTiming === 'scheduled'
+                ) {
+                <div class="publish-summary">
+
+                  <span>
+                    Publishing mode
+                  </span>
+
+                  <strong>
+                    Scheduled
+                  </strong>
+
+                </div>
+              }
+
+
+              @if (
+                publishType !== 'story'
+                ) {
+                <div class="publish-field">
+
+                  <label for="instagram-caption">
+                    Caption
+                  </label>
+
+                  <textarea
+                    id="instagram-caption"
+                    rows="7"
+                    maxlength="2200"
+                    placeholder="Write a caption..."
+                    [value]="publishCaption"
+                    [disabled]="isPublishing"
+                    (input)="
+                      publishCaption =
+                        $any($event.target).value
+                    "
+                  ></textarea>
+
+                  <span class="field-counter">
+                    {{ publishCaption.length }}
+                    / 2200
+                  </span>
+
+                </div>
+              }
+
+
+              @if (
+                publishType === 'reel'
+                ) {
+                <label class="publish-toggle">
+
+                  <input
+                    type="checkbox"
+                    [checked]="shareToFeed"
+                    [disabled]="isPublishing"
+                    (change)="
+                      shareToFeed =
+                        $any($event.target).checked
+                    "
+                  >
+
+                  <div>
+                    <strong>
+                      Share to feed
+                    </strong>
+
+                    <span>
+                      Also show this Reel in the
+                      Instagram feed.
+                    </span>
+                  </div>
+
+                </label>
+              }
+
+
+              @if (publishError) {
+                <div
+                  class="
+                    publish-message
+                    publish-message-error
+                  "
+                >
+                  {{ publishError }}
+                </div>
+              }
+
+
+              @if (publishSuccess) {
+                <div
+                  class="
+                    publish-message
+                    publish-message-success
+                  "
+                >
+                  {{ publishSuccess }}
+                </div>
+              }
+
+
+              <!-- Publish / Schedule Action -->
+              <button
+                type="button"
+                class="publish-submit-button"
+                [disabled]="
+  isPublishing ||
+  (
+    publishType === 'image'
+      ? publishImages.length === 0
+      : !publishFile
+  ) ||
+  (
+    publishTiming === 'scheduled' &&
+    !publishScheduledAt
+  )
+"
+                (click)="
+                  publishTiming === 'now'
+                    ? publishNow()
+                    : scheduleContent()
+                "
+              >
+                @if (isPublishing) {
+                  <ion-spinner
+                    name="crescent"
+                  ></ion-spinner>
+
+                  <span>
+                    {{
+                      publishTiming === 'now'
+                        ? 'Publishing...'
+                        : 'Scheduling...'
+                    }}
+                  </span>
+                } @else {
+                  <ion-icon
+                    [name]="
+                      publishTiming === 'now'
+                        ? 'cloud-upload-outline'
+                        : 'calendar-outline'
+                    "
+                  ></ion-icon>
+
+                  <span>
+                    {{
+                      publishTiming === 'now'
+                        ? 'Publish now'
+                        : 'Schedule publication'
+                    }}
+                  </span>
+                }
+              </button>
+
+            </div>
+
+          </div>
+
+        </section>
+      }
+
+
+      <!-- Scheduled -->
+      @if (
+        isSectionActive('scheduled')
+        ) {
+        <section class="instagram-section">
+
+          <div class="section-heading">
+            <div>
+              <span class="section-eyebrow">
+                QUEUE
+              </span>
+
+              <h2>
+                Scheduled publications
+              </h2>
+            </div>
+
+            <span class="item-count">
+              {{ scheduledPublications.length }}
+            </span>
+          </div>
+
+
+          @if (publicationActionError) {
+            <div
+              class="
+                publish-message
+                publish-message-error
+              "
+            >
+              {{ publicationActionError }}
+            </div>
+          }
+
+
+          @if (publicationActionSuccess) {
+            <div
+              class="
+                publish-message
+                publish-message-success
+              "
+            >
+              {{ publicationActionSuccess }}
+            </div>
+          }
+
+
+          @if (
+            scheduledPublications.length === 0
+            ) {
+            <div class="empty-state">
+              No scheduled publications.
+            </div>
+          } @else {
+
+            <div class="scheduled-list">
+
+              @for (
+                publication of scheduledPublications;
+                track publication.id
+                ) {
+                <article class="scheduled-card">
+
+                  <div class="scheduled-card-main">
+
+                    <div class="scheduled-identity">
+
+                      <div class="scheduled-type-row">
+
+                        <span class="scheduled-type">
+                          @if (
+                            publication.type === 'image'
+                            ) {
+                            Image Post
+                          } @else if (
+                            publication.type === 'reel'
+                            ) {
+                            Reel
+                          } @else if (
+                            publication.media_kind === 'image'
+                            ) {
+                            Image Story
+                          } @else {
+                            Video Story
+                          }
+                        </span>
+
+                        <span class="scheduled-status">
+                          Scheduled
+                        </span>
+
+                      </div>
+
+
+                      <h3>
+                        @if (publication.caption) {
+                          {{ publication.caption }}
+                        } @else {
+                          No caption
+                        }
+                      </h3>
+
+
+                      @if (
+                        publication.scheduled_at
+                        ) {
+                        <span class="scheduled-time">
+                          {{
+                            publication.scheduled_at
+                              | date:'medium'
+                          }}
+                        </span>
+                      }
+
+                    </div>
+
+
+                    <div class="scheduled-actions">
+
+                      <button
+                        type="button"
+                        class="scheduled-action-button"
+                        [disabled]="
+                          processingPublicationId !== null
+                        "
+                        (click)="
+                          startReschedule(publication)
+                        "
+                      >
+                        Reschedule
+                      </button>
+
+
+                      <button
+                        type="button"
+                        class="
+                          scheduled-action-button
+                          scheduled-action-danger
+                        "
+                        [disabled]="
+                          processingPublicationId !== null
+                        "
+                        (click)="
+                          cancelScheduledPublication(
+                            publication
+                          )
+                        "
+                      >
+                        @if (
+                          processingPublicationId ===
+                          publication.id
+                          ) {
+                          <ion-spinner
+                            name="crescent"
+                          ></ion-spinner>
+                        } @else {
+                          Cancel
+                        }
+                      </button>
+
+                    </div>
+
+                  </div>
+
+
+                  @if (
+                    reschedulePublicationId ===
+                    publication.id
+                    ) {
+                    <div class="reschedule-panel">
+
+                      <div class="reschedule-field">
+
+                        <label
+                          [for]="
+                            'reschedule-' +
+                            publication.id
+                          "
+                        >
+                          New date and time
+                        </label>
+
+                        <input
+                          [id]="
+                            'reschedule-' +
+                            publication.id
+                          "
+                          type="datetime-local"
+                          [value]="rescheduleDateTime"
+                          [disabled]="
+                            processingPublicationId !== null
+                          "
+                          (input)="
+                            rescheduleDateTime =
+                              $any($event.target).value
+                          "
+                        >
+
+                      </div>
+
+
+                      <div class="reschedule-actions">
+
+                        <button
+                          type="button"
+                          class="reschedule-cancel"
+                          [disabled]="
+                            processingPublicationId !== null
+                          "
+                          (click)="closeReschedule()"
+                        >
+                          Close
+                        </button>
+
+
+                        <button
+                          type="button"
+                          class="reschedule-save"
+                          [disabled]="
+                            processingPublicationId !== null ||
+                            !rescheduleDateTime
+                          "
+                          (click)="
+                            reschedulePublication(
+                              publication
+                            )
+                          "
+                        >
+                          @if (
+                            processingPublicationId ===
+                            publication.id
+                            ) {
+                            <ion-spinner
+                              name="crescent"
+                            ></ion-spinner>
+                          } @else {
+                            Save new time
+                          }
+                        </button>
+
+                      </div>
+
+                    </div>
+                  }
+
+                </article>
+              }
+
+            </div>
+          }
+
+        </section>
+      }
+
+
+      <!-- Comments -->
+
+        <!-- Comments -->
+        <!-- Comments -->
+      @if (
+        isSectionActive('comments')
+        ) {
+        <section class="instagram-section">
+
+          <div class="section-heading">
+            <div>
+        <span class="section-eyebrow">
+          COMMUNITY
+        </span>
+
+              <h2>
+                Comments
+              </h2>
+            </div>
+
+            <span class="item-count">
+        {{ instagramMedia.length }}
+      </span>
+          </div>
+
+
+          @if (
+            instagramMedia.length === 0
+            ) {
+            <div class="empty-state">
+              No Instagram media available.
+            </div>
+          } @else {
+
+            <!-- Media Card -->
+            <ion-card
+              class="comments-media-card"
+            >
+
+              <div
+                class="comments-media-card-header"
+              >
+                <div>
+            <span class="section-eyebrow">
+              MEDIA
+            </span>
+
+                  <h3>
+                    Select content
+                  </h3>
+
+                  <p>
+                    Open a post to view and manage
+                    its comments.
+                  </p>
+                </div>
+
+                <span
+                  class="comments-media-total"
+                >
+            {{ instagramMedia.length }}
+          </span>
+              </div>
+
+
+              <!-- Media List -->
+              <div
+                class="comments-media-rows"
+              >
+
+                @for (
+                  item
+                    of paginatedCommentsMedia;
+                  track item.id
+                  ) {
+                  <button
+                    type="button"
+                    class="comments-media-row"
+                    (click)="
+                selectCommentsMedia(item)
+              "
+                  >
+
+                    <div
+                      class="comments-media-row-thumbnail"
+                    >
+                      @if (
+                        getMediaPreviewUrl(item)
+                        ) {
+                        <img
+                          [src]="
+                      getMediaPreviewUrl(item)
+                    "
+                          alt=""
+                        >
+                      } @else {
+                        <ion-icon
+                          name="logo-instagram"
+                        ></ion-icon>
+                      }
+                    </div>
+
+
+                    <div
+                      class="comments-media-row-copy"
+                    >
+
+                      <div
+                        class="comments-media-row-top"
+                      >
+                  <span
+                    class="comments-media-type"
+                  >
+                    {{ item.media_type }}
+                  </span>
+
+                        @if (item.timestamp) {
+                          <span
+                            class="comments-media-row-date"
+                          >
+                      {{
+                              item.timestamp
+                                | date:'short'
+                            }}
+                    </span>
+                        }
+                      </div>
+
+
+                      <strong>
+                        {{
+                          item.caption ||
+                          'No caption'
+                        }}
+                      </strong>
+
+
+                      <span
+                        class="comments-media-open-label"
+                      >
+                  View comments
+                </span>
+
+                    </div>
+
+                  </button>
+                }
+
+              </div>
+
+
+              <!-- Pagination -->
+              @if (
+                commentsMediaTotalPages > 1
+                ) {
+                <div
+                  class="comments-media-pagination"
+                >
+
+                  <button
+                    type="button"
+                    class="pagination-arrow"
+                    [disabled]="
+                commentsMediaPage === 1
+              "
+                    (click)="
+                setCommentsMediaPage(
+                  commentsMediaPage - 1
+                )
+              "
+                  >
+                    Previous
+                  </button>
+
+
+                  <div
+                    class="pagination-pages"
+                  >
+                    @for (
+                      page
+                        of commentsMediaVisiblePages;
+                      track page
+                      ) {
+                      <button
+                        type="button"
+                        [class.is-active]="
+                    page ===
+                    commentsMediaPage
+                  "
+                        (click)="
+                    setCommentsMediaPage(
+                      page
+                    )
+                  "
+                      >
+                        {{ page }}
+                      </button>
+                    }
+                  </div>
+
+
+                  <button
+                    type="button"
+                    class="pagination-arrow"
+                    [disabled]="
+                commentsMediaPage ===
+                commentsMediaTotalPages
+              "
+                    (click)="
+                setCommentsMediaPage(
+                  commentsMediaPage + 1
+                )
+              "
+                  >
+                    Next
+                  </button>
+
+                </div>
+              }
+
+            </ion-card>
+          }
+
+
+          <!-- Comments Modal -->
+          <ion-modal
+            cssClass="instagram-comments-modal"
+            [isOpen]="isCommentsModalOpen"
+            [backdropDismiss]="
+        processingCommentId === null
+      "
+            (didDismiss)="
+        onCommentsModalDidDismiss()
+      "
+          >
+            <ng-template>
+
+              @if (
+                selectedCommentsMedia;
+                as media
+                ) {
+                <div
+                  class="comments-modal-shell"
+                >
+
+                  <!-- Modal Header -->
+                  <header
+                    class="comments-modal-header"
+                  >
+
+                    <div>
+                <span
+                  class="section-eyebrow"
+                >
+                  COMMENTS
+                </span>
+
+                      <h2>
+                        Instagram comments
+                      </h2>
+                    </div>
+
+
+                    <button
+                      type="button"
+                      class="comments-modal-close"
+                      [disabled]="
+                  processingCommentId !==
+                  null
+                "
+                      (click)="
+                  closeCommentsModal()
+                "
+                    >
+                      Close
+                    </button>
+
+                  </header>
+
+
+                  <!-- Selected Media -->
+                  <div
+                    class="comments-modal-media"
+                  >
+
+                    <div
+                      class="comments-modal-media-preview"
+                    >
+                      @if (
+                        getMediaPreviewUrl(media)
+                        ) {
+                        <img
+                          [src]="
+                      getMediaPreviewUrl(media)
+                    "
+                          alt=""
+                        >
+                      } @else {
+                        <div
+                          class="comments-modal-media-placeholder"
+                        >
+                          <ion-icon
+                            name="logo-instagram"
+                          ></ion-icon>
+                        </div>
+                      }
+                    </div>
+
+
+                    <div
+                      class="comments-modal-media-copy"
+                    >
+
+                      <div
+                        class="comments-modal-media-meta"
+                      >
+                  <span
+                    class="comments-media-type"
+                  >
+                    {{ media.media_type }}
+                  </span>
+
+                        @if (media.timestamp) {
+                          <span>
+                      {{
+                              media.timestamp
+                                | date:'medium'
+                            }}
+                    </span>
+                        }
+                      </div>
+
+
+                      <h3>
+                        {{
+                          media.caption ||
+                          'No caption'
+                        }}
+                      </h3>
+
+
+                      @if (media.username) {
+                        <span
+                          class="comments-modal-username"
+                        >
+                    &#64;{{ media.username }}
+                  </span>
+                      }
+
+                    </div>
+
+                  </div>
+
+
+                  <!-- Comments Toolbar -->
+                  <div
+                    class="comments-modal-toolbar"
+                  >
+
+                    <div>
+                <span
+                  class="section-eyebrow"
+                >
+                  DISCUSSION
+                </span>
+
+                      <strong>
+                        {{ instagramComments.length }}
+                        comments
+                      </strong>
+                    </div>
+
+
+                    <button
+                      type="button"
+                      class="comments-refresh-button"
+                      [disabled]="
+                  isCommentsLoading
+                "
+                      (click)="
+                  loadComments()
+                "
+                    >
+                      @if (
+                        isCommentsLoading
+                        ) {
+                        <ion-spinner
+                          name="crescent"
+                        ></ion-spinner>
+                      } @else {
+                        <ion-icon
+                          name="refresh-outline"
+                        ></ion-icon>
+                      }
+
+                      Refresh
+                    </button>
+
+                  </div>
+
+
+                  <!-- Error -->
+                  @if (commentsError) {
+                    <div
+                      class="
+                  publish-message
+                  publish-message-error
+                  comments-modal-message
+                "
+                    >
+                      {{ commentsError }}
+                    </div>
+                  }
+
+
+                  <!-- Loading -->
+                  @if (
+                    isCommentsLoading &&
+                    instagramComments.length === 0
+                    ) {
+                    <div
+                      class="comments-state"
+                    >
+                      <ion-spinner
+                        name="crescent"
+                      ></ion-spinner>
+
+                      <span>
+                  Loading comments...
+                </span>
+                    </div>
+                  }
+
+
+                  <!-- Empty -->
+                  @if (
+                    !isCommentsLoading &&
+                    !commentsError &&
+                    instagramComments.length === 0
+                    ) {
+                    <div
+                      class="comments-state"
+                    >
+                      No comments on this content.
+                    </div>
+                  }
+
+
+                  <!-- Comments -->
+                  @if (
+                    instagramComments.length > 0
+                    ) {
+                    <div
+                      class="comments-modal-list"
+                    >
+
+                      @for (
+                        comment
+                          of instagramComments;
+                        track comment.id
+                        ) {
+                        <article
+                          class="comment-card"
+                        >
+
+                          <div
+                            class="comment-main"
+                          >
+
+                            <div
+                              class="comment-avatar"
+                            >
+                              {{
+                                (
+                                  comment.from
+                                    ?.username ||
+                                  'U'
+                                )
+                                  .charAt(0)
+                                  .toUpperCase()
+                              }}
+                            </div>
+
+
+                            <div
+                              class="comment-content"
+                            >
+
+                              <div
+                                class="comment-author-row"
+                              >
+
+                                <strong>
+                                  @if (
+                                    comment.from
+                                      ?.username
+                                    ) {
+                                    @{{ comment.from?.username }}
+                                  } @else {
+                                    Instagram user
+                                  }
+                                </strong>
+
+
+                                @if (
+                                  comment.timestamp
+                                  ) {
+                                  <span>
+                              {{
+                                      comment.timestamp
+                                        | date:'short'
+                                    }}
+                            </span>
+                                }
+
+                              </div>
+
+
+                              <p>
+                                {{ comment.text }}
+                              </p>
+
+
+                              <div
+                                class="comment-actions"
+                              >
+
+                                <button
+                                  type="button"
+                                  [disabled]="
+                              processingCommentId !==
+                              null
+                            "
+                                  (click)="
+                              startCommentReply(
+                                comment
+                              )
+                            "
+                                >
+                                  Reply
+                                </button>
+
+
+                                <button
+                                  type="button"
+                                  [disabled]="
+                              processingCommentId !==
+                              null
+                            "
+                                  (click)="
+                              hideComment(
+                                comment
+                              )
+                            "
+                                >
+                                  Hide
+                                </button>
+
+
+                                <button
+                                  type="button"
+                                  class="
+                              comment-action-danger
+                            "
+                                  [disabled]="
+                              processingCommentId !==
+                              null
+                            "
+                                  (click)="
+                              deleteInstagramComment(
+                                comment
+                              )
+                            "
+                                >
+                                  @if (
+                                    processingCommentId ===
+                                    comment.id
+                                    ) {
+                                    <ion-spinner
+                                      name="crescent"
+                                    ></ion-spinner>
+                                  } @else {
+                                    Delete
+                                  }
+                                </button>
+
+                              </div>
+
+
+                              <!-- Reply -->
+                              @if (
+                                replyingCommentId ===
+                                comment.id
+                                ) {
+                                <div
+                                  class="comment-reply-form"
+                                >
+
+                            <textarea
+                              rows="3"
+                              maxlength="1000"
+                              placeholder="Write a reply..."
+                              [value]="
+                                commentReplyText
+                              "
+                              [disabled]="
+                                processingCommentId !==
+                                null
+                              "
+                              (input)="
+                                commentReplyText =
+                                  $any(
+                                    $event.target
+                                  ).value
+                              "
+                            ></textarea>
+
+
+                                  <div
+                                    class="comment-reply-actions"
+                                  >
+
+                                    <button
+                                      type="button"
+                                      class="
+                                  comment-reply-cancel
+                                "
+                                      [disabled]="
+                                  processingCommentId !==
+                                  null
+                                "
+                                      (click)="
+                                  cancelCommentReply()
+                                "
+                                    >
+                                      Cancel
+                                    </button>
+
+
+                                    <button
+                                      type="button"
+                                      class="
+                                  comment-reply-submit
+                                "
+                                      [disabled]="
+                                  processingCommentId !==
+                                    null ||
+                                  !commentReplyText
+                                    .trim()
+                                "
+                                      (click)="
+                                  submitCommentReply(
+                                    comment
+                                  )
+                                "
+                                    >
+                                      @if (
+                                        processingCommentId ===
+                                        comment.id
+                                        ) {
+                                        <ion-spinner
+                                          name="crescent"
+                                        ></ion-spinner>
+                                      } @else {
+                                        Reply
+                                      }
+                                    </button>
+
+                                  </div>
+
+                                </div>
+                              }
+
+                            </div>
+
+                          </div>
+
+                        </article>
+                      }
+
+                    </div>
+                  }
+
+                </div>
+              }
+
+            </ng-template>
+          </ion-modal>
+
+        </section>
+      }
+
+
+
+      <!-- Inbox -->
+
+      @if (
+        isSectionActive('inbox')
+        ) {
+        <section class="instagram-section">
+
+          <div class="section-heading">
+            <div>
+        <span class="section-eyebrow">
+          MESSAGES
+        </span>
+
+              <h2>
+                Inbox
+              </h2>
+            </div>
+
+            <button
+              type="button"
+              class="comments-refresh-button"
+              [disabled]="isInboxLoading"
+              (click)="loadConversations()"
+            >
+              <ion-icon
+                name="refresh-outline"
+              ></ion-icon>
+
+              Refresh
+            </button>
+          </div>
+
+          @if (inboxError) {
+            <div class="instagram-state error">
+              {{ inboxError }}
+            </div>
+          }
+
+          @if (isInboxLoading) {
+            <div class="instagram-state">
+              <ion-spinner
+                name="crescent"
+              ></ion-spinner>
+
+              <span>
+          Loading conversations...
+        </span>
+            </div>
+          } @else {
+
+            @if (
+              instagramConversations.length === 0
+              ) {
+              <div class="section-placeholder">
+                No Instagram conversations found.
+              </div>
+            } @else {
+
+              <div class="inbox-layout">
+
+                <aside class="inbox-conversations">
+
+                  @for (
+                    conversation
+                      of instagramConversations;
+                    track conversation.id
+                    ) {
+                    <button
+                      type="button"
+                      class="inbox-conversation-card"
+                      [class.active]="
+                  selectedConversation?.id ===
+                  conversation.id
+                "
+                      (click)="
+                  openConversation(
+                    conversation
+                  )
+                "
+                    >
+                      <div
+                        class="inbox-conversation-icon"
+                      >
+                        <ion-icon
+                          name="chatbubble-ellipses-outline"
+                        ></ion-icon>
+                      </div>
+
+                      <div
+                        class="inbox-conversation-content"
+                      >
+                        <strong>
+                          Instagram conversation
+                        </strong>
+
+                        @if (
+                          conversation.updated_time
+                          ) {
+                          <span>
+                      {{
+                              conversation.updated_time
+                                | date:'medium'
+                            }}
+                    </span>
+                        }
+                      </div>
+                    </button>
+                  }
+
+                </aside>
+
+                <div class="inbox-messages-panel">
+
+                  @if (conversationError) {
+                    <div class="instagram-state error">
+                      {{ conversationError }}
+                    </div>
+                  }
+
+                  @if (isConversationLoading) {
+                    <div class="instagram-state">
+                      <ion-spinner
+                        name="crescent"
+                      ></ion-spinner>
+
+                      <span>
+                  Loading conversation...
+                </span>
+                    </div>
+
+                  } @else if (
+                    selectedConversation
+                    ) {
+
+                    <div class="inbox-chat">
+
+                      <div class="inbox-chat-header">
+
+                        <div>
+                    <span class="section-eyebrow">
+                      CONVERSATION
+                    </span>
+
+                          @if (
+                            selectedConversationRecipient;
+                            as recipient
+                            ) {
+                            <strong>
+                              &#64;{{ recipient.username }}
+                            </strong>
+                          } @else {
+                            <strong>
+                              Instagram User
+                            </strong>
+                          }
+                        </div>
+
+                        <button
+                          type="button"
+                          class="comments-refresh-button"
+                          (click)="closeConversation()"
+                        >
+                          Close
+                        </button>
+
+                      </div>
+
+                      <div class="inbox-message-list">
+
+                        @if (
+                          sortedInstagramMessages
+                            .length === 0
+                          ) {
+                          <div class="section-placeholder">
+                            No messages found.
+                          </div>
+                        }
+
+                        @for (
+                          message
+                            of sortedInstagramMessages;
+                          track message.id
+                          ) {
+                          <div
+                            class="inbox-message-row"
+                            [class.own]="
+                        isOwnInstagramMessage(
+                          message
+                        )
+                      "
+                          >
+                            <div
+                              class="inbox-message-bubble"
+                            >
+
+                              @if (
+                                !isOwnInstagramMessage(
+                                  message
+                                )
+                                ) {
+                                <span
+                                  class="inbox-message-author"
+                                >
+                            &#64;{{
+                                    message.from?.username
+                                  }}
+                          </span>
+                              }
+
+                              <p>
+                                {{
+                                  message.message ||
+                                  'Unsupported message type'
+                                }}
+                              </p>
+
+                              @if (
+                                message.created_time
+                                ) {
+                                <time>
+                                  {{
+                                    message.created_time
+                                      | date:'short'
+                                  }}
+                                </time>
+                              }
+
+                            </div>
+                          </div>
+                        }
+
+                      </div>
+
+                      <div class="inbox-compose">
+
+                        @if (messageSendError) {
+                          <div
+                            class="instagram-state error"
+                          >
+                            {{ messageSendError }}
+                          </div>
+                        }
+
+                        <div
+                          class="inbox-compose-row"
+                        >
+                    <textarea
+                      rows="2"
+                      placeholder="Write a message..."
+                      [value]="messageDraft"
+                      [disabled]="isSendingMessage"
+                      (input)="
+                        messageDraft =
+                          $any(
+                            $event.target
+                          ).value
+                      "
+                    ></textarea>
+
+                          <button
+                            type="button"
+                            class="primary-action-button"
+                            [disabled]="
+                        isSendingMessage ||
+                        messageDraft.trim() ===
+                          '' ||
+                        !selectedConversationRecipient
+                      "
+                            (click)="sendInstagramMessage()"
+                          >
+                            @if (
+                              isSendingMessage
+                              ) {
+                              <ion-spinner
+                                name="crescent"
+                              ></ion-spinner>
+                            } @else {
+                              Send
+                            }
+                          </button>
+                        </div>
+
+                      </div>
+
+                    </div>
+
+                  } @else {
+
+                    <div class="section-placeholder">
+                      Select a conversation to view
+                      its messages.
+                    </div>
+
+                  }
+
+                </div>
+
+              </div>
+
+            }
+
+          }
+
+        </section>
+      }
+
+
+    }
+
+  </div>
+</ion-content>

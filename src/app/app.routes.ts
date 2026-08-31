@@ -170,6 +170,24 @@ export const routes: Routes = [
   },
 
   {
+    path: 'workspaces/:workspaceId/instagram',
+    title: 'Instagram Manager | Konj Task Manager',
+
+    canActivate: [
+      authGuard,
+      verifiedGuard,
+    ],
+
+    loadComponent: () =>
+      import(
+        './instagram/pages/instagram-manager/instagram-manager.page'
+        ).then(
+        (module) =>
+          module.InstagramManagerPage,
+      ),
+  },
+
+  {
     path: 'settings',
     title: 'Settings | Konj Task Manager',
     canActivate: [

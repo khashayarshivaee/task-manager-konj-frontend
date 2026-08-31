@@ -55,6 +55,7 @@ import { addIcons } from 'ionicons';
 import {
   serverOutline,
   addOutline,
+  logoInstagram,
   calendarOutline,
   menu,
   createOutline,
@@ -217,6 +218,7 @@ export class HomePage implements OnInit {
       gridOutline,
       homeOutline,
       serverOutline,
+      logoInstagram,
       logOutOutline,
       menuOutline,
       notificationsOutline,
@@ -950,6 +952,17 @@ export class HomePage implements OnInit {
       currentUser !== null &&
       workspace.owner_id === currentUser.id
     );
+  }
+
+  openInstagramManager(): void {
+    this.closeWorkspaceMenu();
+    this.closeSidebar();
+
+    void this.router.navigate([
+      '/workspaces',
+      1,
+      'instagram',
+    ]);
   }
 
   openWorkspaceMembers(): void {

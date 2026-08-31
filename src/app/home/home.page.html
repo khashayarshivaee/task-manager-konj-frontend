@@ -334,6 +334,21 @@
             <span>Members</span>
           </button>
 
+          <button
+            type="button"
+            class="navigation-item"
+            [disabled]="!(activeWorkspace$ | async)"
+            (click)="openInstagramManager()"
+          >
+            <ion-icon
+              name="logo-instagram"
+            ></ion-icon>
+
+            <span>
+    Instagram
+  </span>
+          </button>
+
 
         </div>
 
