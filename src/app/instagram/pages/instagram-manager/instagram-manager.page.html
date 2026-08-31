@@ -576,7 +576,7 @@
 
                     <input
                       type="file"
-                      accept="image/jpeg"
+                      accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
                       multiple
                       [disabled]="isPublishing"
                       (change)="
@@ -599,8 +599,8 @@
                       </strong>
 
                       <span>
-            JPEG · up to 10 images
-          </span>
+  JPG, PNG or WebP · up to 10 images
+</span>
 
                     </div>
 
@@ -757,13 +757,13 @@
                     <input
                       type="file"
                       [accept]="
-            (
-              publishType === 'story' &&
-              storyMediaKind === 'image'
-            )
-              ? 'image/jpeg'
-              : 'video/mp4,video/quicktime'
-          "
+  (
+    publishType === 'story' &&
+    storyMediaKind === 'image'
+  )
+    ? '.jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp'
+    : 'video/mp4,video/quicktime'
+"
                       [disabled]="isPublishing"
                       (change)="
             onPublishFileSelected($event)
@@ -781,14 +781,14 @@
                       </strong>
 
                       <span>
-            @if (
-              publishType === 'story' &&
-              storyMediaKind === 'image'
-              ) {
-              JPEG image
-            } @else {
-              MP4 or MOV video
-            }
+        @if (
+          publishType === 'story' &&
+          storyMediaKind === 'image'
+          ) {
+          JPG, PNG or WebP image
+        } @else {
+          MP4 or MOV video
+        }
           </span>
 
                     </div>
