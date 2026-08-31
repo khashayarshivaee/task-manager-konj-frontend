@@ -15,6 +15,10 @@ import {
 } from '@angular/forms';
 
 import {
+  InstagramService,
+} from '../../../instagram/services/instagram.service';
+
+import {
   InstagramAccessUser,
 } from '../../../instagram/models/instagram-access.model';
 import {
@@ -47,7 +51,11 @@ import {
   settingsOutline,
 } from 'ionicons/icons';
 import {
+  catchError,
   finalize,
+  forkJoin,
+  map,
+  of,
 } from 'rxjs';
 
 import {
@@ -101,6 +109,9 @@ export class ProfileSettingsPage
 
   private readonly instagramAccessService =
     inject(InstagramAccessService);
+
+  private readonly instagramService =
+    inject(InstagramService);
 
   private readonly router =
     inject(Router);
@@ -164,6 +175,7 @@ export class ProfileSettingsPage
 
   workspaces: Workspace[] = [];
   activeWorkspace: Workspace | null = null;
+  instagramWorkspace: Workspace | null = null;
 
   isLoading = true;
   isSaving = false;
@@ -247,11 +259,10 @@ export class ProfileSettingsPage
   ): void {
     if (
       section === 'instagram-access' &&
-      !this.isSystemAdmin
+      this.instagramWorkspace
     ) {
-      return;
+      this.loadInstagramAccessUsers();
     }
-
     this.activeSection = section;
 
     this.successMessage = '';
@@ -569,13 +580,7 @@ export class ProfileSettingsPage
 
     this.workspaceSuccessMessage =
       `${workspace.name} is now your active workspace.`;
-    if (
-      this.activeSection ===
-      'instagram-access' &&
-      this.isSystemAdmin
-    ) {
-      this.loadInstagramAccessUsers();
-    }
+
   }
 
   openWorkspaceManagement(): void {
@@ -658,7 +663,7 @@ export class ProfileSettingsPage
   ): void {
     if (
       !this.isSystemAdmin ||
-      !this.activeWorkspace ||
+      !this.instagramWorkspace ||
       !user.can_manage_access ||
       this.isUpdatingInstagramAccess(
         user.id,
@@ -679,12 +684,12 @@ export class ProfileSettingsPage
     const request$ = shouldGrant
       ? this.instagramAccessService
         .grantAccess(
-          this.activeWorkspace.id,
+          this.instagramWorkspace.id,
           user.id,
         )
       : this.instagramAccessService
         .revokeAccess(
-          this.activeWorkspace.id,
+          this.instagramWorkspace.id,
           user.id,
         );
 
@@ -756,6 +761,10 @@ export class ProfileSettingsPage
           this.activeWorkspace =
             this.workspaceService
               .getActiveWorkspace();
+
+          this.resolveInstagramWorkspace(
+            workspaces,
+          );
         },
 
         error: () => {
@@ -768,20 +777,78 @@ export class ProfileSettingsPage
       });
   }
 
-  private loadInstagramAccessUsers(): void {
+  private resolveInstagramWorkspace(
+    workspaces: Workspace[],
+  ): void {
+    this.instagramWorkspace = null;
+
     if (
-      !this.isSystemAdmin
+      !this.isSystemAdmin ||
+      workspaces.length === 0
     ) {
+      return;
+    }
+
+    forkJoin(
+      workspaces.map(
+        (workspace) =>
+          this.instagramService
+            .getConnectionStatus(
+              workspace.id,
+            )
+            .pipe(
+              map(
+                (connection) => ({
+                  workspace,
+                  connected:
+                  connection.connected,
+                }),
+              ),
+
+              catchError(() =>
+                of({
+                  workspace,
+                  connected: false,
+                }),
+              ),
+            ),
+      ),
+    )
+      .pipe(
+        takeUntilDestroyed(
+          this.destroyRef,
+        ),
+      )
+      .subscribe({
+        next: (results) => {
+          this.instagramWorkspace =
+            results.find(
+              (result) =>
+                result.connected,
+            )?.workspace ?? null;
+
+          if (
+            this.activeSection ===
+            'instagram-access'
+          ) {
+            this.loadInstagramAccessUsers();
+          }
+        },
+      });
+  }
+
+  private loadInstagramAccessUsers(): void {
+    if (!this.isSystemAdmin) {
       this.instagramAccessUsers = [];
 
       return;
     }
 
-    if (!this.activeWorkspace) {
+    if (!this.instagramWorkspace) {
       this.instagramAccessUsers = [];
 
       this.instagramAccessErrorMessage =
-        'Select an active workspace first.';
+        'No connected Instagram workspace was found.';
 
       return;
     }
@@ -793,7 +860,7 @@ export class ProfileSettingsPage
 
     this.instagramAccessService
       .getUsers(
-        this.activeWorkspace.id,
+        this.instagramWorkspace.id,
       )
       .pipe(
         finalize(() => {
