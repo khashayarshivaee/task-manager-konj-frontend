@@ -1777,3 +1777,86 @@ ion-modal.vpn-destinations-modal {
   }
 }
 
+
+/* ========================================
+   Header Actions / Usage Shortcut
+   ======================================== */
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 9px;
+}
+
+.usage-shortcut-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  min-height: 42px;
+  padding: 0 16px;
+
+  border: 1px solid #f0dbc9;
+  border-radius: 14px;
+
+  background: #fff4e9;
+  color: #c57432;
+
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+
+  white-space: nowrap;
+  cursor: pointer;
+
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    transform 160ms ease;
+}
+
+.usage-shortcut-button ion-icon {
+  font-size: 17px;
+}
+
+.usage-shortcut-button:hover {
+  background: #ffead6;
+  border-color: #ebc7a7;
+}
+
+.usage-shortcut-button:active {
+  transform: translateY(1px);
+}
+
+.usage-shortcut-button:focus-visible {
+  outline: 2px solid #f28a3b;
+  outline-offset: 3px;
+}
+
+/* Mobile */
+@media (max-width: 700px) {
+  .header-actions {
+    grid-column: 1 / -1;
+
+    display: grid;
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+
+    gap: 9px;
+    width: 100%;
+  }
+
+  .header-actions .usage-shortcut-button,
+  .header-actions .refresh-button {
+    grid-column: auto;
+    width: 100%;
+    min-width: 0;
+
+    padding: 0 10px;
+    font-size: 12px;
+  }
+}
+
+

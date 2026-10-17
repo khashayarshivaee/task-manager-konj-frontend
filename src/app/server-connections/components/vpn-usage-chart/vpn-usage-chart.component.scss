@@ -780,3 +780,71 @@
     animation-duration: 1.5s;
   }
 }
+
+
+/* ========================================
+   Daily Usage Limit Indicator
+   ======================================== */
+
+.vpn-usage-daily-meter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+
+  width: 100%;
+  margin-top: 11px;
+}
+
+.vpn-usage-daily-track {
+  width: min(100%, 82px);
+  height: 5px;
+
+  overflow: hidden;
+
+  border-radius: 999px;
+  background: #edf0f2;
+}
+
+.vpn-usage-daily-fill {
+  height: 100%;
+
+  border-radius: inherit;
+  background: #26966b;
+
+  transition:
+    width 300ms ease,
+    background-color 200ms ease;
+}
+
+.vpn-usage-daily-fill.is-warning {
+  background: #e69a35;
+}
+
+.vpn-usage-daily-fill.is-exceeded {
+  background: #d84d4d;
+}
+
+.vpn-usage-daily-status {
+  color: #26966b;
+
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+.vpn-usage-daily-status.is-warning {
+  color: #d18a25;
+}
+
+.vpn-usage-daily-status.is-exceeded {
+  color: #d84d4d;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vpn-usage-daily-fill {
+    transition: none;
+  }
+}
+

@@ -1,6 +1,8 @@
 import {
   Component,
+  ElementRef,
   OnInit,
+  ViewChild,
   inject,
 } from '@angular/core';
 
@@ -29,6 +31,7 @@ import {
 
 import {
   addOutline,
+  barChartOutline,
   arrowBackOutline,
   checkmarkCircleOutline,
   copyOutline,
@@ -85,6 +88,7 @@ interface ServerConnectionGroup {
     IonContent,
     DatePipe,
     IonModal,
+
     IonIcon,
     IonSpinner,
     VpnUsageChartComponent,
@@ -94,6 +98,14 @@ export class ServerConnectionsPage
   implements OnInit {
   private readonly router =
     inject(Router);
+
+  @ViewChild(IonContent)
+  private pageContent?: IonContent;
+
+  @ViewChild('vpnUsageTarget', {
+    read: ElementRef,
+  })
+  private vpnUsageTarget?: ElementRef<HTMLElement>;
 
 
   private readonly serverConnectionService =
@@ -149,6 +161,7 @@ export class ServerConnectionsPage
     addIcons({
       addOutline,
       arrowBackOutline,
+      barChartOutline,
       checkmarkCircleOutline,
       copyOutline,
       powerOutline,
@@ -497,6 +510,33 @@ export class ServerConnectionsPage
     }
 
     return parts.join(' ');
+  }
+
+
+  async scrollToVpnUsage(): Promise<void> {
+    const content = this.pageContent;
+
+    const target =
+      this.vpnUsageTarget?.nativeElement;
+
+    if (!content || !target) {
+      return;
+    }
+
+    const scrollElement =
+      await content.getScrollElement();
+
+    const targetY =
+      target.getBoundingClientRect().top
+      - scrollElement.getBoundingClientRect().top
+      + scrollElement.scrollTop
+      - 16;
+
+    await content.scrollToPoint(
+      0,
+      Math.max(0, targetY),
+      500,
+    );
   }
 
   goBack(): void {

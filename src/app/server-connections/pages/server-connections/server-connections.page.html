@@ -47,32 +47,49 @@
         </div>
       </div>
 
-      <button
-        type="button"
-        class="refresh-button"
-        [disabled]="
-          isVpnUsersLoading ||
-          isConnectionsLoading
-        "
-        (click)="refresh()"
-      >
-        @if (
-          isVpnUsersLoading ||
-          isConnectionsLoading
-          ) {
-          <ion-spinner
-            name="crescent"
-          ></ion-spinner>
-        } @else {
-          <ion-icon
-            name="refresh-outline"
-          ></ion-icon>
-        }
 
-        <span>
-          Refresh
-        </span>
-      </button>
+      <div class="header-actions">
+
+        <button
+          type="button"
+          class="usage-shortcut-button"
+          (click)="scrollToVpnUsage()"
+        >
+          <ion-icon
+            name="bar-chart-outline"
+          ></ion-icon>
+
+          <span>View Usage</span>
+        </button>
+
+        <button
+          type="button"
+          class="refresh-button"
+          [disabled]="
+      isVpnUsersLoading ||
+      isConnectionsLoading
+    "
+          (click)="refresh()"
+        >
+          @if (
+            isVpnUsersLoading ||
+            isConnectionsLoading
+            ) {
+            <ion-spinner
+              name="crescent"
+            ></ion-spinner>
+          } @else {
+            <ion-icon
+              name="refresh-outline"
+            ></ion-icon>
+          }
+
+          <span>Refresh</span>
+        </button>
+
+      </div>
+
+
     </header>
 
 
@@ -593,7 +610,9 @@
 
 
     <!-- VPN Traffic Analytics -->
-    <app-vpn-usage-chart>
+    <app-vpn-usage-chart
+      #vpnUsageTarget
+    >
     </app-vpn-usage-chart>
 
 
@@ -1041,16 +1060,14 @@
                   }}
                 </span>
 
+
                 <button
                   type="button"
-                  (click)="
-                    refreshDestinations(
-                      vpnUser.id
-                    )
-                  "
+                  (click)="refreshDestinations(vpnUser.id)"
                 >
                   Try again
                 </button>
+
               </div>
             }
 

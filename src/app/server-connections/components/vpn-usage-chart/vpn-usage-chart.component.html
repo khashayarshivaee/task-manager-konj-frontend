@@ -303,10 +303,65 @@
                     {{ user.name }}
                   </div>
 
+
                   <!-- Total -->
                   <div class="vpn-usage-user-total">
                     {{ formatBytes(user.total_bytes) }}
                   </div>
+
+                  <!-- Daily Usage Limit -->
+                  @if (isDailyPeriod) {
+
+                    <div
+                      class="vpn-usage-daily-meter"
+                      [attr.aria-label]="
+      'Daily usage: '
+      + formatBytes(user.total_bytes)
+      + ' of 5 GB'
+    "
+                    >
+
+                      <div class="vpn-usage-daily-track">
+                        <div
+                          class="vpn-usage-daily-fill"
+                          [class.is-warning]="
+          dailyUsageLevel(user) === 'warning'
+        "
+                          [class.is-exceeded]="
+          dailyUsageLevel(user) === 'exceeded'
+        "
+                          [style.width.%]="
+          dailyUsagePercent(user)
+        "
+                        ></div>
+                      </div>
+
+                      <span
+                        class="vpn-usage-daily-status"
+                        [class.is-warning]="
+        dailyUsageLevel(user) === 'warning'
+      "
+                        [class.is-exceeded]="
+        dailyUsageLevel(user) === 'exceeded'
+      "
+                      >
+      @switch (dailyUsageLevel(user)) {
+        @case ('exceeded') {
+          5 GB reached
+        }
+        @case ('warning') {
+          Near 5 GB
+        }
+        @default {
+          Normal
+        }
+      }
+    </span>
+
+                    </div>
+
+                  }
+
 
                 </div>
 

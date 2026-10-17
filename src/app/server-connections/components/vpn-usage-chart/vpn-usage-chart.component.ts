@@ -189,6 +189,50 @@ export class VpnUsageChartComponent
     );
   }
 
+
+  readonly dailyLimitBytes =
+    5 * 1024 * 1024 * 1024;
+
+  get isDailyPeriod(): boolean {
+    return (
+      this.selectedPeriod === 'today' ||
+      this.selectedPeriod === 'yesterday'
+    );
+  }
+
+  dailyUsageLevel(
+    user: VpnDailyUsageUser,
+  ): 'safe' | 'warning' | 'exceeded' {
+    const usage = user.total_bytes;
+
+    if (usage >= this.dailyLimitBytes) {
+      return 'exceeded';
+    }
+
+    if (usage >= 3 * 1024 * 1024 * 1024) {
+      return 'warning';
+    }
+
+    return 'safe';
+  }
+
+  dailyUsagePercent(
+    user: VpnDailyUsageUser,
+  ): number {
+    if (this.dailyLimitBytes <= 0) {
+      return 0;
+    }
+
+    return Math.min(
+      100,
+      Math.max(
+        0,
+        (user.total_bytes / this.dailyLimitBytes) * 100,
+      ),
+    );
+  }
+
+
   formatBytes(
     bytes: number,
   ): string {
