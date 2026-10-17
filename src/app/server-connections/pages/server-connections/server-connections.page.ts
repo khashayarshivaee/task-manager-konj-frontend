@@ -8,7 +8,9 @@ import {
   DatePipe,
 } from '@angular/common';
 
-
+import {
+  VpnUsageChartComponent,
+} from '../../components/vpn-usage-chart/vpn-usage-chart.component';
 
 import {
   Router,
@@ -85,6 +87,7 @@ interface ServerConnectionGroup {
     IonModal,
     IonIcon,
     IonSpinner,
+    VpnUsageChartComponent,
   ],
 })
 export class ServerConnectionsPage

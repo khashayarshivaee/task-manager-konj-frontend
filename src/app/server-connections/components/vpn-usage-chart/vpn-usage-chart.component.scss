@@ -1,0 +1,782 @@
+
+:host {
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+
+.vpn-usage-panel {
+  --vpn-download: #f28a3b;
+  --vpn-upload: #566373;
+  --vpn-text: #202329;
+  --vpn-muted: #89919d;
+  --vpn-border: #e9ecf0;
+
+  width: 100%;
+  min-width: 0;
+  padding: 24px;
+
+  border: 1px solid var(--vpn-border);
+  border-radius: 20px;
+
+  background: #ffffff;
+
+  box-shadow:
+    0 5px 24px rgba(18, 25, 38, 0.025);
+}
+
+/* ========================================
+   Header
+   ======================================== */
+
+.vpn-usage-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.vpn-usage-heading {
+  min-width: 0;
+}
+
+.vpn-usage-eyebrow {
+  display: block;
+  margin-bottom: 7px;
+
+  color: #d57a38;
+
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 0.12em;
+}
+
+.vpn-usage-heading h2 {
+  margin: 0;
+
+  color: var(--vpn-text);
+
+  font-size: 21px;
+  font-weight: 760;
+  letter-spacing: -0.6px;
+}
+
+.vpn-usage-heading p {
+  margin: 8px 0 0;
+
+  color: var(--vpn-muted);
+
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+/* ========================================
+   Period Filters
+   ======================================== */
+
+.vpn-usage-periods {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+
+  padding: 4px;
+
+  border: 1px solid #edf0f2;
+  border-radius: 13px;
+
+  background: #f6f7f9;
+}
+
+.vpn-usage-period {
+  min-height: 34px;
+  padding: 0 13px;
+
+  border: 0;
+  border-radius: 9px;
+
+  background: transparent;
+  color: #858d98;
+
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 650;
+
+  white-space: nowrap;
+  cursor: pointer;
+
+  transition:
+    background 160ms ease,
+    color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.vpn-usage-period:hover:not(:disabled) {
+  color: #343b45;
+}
+
+.vpn-usage-period.is-active {
+  background: #ffffff;
+  color: #252a32;
+
+  box-shadow:
+    0 1px 5px rgba(17, 24, 39, 0.08);
+}
+
+.vpn-usage-period:disabled {
+  cursor: default;
+}
+
+.vpn-usage-period:focus-visible,
+.vpn-usage-refresh:focus-visible {
+  outline: 2px solid var(--vpn-download);
+  outline-offset: 3px;
+}
+
+/* ========================================
+   Toolbar
+   ======================================== */
+
+.vpn-usage-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+
+  margin-top: 22px;
+  padding-bottom: 17px;
+
+  border-bottom: 1px solid #f0f1f3;
+}
+
+.vpn-usage-period-description {
+  color: #949ba5;
+
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.vpn-usage-refresh {
+  padding: 7px 12px;
+
+  border: 1px solid #e8eaee;
+  border-radius: 9px;
+
+  background: #ffffff;
+  color: #596270;
+
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 650;
+
+  cursor: pointer;
+
+  transition: background 150ms ease;
+}
+
+.vpn-usage-refresh:hover:not(:disabled) {
+  background: #f6f7f9;
+}
+
+.vpn-usage-refresh:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* ========================================
+   Summary Cards
+   ======================================== */
+
+.vpn-usage-summary {
+  display: grid;
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+  gap: 12px;
+
+  margin-top: 20px;
+}
+
+.vpn-usage-summary-card {
+  display: flex;
+  flex-direction: column;
+
+  min-width: 0;
+  padding: 19px;
+
+  border: 1px solid #eceef1;
+  border-radius: 15px;
+
+  background: #fbfbfc;
+}
+
+.vpn-usage-summary-total {
+  border-color: #f3e6d9;
+  background: #fffaf5;
+}
+
+.vpn-usage-summary-label {
+  color: #89919c;
+
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.vpn-usage-summary-card strong {
+  display: block;
+  margin-top: 15px;
+
+  color: #262b33;
+
+  font-size: 23px;
+  font-weight: 780;
+  line-height: 1.2;
+  letter-spacing: -0.7px;
+
+  overflow-wrap: anywhere;
+}
+
+.vpn-usage-summary-total strong {
+  color: #cf742d;
+}
+
+.vpn-usage-summary-card small {
+  display: block;
+  margin-top: 8px;
+
+  color: #a0a6af;
+
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.vpn-usage-summary-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ========================================
+   Legend
+   ======================================== */
+
+.vpn-usage-legend {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 17px;
+}
+
+.vpn-usage-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+
+  color: #75808d;
+
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.vpn-usage-legend-dot {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+
+  flex: 0 0 9px;
+
+  border-radius: 3px;
+}
+
+.vpn-usage-legend-dot.is-download {
+  background: var(--vpn-download);
+}
+
+.vpn-usage-legend-dot.is-upload {
+  background: var(--vpn-upload);
+}
+
+/* ========================================
+   Chart Header
+   ======================================== */
+
+.vpn-usage-chart-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 15px;
+
+  margin-top: 30px;
+  margin-bottom: 20px;
+}
+
+.vpn-usage-chart-heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.vpn-usage-chart-heading h3 {
+  margin: 0;
+
+  color: #2c3139;
+
+  font-size: 14px;
+  font-weight: 740;
+}
+
+.vpn-usage-chart-heading > span {
+  padding: 4px 8px;
+
+  border-radius: 7px;
+
+  background: #f3f4f6;
+  color: #858e99;
+
+  font-size: 10px;
+  font-weight: 650;
+}
+
+/* ========================================
+   Chart Scroll Area
+   ======================================== */
+
+.vpn-usage-chart-scroll {
+  width: 100%;
+  max-width: 100%;
+
+  padding: 10px 2px 14px;
+
+  overflow-x: auto;
+  overflow-y: hidden;
+
+  scrollbar-width: thin;
+  scrollbar-color: #dce0e5 transparent;
+
+  -webkit-overflow-scrolling: touch;
+}
+
+.vpn-usage-chart-scroll:focus-visible {
+  outline: 2px solid var(--vpn-download);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+.vpn-usage-chart-scroll::-webkit-scrollbar {
+  height: 5px;
+}
+
+.vpn-usage-chart-scroll::-webkit-scrollbar-thumb {
+  border-radius: 10px;
+  background: #dce0e5;
+}
+
+/* ========================================
+   Chart Plot
+   ======================================== */
+
+.vpn-usage-chart-plot {
+  display: grid;
+  grid-template-columns: 80px minmax(0, 1fr);
+  align-items: start;
+  gap: 14px;
+
+  min-width: 690px;
+}
+
+/* ========================================
+   Y Axis
+   ======================================== */
+
+.vpn-usage-y-axis {
+  position: relative;
+  height: 230px;
+
+  color: #a2a9b2;
+
+  font-size: 10px;
+  font-weight: 550;
+}
+
+.vpn-usage-y-axis span {
+  position: absolute;
+  right: 0;
+
+  white-space: nowrap;
+}
+
+.vpn-usage-y-axis span:nth-child(1) {
+  top: 0;
+  transform: translateY(-50%);
+}
+
+.vpn-usage-y-axis span:nth-child(2) {
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.vpn-usage-y-axis span:nth-child(3) {
+  bottom: 0;
+  transform: translateY(50%);
+}
+
+/* ========================================
+   Main Chart
+   ======================================== */
+
+.vpn-usage-chart-main {
+  position: relative;
+  min-width: 0;
+}
+
+.vpn-usage-guide-lines {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+
+  height: 230px;
+
+  pointer-events: none;
+}
+
+.vpn-usage-guide-lines span {
+  position: absolute;
+  left: 0;
+  right: 0;
+
+  height: 1px;
+
+  background: #eef0f3;
+}
+
+.vpn-usage-guide-top {
+  top: 0;
+}
+
+.vpn-usage-guide-middle {
+  top: 50%;
+}
+
+.vpn-usage-guide-bottom {
+  bottom: 0;
+
+  background: #dfe3e8 !important;
+}
+
+/* ========================================
+   User Groups
+   ======================================== */
+
+.vpn-usage-user-groups {
+  position: relative;
+  z-index: 1;
+
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(84px, 1fr);
+  gap: 8px;
+}
+
+.vpn-usage-user-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  min-width: 0;
+  text-align: center;
+}
+
+/* ========================================
+   Bars
+   ======================================== */
+
+.vpn-usage-bars {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 8px;
+
+  width: 100%;
+  height: 230px;
+
+  padding: 0 10px;
+}
+
+.vpn-usage-bar {
+  width: 24px;
+  max-width: 42%;
+  flex: 0 1 24px;
+
+  border-radius: 7px 7px 2px 2px;
+
+  transition:
+    height 300ms ease,
+    filter 160ms ease;
+
+  cursor: default;
+}
+
+.vpn-usage-bar:hover {
+  filter: brightness(0.94);
+}
+
+.vpn-usage-bar-download {
+  background: var(--vpn-download);
+
+  box-shadow:
+    0 2px 8px rgba(242, 138, 59, 0.13);
+}
+
+.vpn-usage-bar-upload {
+  background: var(--vpn-upload);
+
+  box-shadow:
+    0 2px 8px rgba(86, 99, 115, 0.10);
+}
+
+/* ========================================
+   X Axis Labels
+   ======================================== */
+
+.vpn-usage-user-name {
+  width: 100%;
+  min-height: 18px;
+
+  margin-top: 13px;
+  padding: 0 3px;
+
+  overflow: hidden;
+
+  color: #4d5662;
+
+  font-size: 11px;
+  font-weight: 700;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vpn-usage-user-total {
+  margin-top: 5px;
+
+  color: #a0a7b1;
+
+  font-size: 10px;
+  font-weight: 550;
+}
+
+/* ========================================
+   Chart Footer
+   ======================================== */
+
+.vpn-usage-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+
+  margin-top: 15px;
+  padding-top: 16px;
+
+  border-top: 1px solid #f0f1f3;
+
+  color: #9aa2ad;
+
+  font-size: 10px;
+  font-weight: 550;
+}
+
+/* ========================================
+   Loading / Error / Empty
+   ======================================== */
+
+.vpn-usage-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+
+  min-height: 170px;
+  padding: 24px;
+
+  color: #858e99;
+
+  font-size: 12px;
+  text-align: center;
+}
+
+.vpn-usage-loader {
+  width: 19px;
+  height: 19px;
+
+  border: 2px solid #f3e0cf;
+  border-top-color: var(--vpn-download);
+  border-radius: 50%;
+
+  animation: vpn-usage-spin 700ms linear infinite;
+}
+
+@keyframes vpn-usage-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.vpn-usage-state-error {
+  flex-direction: column;
+  color: #b24a48;
+}
+
+.vpn-usage-state-error button {
+  padding: 9px 14px;
+
+  border: 0;
+  border-radius: 9px;
+
+  background: #fff0ef;
+  color: #ad4441;
+
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 700;
+
+  cursor: pointer;
+}
+
+.vpn-usage-state-empty {
+  min-height: 190px;
+
+  color: #9aa1ab;
+}
+
+/* ========================================
+   Tablet
+   ======================================== */
+
+@media (max-width: 900px) {
+  .vpn-usage-panel {
+    padding: 20px;
+  }
+
+  .vpn-usage-summary-card {
+    padding: 16px;
+  }
+
+  .vpn-usage-summary-card strong {
+    font-size: 20px;
+  }
+}
+
+/* ========================================
+   Mobile
+   ======================================== */
+
+@media (max-width: 680px) {
+  .vpn-usage-panel {
+    padding: 17px;
+
+    border-radius: 16px;
+  }
+
+  .vpn-usage-header {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .vpn-usage-heading h2 {
+    font-size: 19px;
+  }
+
+  .vpn-usage-periods {
+    width: 100%;
+  }
+
+  .vpn-usage-period {
+    flex: 1 1 0;
+    padding: 0 7px;
+
+    font-size: 10px;
+  }
+
+  .vpn-usage-toolbar {
+    margin-top: 18px;
+  }
+
+  .vpn-usage-summary {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+
+    gap: 9px;
+  }
+
+  .vpn-usage-summary-total {
+    grid-column: 1 / -1;
+  }
+
+  .vpn-usage-summary-card {
+    padding: 15px;
+  }
+
+  .vpn-usage-summary-card strong {
+    margin-top: 11px;
+    font-size: 19px;
+  }
+
+  .vpn-usage-chart-header {
+    align-items: flex-start;
+    flex-direction: column;
+
+    margin-top: 25px;
+    gap: 12px;
+  }
+
+  .vpn-usage-chart-plot {
+    min-width: 640px;
+  }
+
+  .vpn-usage-bars,
+  .vpn-usage-y-axis,
+  .vpn-usage-guide-lines {
+    height: 200px;
+  }
+
+  .vpn-usage-bar {
+    width: 20px;
+    flex-basis: 20px;
+  }
+}
+
+/* ========================================
+   Small Mobile
+   ======================================== */
+
+@media (max-width: 390px) {
+  .vpn-usage-panel {
+    padding: 14px;
+  }
+
+  .vpn-usage-summary-card strong {
+    font-size: 17px;
+  }
+
+  .vpn-usage-summary-card small {
+    font-size: 9px;
+  }
+
+  .vpn-usage-period {
+    font-size: 9px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vpn-usage-bar,
+  .vpn-usage-period {
+    transition: none;
+  }
+
+  .vpn-usage-loader {
+    animation-duration: 1.5s;
+  }
+}

@@ -1,0 +1,343 @@
+
+<section
+  class="vpn-usage-panel"
+  aria-labelledby="vpn-usage-title"
+>
+
+  <!-- Header -->
+  <header class="vpn-usage-header">
+
+    <div class="vpn-usage-heading">
+      <span class="vpn-usage-eyebrow">
+        TRAFFIC ANALYTICS
+      </span>
+
+      <h2 id="vpn-usage-title">
+        VPN Usage
+      </h2>
+
+      <p>
+        Download and upload traffic
+        across your VPN users.
+      </p>
+    </div>
+
+    <!-- Period Filters -->
+    <div
+      class="vpn-usage-periods"
+      role="group"
+      aria-label="Usage period"
+    >
+      @for (period of periods; track period.value) {
+        <button
+          type="button"
+          class="vpn-usage-period"
+          [class.is-active]="
+            selectedPeriod === period.value
+          "
+          [attr.aria-pressed]="
+            selectedPeriod === period.value
+          "
+          [disabled]="isLoading"
+          (click)="selectPeriod(period.value)"
+        >
+          {{ period.label }}
+        </button>
+      }
+    </div>
+
+  </header>
+
+
+  <!-- Period Description -->
+  <div class="vpn-usage-toolbar">
+
+    <span class="vpn-usage-period-description">
+      {{ periodDescription }}
+    </span>
+
+    <button
+      type="button"
+      class="vpn-usage-refresh"
+      [disabled]="isLoading"
+      (click)="refresh()"
+    >
+      Refresh
+    </button>
+
+  </div>
+
+
+  <!-- Loading -->
+  @if (isLoading) {
+
+    <div
+      class="vpn-usage-state"
+      role="status"
+    >
+      <span class="vpn-usage-loader"></span>
+
+      Loading traffic statistics...
+    </div>
+
+  } @else if (loadError) {
+
+    <!-- Error -->
+    <div
+      class="vpn-usage-state vpn-usage-state-error"
+      role="alert"
+    >
+      <span>
+        {{ loadError }}
+      </span>
+
+      <button
+        type="button"
+        (click)="refresh()"
+      >
+        Try again
+      </button>
+    </div>
+
+  } @else if (usageData) {
+
+    <!-- Summary -->
+    <div class="vpn-usage-summary">
+
+      <article
+        class="vpn-usage-summary-card vpn-usage-summary-total"
+      >
+        <span class="vpn-usage-summary-label">
+          Total Traffic
+        </span>
+
+        <strong>
+          {{ formatBytes(totalUsageBytes) }}
+        </strong>
+
+        <small>
+          Combined download and upload
+        </small>
+      </article>
+
+      <article class="vpn-usage-summary-card">
+        <div class="vpn-usage-summary-title">
+          <span class="vpn-usage-legend-dot is-download"></span>
+
+          <span class="vpn-usage-summary-label">
+            Download
+          </span>
+        </div>
+
+        <strong>
+          {{ formatBytes(totalDownloadBytes) }}
+        </strong>
+
+        <small>
+          Incoming traffic
+        </small>
+      </article>
+
+      <article class="vpn-usage-summary-card">
+        <div class="vpn-usage-summary-title">
+          <span class="vpn-usage-legend-dot is-upload"></span>
+
+          <span class="vpn-usage-summary-label">
+            Upload
+          </span>
+        </div>
+
+        <strong>
+          {{ formatBytes(totalUploadBytes) }}
+        </strong>
+
+        <small>
+          Outgoing traffic
+        </small>
+      </article>
+
+    </div>
+
+
+    <!-- No Users -->
+    @if (users.length === 0) {
+
+      <div class="vpn-usage-state vpn-usage-state-empty">
+        No active VPN users available.
+      </div>
+
+    } @else if (!hasUsage) {
+
+      <!-- No Traffic -->
+      <div class="vpn-usage-state vpn-usage-state-empty">
+        No traffic recorded for this period.
+      </div>
+
+    } @else {
+
+      <!-- Chart -->
+      <div class="vpn-usage-chart-header">
+
+        <div class="vpn-usage-chart-heading">
+          <h3>
+            Traffic by user
+          </h3>
+
+          <span>
+            {{ users.length }}
+            users
+          </span>
+        </div>
+
+        <!-- Legend -->
+        <div class="vpn-usage-legend">
+
+          <div class="vpn-usage-legend-item">
+            <span class="vpn-usage-legend-dot is-download"></span>
+            Download
+          </div>
+
+          <div class="vpn-usage-legend-item">
+            <span class="vpn-usage-legend-dot is-upload"></span>
+            Upload
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- Scrollable Chart -->
+      <div
+        class="vpn-usage-chart-scroll"
+        role="region"
+        aria-label="VPN traffic chart by user"
+        tabindex="0"
+      >
+
+        <div class="vpn-usage-chart-plot">
+
+          <!-- Y Axis -->
+          <div
+            class="vpn-usage-y-axis"
+            aria-hidden="true"
+          >
+            <span>
+              {{ formatBytes(maxUsageBytes) }}
+            </span>
+
+            <span>
+              {{ formatBytes(maxUsageBytes / 2) }}
+            </span>
+
+            <span>
+              0 B
+            </span>
+          </div>
+
+
+          <!-- Main Chart -->
+          <div class="vpn-usage-chart-main">
+
+            <!-- Grid Lines -->
+            <div
+              class="vpn-usage-guide-lines"
+              aria-hidden="true"
+            >
+              <span class="vpn-usage-guide-top"></span>
+              <span class="vpn-usage-guide-middle"></span>
+              <span class="vpn-usage-guide-bottom"></span>
+            </div>
+
+
+            <!-- User Groups -->
+            <div class="vpn-usage-user-groups">
+
+              @for (user of users; track user.id) {
+
+                <div
+                  class="vpn-usage-user-group"
+                  role="group"
+                  [attr.aria-label]="
+                    user.name
+                    + ': Download '
+                    + formatBytes(user.downlink_bytes)
+                    + ', Upload '
+                    + formatBytes(user.uplink_bytes)
+                  "
+                >
+
+                  <!-- Bars -->
+                  <div class="vpn-usage-bars">
+
+                    <div
+                      class="vpn-usage-bar vpn-usage-bar-download"
+                      [style.height.%]="
+                        barHeight(user.downlink_bytes)
+                      "
+                      [title]="
+                        'Download: '
+                        + formatBytes(user.downlink_bytes)
+                      "
+                    ></div>
+
+                    <div
+                      class="vpn-usage-bar vpn-usage-bar-upload"
+                      [style.height.%]="
+                        barHeight(user.uplink_bytes)
+                      "
+                      [title]="
+                        'Upload: '
+                        + formatBytes(user.uplink_bytes)
+                      "
+                    ></div>
+
+                  </div>
+
+
+                  <!-- User Name -->
+                  <div
+                    class="vpn-usage-user-name"
+                    [title]="user.name"
+                  >
+                    {{ user.name }}
+                  </div>
+
+                  <!-- Total -->
+                  <div class="vpn-usage-user-total">
+                    {{ formatBytes(user.total_bytes) }}
+                  </div>
+
+                </div>
+
+              }
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- Footer -->
+      <div class="vpn-usage-footer">
+
+        <span>
+          {{ usageData.from_date }}
+          —
+          {{ usageData.to_date }}
+        </span>
+
+        <span>
+          Timezone: {{ usageData.timezone }}
+        </span>
+
+      </div>
+
+    }
+
+  }
+
+</section>
