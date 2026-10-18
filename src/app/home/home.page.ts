@@ -15,6 +15,7 @@ import {
 
 import {
   ActivityNotification,
+  NotificationItem,
 } from '../notifications/models/notification.model';
 
 import {
@@ -145,6 +146,9 @@ export class HomePage implements OnInit {
 
   readonly notifications$ =
     this.notificationService.notifications$;
+
+  readonly notificationItems$ =
+    this.notificationService.notificationItems$;
 
   readonly notificationUnreadCount$ =
     this.notificationService.unreadCount$;
@@ -625,6 +629,7 @@ export class HomePage implements OnInit {
       .steps[step];
   }
 
+
   toggleNotifications(
     event: MouseEvent,
   ): void {
@@ -635,8 +640,25 @@ export class HomePage implements OnInit {
 
     if (this.isNotificationsOpen) {
       this.closeWorkspaceMenu();
+
+      /*
+       * Load the latest VPN alerts
+       * when the notification menu opens.
+       *
+       * For non-admin users, the service
+       * does not request the VPN API.
+       */
+      void this.notificationService
+        .refreshVpnAlerts()
+        .catch((error) => {
+          console.warn(
+            '[Notifications] Unable to refresh VPN alerts.',
+            error,
+          );
+        });
     }
   }
+
 
   closeNotifications(): void {
     this.isNotificationsOpen = false;
@@ -791,6 +813,135 @@ export class HomePage implements OnInit {
     return this.activityPresenter
       .getTime(notification);
   }
+
+  /*
+   * Handle both Project and VPN
+   * notifications from one list.
+   */
+  async openNotificationItem(
+    item: NotificationItem,
+  ): Promise<void> {
+    if (item.kind === 'project') {
+      await this.openNotification(
+        item.activity,
+      );
+
+      return;
+    }
+
+    /*
+     * VPN notification:
+     * mark as read, then open
+     * Server Connections.
+     */
+    if (!item.alert.is_read) {
+      try {
+        await this.notificationService
+          .markVpnAlertAsRead(
+            item.alert.id,
+          );
+      } catch (error) {
+        console.warn(
+          '[Notifications] Unable to mark VPN alert as read.',
+          error,
+        );
+      }
+    }
+
+    this.closeNotifications();
+    this.openServerConnections();
+  }
+
+  getNotificationItemActorName(
+    item: NotificationItem,
+  ): string {
+    if (item.kind === 'vpn') {
+      return 'VPN Monitor';
+    }
+
+    return this.getNotificationActorName(
+      item.activity,
+    );
+  }
+
+  getNotificationItemText(
+    item: NotificationItem,
+  ): string {
+    if (item.kind === 'project') {
+      return this.getNotificationText(
+        item.activity,
+      );
+    }
+
+    const alert = item.alert;
+
+    const totalGb =
+      alert.total_bytes /
+      (1024 * 1024 * 1024);
+
+    return (
+      `${alert.vpn_user_name} reached ` +
+      `${alert.threshold_gb} GB today ` +
+      `(${totalGb.toFixed(2)} GB used).`
+    );
+  }
+
+  getNotificationItemTime(
+    item: NotificationItem,
+  ): string {
+    if (item.kind === 'project') {
+      return this.getNotificationTime(
+        item.activity,
+      );
+    }
+
+    const createdAt =
+      new Date(item.created_at);
+
+    if (Number.isNaN(createdAt.getTime())) {
+      return '';
+    }
+
+    const difference = Math.max(
+      0,
+      Date.now() - createdAt.getTime(),
+    );
+
+    const minute = 60 * 1000;
+    const hour = 60 * minute;
+    const day = 24 * hour;
+
+    if (difference < minute) {
+      return 'Just now';
+    }
+
+    if (difference < hour) {
+      return `${Math.floor(
+        difference / minute,
+      )}m ago`;
+    }
+
+    if (difference < day) {
+      return `${Math.floor(
+        difference / hour,
+      )}h ago`;
+    }
+
+    if (difference < 7 * day) {
+      return `${Math.floor(
+        difference / day,
+      )}d ago`;
+    }
+
+    return new Intl.DateTimeFormat(
+      'en',
+      {
+        month: 'short',
+        day: 'numeric',
+      },
+    ).format(createdAt);
+  }
+
 
   @HostListener(
     'document:click',

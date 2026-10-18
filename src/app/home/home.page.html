@@ -544,130 +544,97 @@
             </button>
           </div>
 
-          <div class="notification-popover-body">
-            @if (
-              notificationsLoading$
-                | async
-            ) {
-            <div
-              class="notification-loading"
-            >
-              <ion-spinner
-                name="crescent"
-              ></ion-spinner>
-              <span>
-              Loading notifications...
-            </span>
-            </div>
-            } @else {
-            @if (
-            notifications$
-            | async;
-            as notifications
-            ) {
-            @if (
-              notifications.length === 0
-            ) {
-            <div
-              class="notification-empty"
-            >
-              <ion-icon
-                name="notifications-outline"
-              ></ion-icon>
 
-              <strong>
-                You're all caught up
-              </strong>
+              <div class="notification-popover-body">
 
-              <span>
-                  New activity will appear
-                  here.
-                </span>
-            </div>
-            } @else {
-            @for (
-            notification
-            of notifications.slice(
-            0,
-            6
-            );
-            track
-            notification.notification.id
-            ) {
-            <button
-              type="button"
-              class="notification-item"
-              [class.is-unread]="
-                !notification
-                  .notification
-                  .is_read
-              "
-              (click)="
-  openNotification(
-    notification
-  )
-"
-            >
-              <app-user-avatar
-                class="notification-avatar"
-                [name]="
-                  getNotificationActorName(
-                    notification
-                  )
-                "
-                [avatarPath]="
-                  notification.actor
-                    ?.avatar_path ??
-                  null
-                "
-                [size]="34"
-                [fontSize]="8"
-              ></app-user-avatar>
+                @if (notificationsLoading$ | async) {
 
-              <span
-                class="notification-copy"
-              >
-                <span>
-                  <strong>
-            {{
-            getNotificationActorName(
-              notification
-            )
-            }}
-            </strong>
+                  <div class="notification-loading">
+                    <ion-spinner name="crescent"></ion-spinner>
+                    <span>Loading notifications...</span>
+                  </div>
 
-            {{
-            getNotificationText(
-              notification
-            )
-            }}
-            </span>
+                } @else {
 
-            <small>
-            {{
-            getNotificationTime(
-              notification
-            )
-            }}
-            </small>
+                  @if (notificationItems$ | async; as items) {
+
+                    @if (items.length === 0) {
+
+                      <div class="notification-empty">
+                        <ion-icon
+                          name="notifications-outline"
+                        ></ion-icon>
+
+                        <strong>You're all caught up</strong>
+
+                        <span>
+            New activity will appear here.
           </span>
+                      </div>
 
-          @if (
-            !notification
-              .notification
-              .is_read
-          ) {
-            <span
-              class="notification-unread-dot"
-            ></span>
-            }
-            </button>
-            }
-            }
-            }
-            }
+                    } @else {
+
+                      @for (
+                        item of items.slice(0, 6);
+                        track item.key
+                        ) {
+
+                        <button
+                          type="button"
+                          class="notification-item"
+                          [class.is-unread]="!item.is_read"
+                          (click)="openNotificationItem(item)"
+                        >
+
+                          <app-user-avatar
+                            class="notification-avatar"
+                            [name]="getNotificationItemActorName(item)"
+                            [avatarPath]="
+                item.kind === 'project'
+                  ? (item.activity.actor?.avatar_path ?? null)
+                  : null
+              "
+                            [size]="34"
+                            [fontSize]="8"
+                          ></app-user-avatar>
+
+                          <span class="notification-copy">
+
+              <span>
+                <strong>
+                  {{ getNotificationItemActorName(item) }}
+                </strong>
+
+                {{ getNotificationItemText(item) }}
+              </span>
+
+              <small>
+                {{ getNotificationItemTime(item) }}
+              </small>
+
+            </span>
+
+                          @if (!item.is_read) {
+                            <span
+                              class="notification-unread-dot"
+                            ></span>
+                          }
+
+                        </button>
+
+                      }
+
+                    }
+
+                  }
+
+                }
+
+              </div>
+
+
+
             </div>
-          </div>
             }
           </div>
 

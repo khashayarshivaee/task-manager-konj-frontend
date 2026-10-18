@@ -34,6 +34,9 @@ export class PushNotificationService {
   private listenersInitialized =
     false;
 
+  private actionListenerPromise:
+    Promise<void> | null = null;
+
   private currentToken:
     | string
     | null = null;
@@ -55,12 +58,16 @@ export class PushNotificationService {
       return;
     }
 
+    await this.listenForActions();
+
     if (!this.listenersInitialized) {
       await this.registerListeners();
 
       this.listenersInitialized =
         true;
     }
+
+
 
     let permission =
       await PushNotifications
@@ -97,13 +104,62 @@ export class PushNotificationService {
     await PushNotifications.register();
   }
 
-  private async registerListeners():
-    Promise<void> {
+
+  async listenForActions(): Promise<void> {
+    if (
+      !Capacitor.isNativePlatform() ||
+      Capacitor.getPlatform() !== 'ios'
+    ) {
+      return;
+    }
+
+    /*
+     * Register the notification action
+     * listener only once, even if
+     * initialization is called concurrently.
+     */
+    if (this.actionListenerPromise === null) {
+      this.actionListenerPromise =
+        PushNotifications.addListener(
+          'pushNotificationActionPerformed',
+          (action) => {
+            console.log(
+              '[Push] Notification action:',
+              action,
+            );
+
+            const data = action.notification.data;
+
+            if (
+              !data ||
+              typeof data !== 'object'
+            ) {
+              return;
+            }
+
+            this.actionSubject.next(
+              data as Record<string, unknown>,
+            );
+          },
+        )
+          .then(() => undefined)
+          .catch((error) => {
+            this.actionListenerPromise = null;
+            throw error;
+          });
+    }
+
+    await this.actionListenerPromise;
+  }
+
+
+
+  private async registerListeners(): Promise<void> {
+
     await PushNotifications.addListener(
       'registration',
       (token) => {
-        this.currentToken =
-          token.value;
+        this.currentToken = token.value;
 
         localStorage.setItem(
           this.tokenStorageKey,
@@ -130,7 +186,6 @@ export class PushNotificationService {
         );
       },
     );
-
     await PushNotifications.addListener(
       'pushNotificationReceived',
       (notification) => {
@@ -140,31 +195,8 @@ export class PushNotificationService {
         );
       },
     );
-
-    await PushNotifications.addListener(
-      'pushNotificationActionPerformed',
-      (action) => {
-        console.log(
-          '[Push] Notification action:',
-          action,
-        );
-
-        const data =
-          action.notification.data;
-
-        if (
-          !data ||
-          typeof data !== 'object'
-        ) {
-          return;
-        }
-
-        this.actionSubject.next(
-          data as Record<string, unknown>,
-        );
-      },
-    );
   }
+
 
   async unregisterCurrentDevice():
     Promise<void> {

@@ -74,6 +74,9 @@ export class AppComponent implements OnDestroy {
     | number
     | null = null;
 
+  private pendingVpnPushAction:
+    Record<string, unknown> | null = null;
+
   private isGlobalSearchOpen =
     false;
 
@@ -150,6 +153,20 @@ export class AppComponent implements OnDestroy {
                   error,
                 );
               });
+            /*
+ * Resume a VPN notification tap
+ * received during cold app startup.
+ */
+            if (this.pendingVpnPushAction !== null) {
+              const pendingAction =
+                this.pendingVpnPushAction;
+
+              this.pendingVpnPushAction = null;
+
+              void this.openPushNotification(
+                pendingAction,
+              );
+            }
 
             return;
           }
@@ -174,6 +191,19 @@ export class AppComponent implements OnDestroy {
             data,
           );
         });
+
+    /*
+ * Start listening for notification taps
+ * before the user session is restored.
+ */
+    void this.pushNotificationService
+      .listenForActions()
+      .catch((error) => {
+        console.error(
+          '[Push] Action listener failed:',
+          error,
+        );
+      });
   }
 
   @HostListener(
@@ -397,8 +427,62 @@ export class AppComponent implements OnDestroy {
       !currentUser ||
       !currentUser.email_verified_at
     ) {
+      if (data['type'] === 'vpn_usage_alert') {
+        this.pendingVpnPushAction = data;
+      }
+
       return;
     }
+
+
+    /*
+     * VPN usage push notifications.
+     *
+     * Only the authorized VPN administrator
+     * may open these alerts.
+     */
+    if (data['type'] === 'vpn_usage_alert') {
+      if (
+        currentUser.email.trim().toLowerCase() !==
+        'khashayarshivaee@gmail.com'
+      ) {
+        return;
+      }
+
+      const vpnAlertId = this.pushNumber(
+        data['vpn_alert_id'],
+      );
+
+      /*
+       * Mark as read without blocking
+       * navigation if the API fails.
+       */
+      if (vpnAlertId !== null) {
+        try {
+          await this.notificationService
+            .markVpnAlertAsRead(vpnAlertId);
+        } catch (error) {
+          console.warn(
+            '[Push] Unable to mark VPN alert as read.',
+            error,
+          );
+        }
+      }
+
+      const currentModal =
+        await this.modalController.getTop();
+
+      if (currentModal) {
+        await currentModal.dismiss();
+      }
+
+      await this.router.navigateByUrl(
+        '/server-connections',
+      );
+
+      return;
+    }
+
 
     const workspaceId =
       this.pushNumber(
@@ -532,4 +616,5 @@ export class AppComponent implements OnDestroy {
     this.notificationService.reset();
     this.realtimeService.disconnect();
   }
+
 }
