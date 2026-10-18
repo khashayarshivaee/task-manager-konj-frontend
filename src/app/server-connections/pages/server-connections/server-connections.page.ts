@@ -14,6 +14,18 @@ import {
   VpnUsageChartComponent,
 } from '../../components/vpn-usage-chart/vpn-usage-chart.component';
 
+
+import {
+  VpnTelegramConnectionData,
+  VpnTelegramLinkData,
+  VpnTelegramService,
+} from '../../services/vpn-telegram.service';
+
+import {
+  AlertController,
+} from '@ionic/angular/standalone';
+
+
 import {
   Router,
 } from '@angular/router';
@@ -114,6 +126,14 @@ export class ServerConnectionsPage
   private readonly vpnUserService =
     inject(VpnUserService);
 
+
+  private readonly vpnTelegramService =
+    inject(VpnTelegramService);
+
+  private readonly alertController =
+    inject(AlertController);
+
+
   data: ServerConnectionsData | null = null;
 
   connectionGroups:
@@ -156,6 +176,32 @@ export class ServerConnectionsPage
   > = {};
 
 
+  telegramConnections: Record<
+    number,
+    VpnTelegramConnectionData | undefined
+  > = {};
+
+  telegramLinks: Record<
+    number,
+    VpnTelegramLinkData | undefined
+  > = {};
+
+  telegramLoading: Record<
+    number,
+    boolean
+  > = {};
+
+  telegramErrors: Record<
+    number,
+    string
+  > = {};
+
+  telegramProcessingUserId: number | null = null;
+
+  copiedTelegramUserId: number | null = null;
+
+
+
 
   constructor() {
     addIcons({
@@ -195,10 +241,22 @@ export class ServerConnectionsPage
         }),
       )
       .subscribe({
+
         next: (vpnUsers) => {
           this.vpnUsers = vpnUsers;
           this.lastUpdatedAt = new Date();
+
+          /*
+           * Load Telegram status independently
+           * for each VPN user.
+           */
+          for (const vpnUser of vpnUsers) {
+            this.loadTelegramConnection(
+              vpnUser.id,
+            );
+          }
         },
+
 
         error: () => {
           this.vpnUsersLoadError =
@@ -760,4 +818,240 @@ export class ServerConnectionsPage
       vpnUserId,
     );
   }
+
+
+  /**
+   * Load Telegram connection status.
+   */
+  loadTelegramConnection(
+    vpnUserId: number,
+  ): void {
+    if (this.telegramLoading[vpnUserId]) {
+      return;
+    }
+
+    this.telegramLoading[vpnUserId] = true;
+    this.telegramErrors[vpnUserId] = '';
+
+    this.vpnTelegramService
+      .getConnection(vpnUserId)
+      .pipe(
+        finalize(() => {
+          this.telegramLoading[vpnUserId] = false;
+        }),
+      )
+      .subscribe({
+        next: (connection) => {
+          this.telegramConnections[vpnUserId] =
+            connection;
+
+          /*
+           * Once connected, the invitation
+           * link is no longer needed.
+           */
+          if (connection.telegram.connected) {
+            delete this.telegramLinks[vpnUserId];
+          }
+        },
+
+        error: () => {
+          delete this.telegramConnections[vpnUserId];
+
+          this.telegramErrors[vpnUserId] =
+            'Unable to load Telegram status.';
+        },
+      });
+  }
+
+
+  /**
+   * Generate a private Telegram invitation.
+   */
+  generateTelegramLink(
+    vpnUser: VpnUser,
+  ): void {
+    if (
+      !vpnUser.is_active ||
+      this.telegramProcessingUserId !== null ||
+      this.telegramConnections[
+        vpnUser.id
+        ]?.telegram.connected
+    ) {
+      return;
+    }
+
+    this.telegramProcessingUserId =
+      vpnUser.id;
+
+    this.telegramErrors[vpnUser.id] = '';
+
+    delete this.telegramLinks[vpnUser.id];
+
+    this.vpnTelegramService
+      .generateLink(vpnUser.id)
+      .pipe(
+        finalize(() => {
+          this.telegramProcessingUserId = null;
+        }),
+      )
+      .subscribe({
+        next: (linkData) => {
+          this.telegramLinks[vpnUser.id] =
+            linkData;
+        },
+
+        error: () => {
+          this.telegramErrors[vpnUser.id] =
+            'Unable to generate Telegram invitation.';
+        },
+      });
+  }
+
+
+  /**
+   * Copy the secure invitation URL.
+   */
+  async copyTelegramLink(
+    vpnUserId: number,
+  ): Promise<void> {
+    const invitation =
+      this.telegramLinks[vpnUserId];
+
+    if (!invitation) {
+      return;
+    }
+
+    /*
+     * Don't copy expired invitation links.
+     */
+    const expiryTime = new Date(
+      invitation.expires_at,
+    ).getTime();
+
+    if (
+      !Number.isFinite(expiryTime) ||
+      expiryTime <= Date.now()
+    ) {
+      delete this.telegramLinks[vpnUserId];
+
+      this.telegramErrors[vpnUserId] =
+        'Invitation expired. Generate a new link.';
+
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(
+        invitation.link,
+      );
+
+      this.copiedTelegramUserId =
+        vpnUserId;
+
+      this.telegramErrors[vpnUserId] = '';
+
+      window.setTimeout(() => {
+        if (
+          this.copiedTelegramUserId === vpnUserId
+        ) {
+          this.copiedTelegramUserId = null;
+        }
+      }, 1800);
+    } catch {
+      this.telegramErrors[vpnUserId] =
+        'Unable to copy Telegram invitation.';
+    }
+  }
+
+
+  /**
+   * Disconnect Telegram without affecting
+   * the real VPN or Xray configuration.
+   */
+  async disconnectTelegram(
+    vpnUser: VpnUser,
+  ): Promise<void> {
+    if (
+      this.telegramProcessingUserId !== null ||
+      !this.telegramConnections[
+        vpnUser.id
+        ]?.telegram.connected
+    ) {
+      return;
+    }
+
+    const alert =
+      await this.alertController.create({
+        header: 'Disconnect Telegram?',
+        message:
+          'This will stop Telegram usage notifications. ' +
+          'VPN access will remain active.',
+        buttons: [
+          {
+            text: 'Cancel',
+            role: 'cancel',
+          },
+          {
+            text: 'Disconnect',
+            role: 'destructive',
+          },
+        ],
+      });
+
+    await alert.present();
+
+    const result = await alert.onDidDismiss();
+
+    if (result.role !== 'destructive') {
+      return;
+    }
+
+    if (this.telegramProcessingUserId !== null) {
+      return;
+    }
+
+    this.telegramProcessingUserId =
+      vpnUser.id;
+
+    this.telegramErrors[vpnUser.id] = '';
+
+    this.vpnTelegramService
+      .disconnect(vpnUser.id)
+      .pipe(
+        finalize(() => {
+          this.telegramProcessingUserId = null;
+        }),
+      )
+      .subscribe({
+        next: () => {
+          /*
+           * Update the UI immediately.
+           */
+          this.telegramConnections[vpnUser.id] = {
+            vpn_user_id: vpnUser.id,
+            vpn_user_name: vpnUser.name,
+
+            telegram: {
+              connected: false,
+              username: null,
+              connected_at: null,
+            },
+          };
+
+          /*
+           * Remove any locally stored
+           * invitation link.
+           */
+          delete this.telegramLinks[vpnUser.id];
+
+          this.copiedTelegramUserId = null;
+        },
+
+        error: () => {
+          this.telegramErrors[vpnUser.id] =
+            'Unable to disconnect Telegram.';
+        },
+      });
+  }
+
 }

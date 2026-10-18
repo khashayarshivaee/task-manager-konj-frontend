@@ -1860,3 +1860,406 @@ ion-modal.vpn-destinations-modal {
 }
 
 
+/* ==========================================
+   KONJ TEAM — Telegram Notifications
+   ========================================== */
+
+.vpn-telegram-section {
+  margin-top: 14px;
+  padding: 16px;
+
+  border: 1px solid #e8e7e5;
+  border-radius: 14px;
+
+  background: #ffffff;
+
+  color: #292d33;
+}
+
+/* Header */
+
+.vpn-telegram-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.vpn-telegram-heading {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
+
+  strong {
+    color: #292d33;
+    font-size: 13px;
+    font-weight: 720;
+    line-height: 1.4;
+  }
+
+  p {
+    margin: 0;
+
+    color: #8a9099;
+    font-size: 11px;
+    line-height: 1.55;
+  }
+}
+
+.vpn-telegram-eyebrow {
+  color: #cb7737;
+
+  font-size: 9px;
+  font-weight: 750;
+  letter-spacing: 0.09em;
+  line-height: 1.4;
+}
+
+/* Connection Status */
+
+.vpn-telegram-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+
+  flex: 0 0 auto;
+
+  min-height: 25px;
+  padding: 0 9px;
+
+  border: 1px solid transparent;
+  border-radius: 999px;
+
+  font-size: 10px;
+  font-weight: 680;
+  white-space: nowrap;
+
+  ion-spinner {
+    width: 12px;
+    height: 12px;
+  }
+
+  &.is-connected {
+    border-color: #d7eadd;
+    background: #f1f9f3;
+    color: #397453;
+  }
+
+  &.is-disconnected {
+    border-color: #e9e9ec;
+    background: #f6f7f8;
+    color: #828892;
+  }
+
+  &.is-loading {
+    border-color: #e8e9ec;
+    background: #f7f8f9;
+    color: #818791;
+  }
+}
+
+.vpn-telegram-status-dot {
+  width: 6px;
+  height: 6px;
+
+  flex: 0 0 6px;
+
+  border-radius: 50%;
+  background: currentColor;
+}
+
+/* Connected Account */
+
+.vpn-telegram-account {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+
+  margin-top: 14px;
+  padding: 12px;
+
+  border: 1px solid #e5ede7;
+  border-radius: 12px;
+
+  background: #f8fbf9;
+}
+
+.vpn-telegram-account-icon {
+  width: 36px;
+  height: 36px;
+
+  flex: 0 0 36px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 11px;
+
+  background: #e8f5ec;
+  color: #448b5e;
+
+  ion-icon {
+    font-size: 20px;
+  }
+}
+
+.vpn-telegram-account-info {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  strong {
+    color: #303c34;
+    font-size: 11px;
+    font-weight: 700;
+  }
+
+  span {
+    color: #657a6b;
+    font-size: 11px;
+    overflow-wrap: anywhere;
+  }
+
+  small {
+    color: #95a298;
+    font-size: 10px;
+  }
+}
+
+/* Invitation */
+
+.vpn-telegram-invitation {
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+
+  margin-top: 14px;
+  padding: 13px;
+
+  border: 1px solid #f0e1d3;
+  border-radius: 12px;
+
+  background: #fffaf5;
+}
+
+.vpn-telegram-invitation-info {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+
+  strong {
+    color: #3d3530;
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  span {
+    color: #79706a;
+    font-size: 11px;
+  }
+
+  small {
+    color: #ac8b72;
+    font-size: 10px;
+  }
+}
+
+.vpn-telegram-security-note {
+  margin: 0;
+  padding: 9px 11px;
+
+  border-radius: 9px;
+
+  background: rgba(214, 132, 64, 0.07);
+  color: #966b49;
+
+  font-size: 10px;
+  line-height: 1.6;
+}
+
+/* Actions */
+
+.vpn-telegram-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+
+  margin-top: 13px;
+}
+
+.vpn-telegram-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+
+  min-height: 35px;
+  padding: 0 12px;
+
+  border: 1px solid #e5e6e9;
+  border-radius: 10px;
+
+  background: #ffffff;
+  color: #565c65;
+
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 680;
+
+  line-height: 1.3;
+  text-align: center;
+
+  cursor: pointer;
+
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    transform 160ms ease;
+
+  ion-icon {
+    font-size: 15px;
+    flex: 0 0 auto;
+  }
+
+  ion-spinner {
+    width: 15px;
+    height: 15px;
+  }
+
+  &:hover:not(:disabled) {
+    background: #f6f7f8;
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(1px);
+  }
+
+  &:disabled {
+    opacity: 0.48;
+    cursor: not-allowed;
+  }
+
+  &:focus-visible {
+    outline: 2px solid #df9258;
+    outline-offset: 3px;
+  }
+
+  &.is-primary {
+    border-color: #eccdad;
+    background: #fff0e1;
+    color: #a85e24;
+
+    &:hover:not(:disabled) {
+      border-color: #e4bb94;
+      background: #ffe6ce;
+    }
+  }
+
+  &.is-secondary {
+    border-color: #e6e8eb;
+    background: #ffffff;
+    color: #666c75;
+
+    &:hover:not(:disabled) {
+      background: #f5f6f8;
+    }
+  }
+
+  &.is-danger {
+    border-color: #efdede;
+    background: #fffafa;
+    color: #a15555;
+
+    &:hover:not(:disabled) {
+      background: #fff0f0;
+    }
+  }
+}
+
+/* Feedback */
+
+.vpn-telegram-note {
+  margin: 12px 0 0;
+
+  color: #969ba4;
+  font-size: 10px;
+  line-height: 1.6;
+}
+
+.vpn-telegram-error {
+  margin-top: 12px;
+  padding: 10px 12px;
+
+  border: 1px solid #f1dddd;
+  border-radius: 10px;
+
+  background: #fff8f8;
+  color: #b05252;
+
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+/* ==========================================
+   Telegram — Responsive
+   ========================================== */
+
+@media (max-width: 560px) {
+  .vpn-telegram-section {
+    padding: 13px;
+    border-radius: 12px;
+  }
+
+  .vpn-telegram-header {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .vpn-telegram-heading {
+    flex: 1 1 180px;
+  }
+
+  .vpn-telegram-actions {
+    display: grid;
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+  .vpn-telegram-actions
+  .vpn-telegram-button {
+    width: 100%;
+    min-width: 0;
+    padding: 9px;
+  }
+
+  .vpn-telegram-invitation
+  > .vpn-telegram-button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 390px) {
+  .vpn-telegram-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .vpn-telegram-status {
+    font-size: 9px;
+  }
+
+  .vpn-telegram-account {
+    padding: 10px;
+  }
+}
+
+
+
+

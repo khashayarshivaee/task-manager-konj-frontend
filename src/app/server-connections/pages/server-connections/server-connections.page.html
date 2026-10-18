@@ -545,6 +545,286 @@
               </button>
 
 
+              <!-- Telegram Notifications -->
+              <div class="vpn-telegram-section">
+
+                <!-- Header -->
+                <div class="vpn-telegram-header">
+
+                  <div class="vpn-telegram-heading">
+      <span class="vpn-telegram-eyebrow">
+        KONJ TEAM BOT
+      </span>
+
+                    <strong>
+                      Telegram Notifications
+                    </strong>
+
+                    <p>
+                      Personal VPN usage updates
+                      at 3 GB and 5 GB.
+                    </p>
+                  </div>
+
+                  <!-- Connection Status -->
+                  @if (telegramLoading[vpnUser.id]) {
+                    <span class="vpn-telegram-status is-loading">
+        <ion-spinner name="crescent"></ion-spinner>
+        Checking
+      </span>
+                  } @else if (
+                    telegramConnections[vpnUser.id]?.telegram?.connected
+                    ) {
+                    <span class="vpn-telegram-status is-connected">
+        <span class="vpn-telegram-status-dot"></span>
+        Connected
+      </span>
+                  } @else if (telegramConnections[vpnUser.id]) {
+                    <span class="vpn-telegram-status is-disconnected">
+        <span class="vpn-telegram-status-dot"></span>
+        Not connected
+      </span>
+                  }
+
+                </div>
+
+
+                <!-- Connected Account -->
+                @if (
+                  telegramConnections[vpnUser.id]?.telegram?.connected
+                  ) {
+                  <div class="vpn-telegram-account">
+
+                    <div class="vpn-telegram-account-icon">
+                      <ion-icon
+                        name="checkmark-circle-outline"
+                      ></ion-icon>
+                    </div>
+
+                    <div class="vpn-telegram-account-info">
+                      <strong>
+                        Telegram is connected
+                      </strong>
+
+                      @if (
+                        telegramConnections[vpnUser.id]?.telegram?.username;
+                        as username
+                        ) {
+                        <span>
+            &#64;{{ username }}
+          </span>
+                      } @else {
+                        <span>
+            Private Telegram account
+          </span>
+                      }
+
+                      @if (
+                        telegramConnections[vpnUser.id]?.telegram?.connected_at;
+                        as connectedAt
+                        ) {
+                        <small>
+                          Connected
+                          {{ connectedAt | date:'mediumDate' }}
+                        </small>
+                      }
+                    </div>
+
+                  </div>
+                }
+
+
+                <!-- Generated Invitation -->
+                @if (
+                  !telegramConnections[vpnUser.id]?.telegram?.connected &&
+                  telegramLinks[vpnUser.id];
+                  as invitation
+                  ) {
+                  <div class="vpn-telegram-invitation">
+
+                    <div class="vpn-telegram-invitation-info">
+                      <strong>
+                        Invitation ready
+                      </strong>
+
+                      <span>
+          A private link for
+                        {{ vpnUser.name }}
+        </span>
+
+                      <small>
+                        Expires
+                        {{ invitation.expires_at | date:'medium' }}
+                      </small>
+                    </div>
+
+                    <p class="vpn-telegram-security-note">
+                      Share this link privately with
+                      the intended VPN user.
+                    </p>
+
+                    <button
+                      type="button"
+                      class="vpn-telegram-button is-primary"
+                      (click)="copyTelegramLink(vpnUser.id)"
+                    >
+                      <ion-icon
+                        [name]="
+            copiedTelegramUserId === vpnUser.id
+              ? 'checkmark-circle-outline'
+              : 'copy-outline'
+          "
+                      ></ion-icon>
+
+                      <span>
+          {{
+                          copiedTelegramUserId === vpnUser.id
+                            ? 'Link copied'
+                            : 'Copy invitation link'
+                        }}
+        </span>
+                    </button>
+
+                  </div>
+                }
+
+
+                <!-- Actions -->
+                <div class="vpn-telegram-actions">
+
+                  @if (
+                    telegramConnections[vpnUser.id]?.telegram?.connected
+                    ) {
+
+                    <!-- Refresh -->
+                    <button
+                      type="button"
+                      class="vpn-telegram-button is-secondary"
+                      [disabled]="
+          telegramLoading[vpnUser.id] ||
+          telegramProcessingUserId !== null
+        "
+                      (click)="loadTelegramConnection(vpnUser.id)"
+                    >
+                      <ion-icon
+                        name="refresh-outline"
+                      ></ion-icon>
+
+                      <span>Refresh status</span>
+                    </button>
+
+                    <!-- Disconnect -->
+                    <button
+                      type="button"
+                      class="vpn-telegram-button is-danger"
+                      [disabled]="
+          telegramProcessingUserId !== null
+        "
+                      (click)="disconnectTelegram(vpnUser)"
+                    >
+                      @if (
+                        telegramProcessingUserId === vpnUser.id
+                        ) {
+                        <ion-spinner name="crescent"></ion-spinner>
+                      } @else {
+                        <ion-icon name="power-outline"></ion-icon>
+                      }
+
+                      <span>Disconnect</span>
+                    </button>
+
+                  } @else if (
+                    telegramConnections[vpnUser.id] &&
+                    vpnUser.is_active
+                    ) {
+
+                    <!-- Generate Invitation -->
+                    <button
+                      type="button"
+                      class="vpn-telegram-button is-primary"
+                      [disabled]="
+          telegramProcessingUserId !== null ||
+          telegramLoading[vpnUser.id]
+        "
+                      (click)="generateTelegramLink(vpnUser)"
+                    >
+                      @if (
+                        telegramProcessingUserId === vpnUser.id
+                        ) {
+                        <ion-spinner name="crescent"></ion-spinner>
+                      } @else {
+                        <ion-icon name="add-outline"></ion-icon>
+                      }
+
+                      <span>
+          {{
+                          telegramLinks[vpnUser.id]
+                            ? 'Generate new link'
+                            : 'Generate invitation'
+                        }}
+        </span>
+                    </button>
+
+                    <!-- Refresh -->
+                    <button
+                      type="button"
+                      class="vpn-telegram-button is-secondary"
+                      [disabled]="
+          telegramLoading[vpnUser.id] ||
+          telegramProcessingUserId !== null
+        "
+                      (click)="loadTelegramConnection(vpnUser.id)"
+                    >
+                      <ion-icon name="refresh-outline"></ion-icon>
+                      <span>Refresh status</span>
+                    </button>
+
+                  }
+
+                  <!-- Retry status -->
+                  @if (
+                    !telegramLoading[vpnUser.id] &&
+                    !telegramConnections[vpnUser.id]
+                    ) {
+                    <button
+                      type="button"
+                      class="vpn-telegram-button is-secondary"
+                      (click)="loadTelegramConnection(vpnUser.id)"
+                    >
+                      <ion-icon name="refresh-outline"></ion-icon>
+                      <span>Check connection</span>
+                    </button>
+                  }
+
+                </div>
+
+
+                <!-- Inactive VPN Notice -->
+                @if (
+                  !vpnUser.is_active &&
+                  !telegramConnections[vpnUser.id]?.telegram?.connected
+                  ) {
+                  <p class="vpn-telegram-note">
+                    Enable this VPN user to create
+                    a Telegram invitation.
+                  </p>
+                }
+
+
+                <!-- Error -->
+                @if (telegramErrors[vpnUser.id]) {
+                  <div class="vpn-telegram-error">
+                    {{ telegramErrors[vpnUser.id] }}
+                  </div>
+                }
+
+              </div>
+              <!-- End Telegram Notifications -->
+
+
+
+
+
               <!-- Notes -->
               @if (!vpnUser.stats_available) {
                 <div class="vpn-card-note">
