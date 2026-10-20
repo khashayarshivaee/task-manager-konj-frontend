@@ -437,6 +437,16 @@
                   </button>
                 }
 
+                <button
+                  type="button"
+                  class="vpn-action-button vpn-action-button-danger"
+                  [disabled]="processingVpnUserId !== null"
+                  (click)="permanentlyDeleteVpnUser(vpnUser)"
+                >
+                  <ion-icon name="trash-outline"></ion-icon>
+                  <span>Delete Permanently</span>
+                </button>
+
               </div>
 
 

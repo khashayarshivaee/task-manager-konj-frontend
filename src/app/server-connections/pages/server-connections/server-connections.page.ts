@@ -1054,4 +1054,75 @@ export class ServerConnectionsPage
       });
   }
 
+  async permanentlyDeleteVpnUser(
+    vpnUser: VpnUser,
+  ): Promise<void> {
+    if (this.processingVpnUserId !== null) {
+      return;
+    }
+
+    const alert = await this.alertController.create({
+      header: 'Delete VPN User?',
+      message:
+        'This permanently deletes the VPN user, ' +
+        'usage history, destinations and Telegram connection. ' +
+        'Type the exact user name to confirm.',
+      inputs: [
+        {
+          name: 'confirm_name',
+          type: 'text',
+          placeholder: vpnUser.name,
+        },
+      ],
+      buttons: [
+        {
+          text: 'Cancel',
+          role: 'cancel',
+        },
+        {
+          text: 'Delete Permanently',
+          role: 'destructive',
+          handler: (values: { confirm_name?: string }) => {
+            if (values.confirm_name !== vpnUser.name) {
+              return false;
+            }
+
+            this.processingVpnUserId = vpnUser.id;
+
+            this.vpnUserService
+              .permanentlyDeleteUser(
+                vpnUser.id,
+                vpnUser.name,
+              )
+              .pipe(
+                finalize(() => {
+                  this.processingVpnUserId = null;
+                }),
+              )
+              .subscribe({
+                next: () => {
+                  this.vpnUsers = this.vpnUsers.filter(
+                    user => user.id !== vpnUser.id,
+                  );
+
+                  delete this.telegramConnections[vpnUser.id];
+                  delete this.telegramLinks[vpnUser.id];
+                  delete this.telegramErrors[vpnUser.id];
+                  delete this.destinationsByUserId[vpnUser.id];
+                },
+                error: () => {
+                  this.vpnUsersLoadError =
+                    'Unable to permanently delete VPN user.';
+                },
+              });
+
+            return true;
+          },
+        },
+      ],
+    });
+
+    await alert.present();
+  }
+
 }

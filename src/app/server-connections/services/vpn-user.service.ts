@@ -111,4 +111,19 @@ export class VpnUserService {
         ),
       );
   }
+
+  permanentlyDeleteUser(
+    vpnUserId: number,
+    confirmName: string,
+  ): Observable<void> {
+    return this.http.delete<void>(
+      `${this.url}/${vpnUserId}/permanent`,
+      {
+        body: {
+          confirmation: 'DELETE',
+          confirm_name: confirmName,
+        },
+      },
+    );
+  }
 }
