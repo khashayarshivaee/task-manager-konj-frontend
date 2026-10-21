@@ -7,7 +7,10 @@ import {
 } from '@angular/core';
 
 
-
+import {
+  ServerServicesStatusService,
+  ServerServicesStatusResult,
+} from '../../services/server-services-status.service';
 
 
 import {
@@ -50,6 +53,14 @@ import {
   layersOutline,
   discOutline,
   timeOutline,
+  shieldCheckmarkOutline,
+  globeOutline,
+  radioOutline,
+  listOutline,
+  checkmarkCircleOutline,
+  closeCircleOutline,
+  helpCircleOutline,
+
 } from 'ionicons/icons';
 
 import {
@@ -79,6 +90,19 @@ import {
 export class ServerStatusPage implements OnInit  {
 
   private readonly router = inject(Router);
+
+  private readonly serverServicesStatusService =
+    inject(ServerServicesStatusService);
+
+  isServerServicesLoading = false;
+
+  serverServicesStatus:
+    'pending' | 'completed' | 'error' = 'pending';
+
+  serverServicesError = '';
+
+  serverServicesResult:
+    ServerServicesStatusResult | null = null;
 
   private readonly speedTestService = inject(
     ClientSpeedTestService,
@@ -143,6 +167,13 @@ export class ServerStatusPage implements OnInit  {
       layersOutline,
       discOutline,
       timeOutline,
+      shieldCheckmarkOutline,
+      globeOutline,
+      radioOutline,
+      listOutline,
+      checkmarkCircleOutline,
+      closeCircleOutline,
+      helpCircleOutline,
     });
   }
 
@@ -193,18 +224,22 @@ export class ServerStatusPage implements OnInit  {
   }
 
 
+
   ionViewWillEnter(): void {
     void this.loadServerHealth();
+    void this.loadServerServices();
 
     this.stopHealthAutoRefresh();
 
     this.healthRefreshTimer = window.setInterval(
       () => {
         void this.loadServerHealth();
+        void this.loadServerServices();
       },
       60_000,
     );
   }
+
 
   ionViewWillLeave(): void {
     this.stopHealthAutoRefresh();
@@ -576,5 +611,68 @@ export class ServerStatusPage implements OnInit  {
 
     return `${hours}h ${minutes}m`;
   }
+
+
+  async loadServerServices(): Promise<void> {
+    if (this.isServerServicesLoading) {
+      return;
+    }
+
+    this.isServerServicesLoading = true;
+    this.serverServicesError = '';
+
+    try {
+      const response = await firstValueFrom(
+        this.serverServicesStatusService
+          .getLatest()
+          .pipe(timeout(15000)),
+      );
+
+      if (
+        response.status === 'completed' &&
+        response.data !== null
+      ) {
+        this.serverServicesResult = response.data;
+        this.serverServicesStatus = 'completed';
+      } else {
+        this.serverServicesResult = null;
+        this.serverServicesStatus = 'pending';
+      }
+    } catch (error) {
+      console.error(
+        '[Server Services] Load failed:',
+        error,
+      );
+
+      this.serverServicesResult = null;
+      this.serverServicesStatus = 'error';
+
+      this.serverServicesError =
+        'Unable to load server services status.';
+    } finally {
+      this.isServerServicesLoading = false;
+    }
+  }
+
+
+  readonly serviceIcons: Record<string, string> = {
+    xray: 'shield-checkmark-outline',
+    nginx: 'globe-outline',
+    mysql: 'server-outline',
+    supervisor: 'layers-outline',
+    cron: 'time-outline',
+    reverb: 'radio-outline',
+    queue: 'list-outline',
+  };
+
+  get activeServicesCount(): number {
+    return (
+      this.serverServicesResult?.services.filter(
+        (service) => service.status === 'active',
+      ).length ?? 0
+    );
+  }
+
+
 
 }

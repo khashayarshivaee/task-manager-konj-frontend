@@ -264,6 +264,255 @@
     </section>
 
 
+    <!-- ========================================
+         Services Status
+    ======================================== -->
+
+    <section class="server-services-section">
+
+      <div class="services-section-header">
+
+        <div class="services-heading">
+      <span class="eyebrow">
+        INFRASTRUCTURE MONITORING
+      </span>
+
+          <h2>Services Status</h2>
+
+          <p>
+            Real-time monitoring of server services.
+          </p>
+        </div>
+
+        <div class="services-header-actions">
+
+          <button
+            type="button"
+            class="services-refresh-button"
+            [disabled]="isServerServicesLoading"
+            (click)="loadServerServices()"
+          >
+            <ion-icon
+              name="refresh-outline"
+            ></ion-icon>
+
+            <span>
+          {{ isServerServicesLoading ? 'Updating...' : 'Refresh' }}
+        </span>
+          </button>
+
+        </div>
+
+      </div>
+
+      @if (serverServicesError) {
+        <div
+          class="client-test-error"
+          role="alert"
+        >
+          {{ serverServicesError }}
+        </div>
+      }
+
+      <!-- Overall Status -->
+
+      @if (serverServicesResult; as result) {
+
+        <div class="services-overview">
+
+          <div class="services-overview-left">
+
+            <div
+              class="services-overview-icon"
+              [class.services-overview-healthy]="
+            result.services.length > 0 &&
+            activeServicesCount === result.services.length
+          "
+            >
+              <ion-icon
+                [name]="
+              activeServicesCount === result.services.length &&
+              result.services.length > 0
+                ? 'checkmark-circle-outline'
+                : 'help-circle-outline'
+            "
+              ></ion-icon>
+            </div>
+
+            <div class="services-overview-text">
+
+              <strong>
+                {{ activeServicesCount }}
+                /
+                {{ result.services.length }}
+                Services Active
+              </strong>
+
+              <span>
+            {{
+                  activeServicesCount === result.services.length &&
+                  result.services.length > 0
+                    ? 'All monitored services are operational'
+                    : 'Some services require attention'
+                }}
+          </span>
+
+            </div>
+
+          </div>
+
+          <span class="services-overview-badge">
+        {{ result.services.length }} Monitored
+      </span>
+
+        </div>
+
+      }
+
+      <!-- Services Grid -->
+
+      <div class="services-grid">
+
+        @if (serverServicesResult; as result) {
+
+          @for (
+            service of result.services;
+            track service.key
+            ) {
+
+            <div class="service-card">
+
+              <div class="service-card-header">
+
+                <div class="service-icon">
+                  <ion-icon
+                    [name]="
+                  serviceIcons[service.key] ||
+                  'server-outline'
+                "
+                  ></ion-icon>
+                </div>
+
+                <span
+                  class="service-state"
+                  [class.service-state-active]="
+                service.status === 'active'
+              "
+                  [class.service-state-down]="
+                service.status === 'down'
+              "
+                  [class.service-state-unknown]="
+                service.status === 'unknown'
+              "
+                >
+
+              <ion-icon
+                [name]="
+                  service.status === 'active'
+                    ? 'checkmark-circle-outline'
+                    : service.status === 'down'
+                      ? 'close-circle-outline'
+                      : 'help-circle-outline'
+                "
+              ></ion-icon>
+
+                  {{
+                    service.status === 'active'
+                      ? 'Active'
+                      : service.status === 'down'
+                        ? 'Down'
+                        : 'Unknown'
+                  }}
+
+            </span>
+
+              </div>
+
+              <div class="service-card-body">
+
+                <h3>
+                  {{ service.name }}
+                </h3>
+
+                <p>
+                  {{
+                    service.status === 'active'
+                      ? 'Service is running'
+                      : service.status === 'down'
+                        ? 'Service is not running'
+                        : 'Service status unavailable'
+                  }}
+                </p>
+
+              </div>
+
+              <div class="service-card-footer">
+
+                <span>Uptime</span>
+
+                <strong>
+                  {{
+                    service.uptime_seconds !== null
+                      ? formatUptime(service.uptime_seconds)
+                      : '—'
+                  }}
+                </strong>
+
+              </div>
+
+            </div>
+
+          }
+
+        } @else {
+
+          <div class="services-empty-state">
+
+            <ion-icon
+              name="server-outline"
+            ></ion-icon>
+
+            <strong>
+              {{
+                isServerServicesLoading
+                  ? 'Loading services...'
+                  : 'Waiting for service data'
+              }}
+            </strong>
+
+            <p>
+              Server services information will appear here.
+            </p>
+
+          </div>
+
+        }
+
+      </div>
+
+      <!-- Last Updated -->
+
+      @if (serverServicesResult; as result) {
+
+        <div class="services-last-updated">
+
+      <span>
+        Last checked:
+        {{ result.checked_at | date:'mediumTime' }}
+      </span>
+
+          <span class="services-auto-refresh">
+        Auto-refresh every 60 seconds
+      </span>
+
+        </div>
+
+      }
+
+    </section>
+
+
+
 
     <!-- Speed Test Cards -->
     <div class="speed-test-grid">
