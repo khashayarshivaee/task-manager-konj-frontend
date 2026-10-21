@@ -47,6 +47,224 @@
     </section>
 
 
+    <!-- Server Health -->
+    <section class="server-health-section">
+
+      <div class="health-section-header">
+
+        <div>
+          <span class="eyebrow">SYSTEM RESOURCES</span>
+
+          <h2>Server Health</h2>
+
+          <p>
+            Live system resource monitoring.
+          </p>
+        </div>
+
+        <div class="health-header-actions">
+
+      <span
+        class="health-status"
+        [class.health-status-online]="serverHealthStatus === 'completed'"
+        [class.health-status-error]="serverHealthStatus === 'error'"
+      >
+        {{
+          isServerHealthLoading
+            ? 'Updating...'
+            : serverHealthStatus === 'completed'
+              ? 'Monitoring'
+              : serverHealthStatus === 'error'
+                ? 'Unavailable'
+                : 'Waiting'
+        }}
+      </span>
+
+          <button
+            type="button"
+            class="health-refresh-button"
+            [disabled]="isServerHealthLoading"
+            (click)="loadServerHealth()"
+          >
+            <ion-icon name="refresh-outline"></ion-icon>
+            <span>Refresh</span>
+          </button>
+
+        </div>
+
+      </div>
+
+      @if (serverHealthError) {
+        <div class="client-test-error" role="alert">
+          {{ serverHealthError }}
+        </div>
+      }
+
+      <div class="health-grid">
+
+        <!-- CPU -->
+        <div class="health-card">
+
+          <div class="health-card-top">
+            <div class="health-icon cpu-icon">
+              <ion-icon name="hardware-chip-outline"></ion-icon>
+            </div>
+
+            <span class="health-card-label">CPU Usage</span>
+          </div>
+
+          <div class="health-card-value">
+            @if (serverHealthResult; as health) {
+              <strong>
+                {{ health.cpu_percent | number:'1.0-1' }}%
+              </strong>
+            } @else {
+              <strong>—</strong>
+            }
+          </div>
+
+          <div class="health-progress">
+            <div
+              class="health-progress-fill cpu-progress"
+              [style.width.%]="serverHealthResult?.cpu_percent ?? 0"
+            ></div>
+          </div>
+
+          <div class="health-card-footer">
+            <span>Processor utilization</span>
+          </div>
+
+        </div>
+
+
+        <!-- Memory -->
+        <div class="health-card">
+
+          <div class="health-card-top">
+            <div class="health-icon memory-icon">
+              <ion-icon name="layers-outline"></ion-icon>
+            </div>
+
+            <span class="health-card-label">Memory</span>
+          </div>
+
+          <div class="health-card-value">
+            @if (serverHealthResult; as health) {
+              <strong>
+                {{ health.memory_percent | number:'1.0-1' }}%
+              </strong>
+            } @else {
+              <strong>—</strong>
+            }
+          </div>
+
+          <div class="health-progress">
+            <div
+              class="health-progress-fill memory-progress"
+              [style.width.%]="serverHealthResult?.memory_percent ?? 0"
+            ></div>
+          </div>
+
+          <div class="health-card-footer">
+            @if (serverHealthResult; as health) {
+              <span>
+            {{ health.memory_used_bytes / 1073741824 | number:'1.1-1' }}
+                /
+                {{ health.memory_total_bytes / 1073741824 | number:'1.1-1' }}
+                GiB
+          </span>
+            } @else {
+              <span>Memory utilization</span>
+            }
+          </div>
+
+        </div>
+
+
+        <!-- Disk -->
+        <div class="health-card">
+
+          <div class="health-card-top">
+            <div class="health-icon disk-icon">
+              <ion-icon name="disc-outline"></ion-icon>
+            </div>
+
+            <span class="health-card-label">Disk Usage</span>
+          </div>
+
+          <div class="health-card-value">
+            @if (serverHealthResult; as health) {
+              <strong>
+                {{ health.disk_percent | number:'1.0-1' }}%
+              </strong>
+            } @else {
+              <strong>—</strong>
+            }
+          </div>
+
+          <div class="health-progress">
+            <div
+              class="health-progress-fill disk-progress"
+              [style.width.%]="serverHealthResult?.disk_percent ?? 0"
+            ></div>
+          </div>
+
+          <div class="health-card-footer">
+            @if (serverHealthResult; as health) {
+              <span>
+            {{ health.disk_used_bytes / 1073741824 | number:'1.1-1' }}
+                /
+                {{ health.disk_total_bytes / 1073741824 | number:'1.1-1' }}
+                GiB
+          </span>
+            } @else {
+              <span>Storage utilization</span>
+            }
+          </div>
+
+        </div>
+
+
+        <!-- Uptime -->
+        <div class="health-card">
+
+          <div class="health-card-top">
+            <div class="health-icon uptime-icon">
+              <ion-icon name="time-outline"></ion-icon>
+            </div>
+
+            <span class="health-card-label">Uptime</span>
+          </div>
+
+          <div class="health-card-value">
+            @if (serverHealthResult; as health) {
+              <strong class="uptime-value">
+                {{ formatUptime(health.uptime_seconds) }}
+              </strong>
+            } @else {
+              <strong>—</strong>
+            }
+          </div>
+
+          <div class="health-card-footer uptime-footer">
+            <span>Time since last server boot</span>
+          </div>
+
+        </div>
+
+      </div>
+
+      @if (serverHealthResult; as health) {
+        <div class="health-last-updated">
+          Last updated:
+          {{ health.measured_at | date:'mediumTime' }}
+        </div>
+      }
+
+    </section>
+
+
+
     <!-- Speed Test Cards -->
     <div class="speed-test-grid">
 

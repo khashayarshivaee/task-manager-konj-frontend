@@ -637,3 +637,495 @@ button {
   }
 }
 
+
+/* ========================================
+   Server Health Section
+======================================== */
+
+.server-health-section {
+  margin-bottom: 38px;
+}
+
+.health-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+
+  margin-bottom: 20px;
+
+  h2 {
+    margin: 8px 0 6px;
+
+    color: #202329;
+    font-size: 21px;
+    font-weight: 750;
+    letter-spacing: -0.025em;
+  }
+
+  p {
+    margin: 0;
+
+    color: #858a94;
+    font-size: 12px;
+    line-height: 1.6;
+  }
+}
+
+/* ========================================
+   Header Actions
+======================================== */
+
+.health-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.health-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+
+  padding: 9px 12px;
+
+  color: #9398a1;
+  background: #ffffff;
+
+  border: 1px solid #e7e9ed;
+  border-radius: 999px;
+
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+
+  &::before {
+    content: '';
+
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+
+    background: #b8bdc5;
+  }
+}
+
+.health-status-online {
+  color: #16804a;
+  background: #edf9f1;
+  border-color: #d3eddd;
+
+  &::before {
+    background: #25a567;
+    box-shadow: 0 0 0 3px rgba(
+      37, 165, 103, 0.12
+    );
+  }
+}
+
+.health-status-error {
+  color: #c43838;
+  background: #fff1f1;
+  border-color: #f4d5d5;
+
+  &::before {
+    background: #dc4545;
+  }
+}
+
+.health-refresh-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  min-height: 38px;
+  padding: 0 14px;
+
+  color: #363941;
+  background: #ffffff;
+
+  border: 1px solid #e6e8ec;
+  border-radius: 11px;
+
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    opacity 160ms ease;
+
+  ion-icon {
+    font-size: 16px;
+  }
+
+  &:hover:not(:disabled) {
+    background: #fafbfc;
+    border-color: #d7dbe2;
+  }
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: default;
+  }
+}
+
+/* ========================================
+   Health Cards Grid
+======================================== */
+
+.health-grid {
+  display: grid;
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr));
+
+  gap: 15px;
+}
+
+.health-card {
+  display: flex;
+  flex-direction: column;
+
+  min-width: 0;
+  min-height: 198px;
+
+  padding: 21px;
+
+  background: #ffffff;
+  border: 1px solid #e7e9ed;
+  border-radius: 19px;
+
+  box-shadow:
+    0 5px 20px rgba(25, 30, 42, 0.025);
+
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease;
+
+  &:hover {
+    border-color: #dedfe4;
+
+    box-shadow:
+      0 10px 28px rgba(25, 30, 42, 0.05);
+
+    transform: translateY(-2px);
+  }
+}
+
+/* ========================================
+   Card Header
+======================================== */
+
+.health-card-top {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+
+.health-icon {
+  display: grid;
+  place-items: center;
+
+  flex: 0 0 42px;
+
+  width: 42px;
+  height: 42px;
+
+  border-radius: 13px;
+
+  ion-icon {
+    font-size: 21px;
+  }
+}
+
+.cpu-icon {
+  color: #ef6b18;
+  background: #fff1e7;
+}
+
+.memory-icon {
+  color: #5079ce;
+  background: #edf3ff;
+}
+
+.disk-icon {
+  color: #9264c9;
+  background: #f5efff;
+}
+
+.uptime-icon {
+  color: #23976c;
+  background: #e9f8f0;
+}
+
+.health-card-label {
+  min-width: 0;
+
+  color: #747a85;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+/* ========================================
+   Main Values
+======================================== */
+
+.health-card-value {
+  display: flex;
+  align-items: center;
+
+  min-height: 64px;
+  margin-top: 14px;
+
+  strong {
+    color: #23262b;
+
+    font-size: clamp(26px, 2.8vw, 36px);
+    font-weight: 780;
+    line-height: 1.2;
+
+    letter-spacing: -0.045em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .uptime-value {
+    font-size: clamp(19px, 2vw, 25px);
+    letter-spacing: -0.035em;
+    overflow-wrap: anywhere;
+  }
+}
+
+/* ========================================
+   Progress Bars
+======================================== */
+
+.health-progress {
+  width: 100%;
+  height: 7px;
+
+  overflow: hidden;
+
+  background: #f0f1f4;
+  border-radius: 999px;
+}
+
+.health-progress-fill {
+  height: 100%;
+
+  border-radius: inherit;
+
+  transition:
+    width 600ms ease;
+
+  min-width: 0;
+}
+
+.cpu-progress {
+  background: #ff7627;
+}
+
+.memory-progress {
+  background: #648be0;
+}
+
+.disk-progress {
+  background: #a77ada;
+}
+
+/* ========================================
+   Card Footer
+======================================== */
+
+.health-card-footer {
+  display: flex;
+  align-items: center;
+
+  min-height: 20px;
+  margin-top: auto;
+  padding-top: 13px;
+
+  span {
+    color: #969ba5;
+
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 1.5;
+  }
+}
+
+.uptime-footer {
+  margin-top: auto;
+  padding-top: 20px;
+}
+
+/* ========================================
+   Last Updated
+======================================== */
+
+.health-last-updated {
+  display: flex;
+  justify-content: flex-end;
+
+  margin-top: 12px;
+
+  color: #a0a5ae;
+  font-size: 10px;
+  font-weight: 500;
+}
+
+/* ========================================
+   Tablet
+======================================== */
+
+@media (max-width: 1100px) {
+  .health-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+  .health-card {
+    min-height: 188px;
+  }
+}
+
+/* ========================================
+   Mobile
+======================================== */
+
+@media (max-width: 600px) {
+  .server-health-section {
+    margin-bottom: 30px;
+  }
+
+  .health-section-header {
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 16px;
+
+    h2 {
+      font-size: 19px;
+    }
+
+    p {
+      font-size: 11px;
+    }
+  }
+
+  .health-header-actions {
+    gap: 7px;
+  }
+
+  .health-status {
+    padding: 8px 9px;
+    font-size: 10px;
+  }
+
+  .health-refresh-button {
+    min-height: 34px;
+    padding: 0 10px;
+    font-size: 10px;
+
+    ion-icon {
+      font-size: 15px;
+    }
+  }
+
+  .health-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+
+    gap: 11px;
+  }
+
+  .health-card {
+    min-height: 168px;
+    padding: 15px;
+    border-radius: 16px;
+  }
+
+  .health-card-top {
+    gap: 8px;
+  }
+
+  .health-icon {
+    flex-basis: 36px;
+
+    width: 36px;
+    height: 36px;
+    border-radius: 11px;
+
+    ion-icon {
+      font-size: 18px;
+    }
+  }
+
+  .health-card-label {
+    font-size: 10px;
+  }
+
+  .health-card-value {
+    min-height: 54px;
+    margin-top: 11px;
+
+    strong {
+      font-size: 29px;
+    }
+
+    .uptime-value {
+      font-size: 18px;
+    }
+  }
+
+  .health-progress {
+    height: 6px;
+  }
+
+  .health-card-footer {
+    padding-top: 11px;
+
+    span {
+      font-size: 10px;
+    }
+  }
+}
+
+/* ========================================
+   Small Mobile
+======================================== */
+
+@media (max-width: 380px) {
+  .health-card {
+    padding: 12px;
+  }
+
+  .health-card-value strong {
+    font-size: 26px;
+  }
+
+  .health-card-value .uptime-value {
+    font-size: 16px;
+  }
+
+  .health-refresh-button span {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .health-card,
+  .health-progress-fill {
+    transition: none;
+  }
+
+  .health-card:hover {
+    transform: none;
+  }
+}
+
+
+
+

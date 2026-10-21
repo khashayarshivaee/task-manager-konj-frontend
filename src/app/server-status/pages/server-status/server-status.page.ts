@@ -6,7 +6,22 @@ import {
 
 } from '@angular/core';
 
-import { DatePipe } from '@angular/common';
+
+
+
+
+import {
+  ServerHealthService,
+  ServerHealthResult,
+} from '../../services/server-health.service';
+
+
+
+
+import {
+  DatePipe,
+  DecimalPipe,
+} from '@angular/common';
 
 import {
   ServerSpeedTestService,
@@ -31,6 +46,10 @@ import {
   serverOutline,
   speedometerOutline,
   refreshOutline,
+  hardwareChipOutline,
+  layersOutline,
+  discOutline,
+  timeOutline,
 } from 'ionicons/icons';
 
 import {
@@ -54,6 +73,7 @@ import {
     IonContent,
     IonIcon,
     DatePipe,
+    DecimalPipe,
   ],
 })
 export class ServerStatusPage implements OnInit  {
@@ -68,6 +88,23 @@ export class ServerStatusPage implements OnInit  {
   private readonly serverSpeedTestService = inject(
     ServerSpeedTestService,
   );
+
+
+  private readonly serverHealthService = inject(
+    ServerHealthService,
+  );
+
+  private healthRefreshTimer: number | null = null;
+
+  isServerHealthLoading = false;
+
+  serverHealthStatus:
+    'pending' | 'completed' | 'error' = 'pending';
+
+  serverHealthError = '';
+
+  serverHealthResult: ServerHealthResult | null = null;
+
 
   isServerTestLoading = false;
 
@@ -102,6 +139,10 @@ export class ServerStatusPage implements OnInit  {
       serverOutline,
       speedometerOutline,
       refreshOutline,
+      hardwareChipOutline,
+      layersOutline,
+      discOutline,
+      timeOutline,
     });
   }
 
@@ -150,6 +191,74 @@ export class ServerStatusPage implements OnInit  {
       this.isServerTestLoading = false;
     }
   }
+
+
+  ionViewWillEnter(): void {
+    void this.loadServerHealth();
+
+    this.stopHealthAutoRefresh();
+
+    this.healthRefreshTimer = window.setInterval(
+      () => {
+        void this.loadServerHealth();
+      },
+      60_000,
+    );
+  }
+
+  ionViewWillLeave(): void {
+    this.stopHealthAutoRefresh();
+  }
+
+  private stopHealthAutoRefresh(): void {
+    if (this.healthRefreshTimer !== null) {
+      window.clearInterval(this.healthRefreshTimer);
+      this.healthRefreshTimer = null;
+    }
+  }
+
+  async loadServerHealth(): Promise<void> {
+    if (this.isServerHealthLoading) {
+      return;
+    }
+
+    this.isServerHealthLoading = true;
+    this.serverHealthError = '';
+
+    try {
+      const response = await firstValueFrom(
+        this.serverHealthService
+          .getLatest()
+          .pipe(timeout(15000)),
+      );
+
+      if (
+        response.status === 'completed' &&
+        response.data !== null
+      ) {
+        this.serverHealthResult = response.data;
+        this.serverHealthStatus = 'completed';
+      } else {
+        this.serverHealthResult = null;
+        this.serverHealthStatus = 'pending';
+      }
+
+    } catch (error) {
+      console.error(
+        '[Server Health] Load failed:',
+        error,
+      );
+
+      this.serverHealthStatus = 'error';
+
+      this.serverHealthError =
+        'Unable to load server health information.';
+
+    } finally {
+      this.isServerHealthLoading = false;
+    }
+  }
+
 
 
   goBack(): void {
@@ -447,4 +556,25 @@ export class ServerStatusPage implements OnInit  {
       value * 10,
     ) / 10;
   }
+
+
+
+  formatUptime(seconds: number): string {
+    const days = Math.floor(seconds / 86400);
+
+    const hours = Math.floor(
+      (seconds % 86400) / 3600,
+    );
+
+    const minutes = Math.floor(
+      (seconds % 3600) / 60,
+    );
+
+    if (days > 0) {
+      return `${days}d ${hours}h ${minutes}m`;
+    }
+
+    return `${hours}h ${minutes}m`;
+  }
+
 }
