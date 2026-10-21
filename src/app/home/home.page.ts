@@ -58,6 +58,7 @@ import {
   addOutline,
   logoInstagram,
   calendarOutline,
+  speedometerOutline,
   menu,
   createOutline,
   trashOutline,
@@ -212,6 +213,7 @@ export class HomePage implements OnInit {
       addOutline,
       menu,
       calendarOutline,
+      speedometerOutline,
       checkmarkCircleOutline,
       checkboxOutline,
       createOutline,
@@ -1185,6 +1187,17 @@ export class HomePage implements OnInit {
       '/settings',
     );
   }
+
+
+  openServerStatus(): void {
+    this.closeWorkspaceMenu();
+    this.closeSidebar();
+
+    void this.router.navigateByUrl(
+      '/server-status',
+    );
+  }
+
 
   openServerConnections(): void {
     this.closeWorkspaceMenu();

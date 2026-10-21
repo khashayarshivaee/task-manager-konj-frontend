@@ -1,0 +1,639 @@
+
+:host {
+  display: block;
+  min-height: 100%;
+  font-family: Inter, -apple-system, BlinkMacSystemFont,
+  'Segoe UI', sans-serif;
+}
+
+.server-status-content {
+  --background: #f6f7f9;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+button {
+  font: inherit;
+}
+
+.server-status-page {
+  width: min(calc(100% - 40px), 1320px);
+  margin: 0 auto;
+  padding: 34px 0 64px;
+  color: #202329;
+}
+
+// Header
+
+.status-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 42px;
+}
+
+.back-button {
+  display: grid;
+  place-items: center;
+  flex: 0 0 44px;
+
+  width: 44px;
+  height: 44px;
+  padding: 0;
+
+  color: #202329;
+  background: #ffffff;
+  border: 1px solid #e6e8ec;
+  border-radius: 14px;
+  cursor: pointer;
+
+  transition:
+    background 160ms ease,
+    border-color 160ms ease;
+
+  ion-icon {
+    font-size: 20px;
+  }
+
+  &:hover {
+    background: #fafbfc;
+    border-color: #d7dbe2;
+  }
+}
+
+.header-icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 52px;
+
+  width: 52px;
+  height: 52px;
+
+  color: #24262a;
+  background: #ffffff;
+  border: 1px solid #e7e9ed;
+  border-radius: 16px;
+
+  ion-icon {
+    font-size: 24px;
+  }
+}
+
+.header-copy {
+  min-width: 0;
+
+  h1 {
+    margin: 6px 0 8px;
+
+    color: #181a1f;
+    font-size: clamp(26px, 3vw, 34px);
+    font-weight: 750;
+    letter-spacing: -0.035em;
+    line-height: 1.15;
+  }
+
+  p {
+    margin: 0;
+    color: #757b86;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+}
+
+.eyebrow {
+  color: #a0a4ad;
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+// Intro
+
+.status-intro {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 22px;
+
+  h2 {
+    margin: 8px 0;
+    color: #202329;
+    font-size: 21px;
+    font-weight: 750;
+    letter-spacing: -0.025em;
+  }
+
+  p {
+    margin: 0;
+    color: #858a94;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+}
+
+// Speed Test Grid
+
+.speed-test-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.speed-test-card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+
+  background: #ffffff;
+  border: 1px solid #e7e9ed;
+  border-radius: 22px;
+  box-shadow: 0 6px 24px rgba(25, 30, 42, 0.025);
+}
+
+// Card Header
+
+.test-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+
+  padding: 24px 24px 0;
+}
+
+.test-card-identity {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  min-width: 0;
+
+  h3 {
+    margin: 0 0 5px;
+    color: #24262b;
+    font-size: 15px;
+    font-weight: 750;
+    letter-spacing: -0.015em;
+  }
+
+  p {
+    margin: 0;
+    color: #9297a0;
+    font-size: 11px;
+    line-height: 1.5;
+  }
+}
+
+.test-icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 46px;
+
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+
+  ion-icon {
+    font-size: 22px;
+  }
+}
+
+.server-icon {
+  color: #f16c14;
+  background: #fff1e7;
+}
+
+.client-icon {
+  color: #4775c9;
+  background: #edf3ff;
+}
+
+.test-status {
+  flex: 0 0 auto;
+  padding: 7px 10px;
+
+  color: #9297a0;
+  background: #f5f6f8;
+  border: 1px solid #edf0f3;
+  border-radius: 999px;
+
+  font-size: 10px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+// Primary Speed
+
+.speed-primary {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  min-height: 205px;
+  padding: 32px 20px 24px;
+  text-align: center;
+}
+
+.speed-label {
+  margin-bottom: 12px;
+
+  color: #999da6;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.speed-value {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 9px;
+
+  strong {
+    color: #24262b;
+    font-size: clamp(52px, 6vw, 72px);
+    font-weight: 750;
+    line-height: 1;
+    letter-spacing: -0.065em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  span {
+    color: #a0a4ac;
+    font-size: 14px;
+    font-weight: 650;
+  }
+}
+
+// Secondary Metrics
+
+.speed-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+
+  margin: 0 24px 24px;
+  padding: 20px 0;
+
+  border-top: 1px solid #eef0f3;
+  border-bottom: 1px solid #eef0f3;
+}
+
+.metric {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+
+  &:not(:last-child) {
+    border-right: 1px solid #eef0f3;
+  }
+
+  > span {
+    color: #9297a0;
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  > div {
+    display: flex;
+    align-items: baseline;
+    gap: 5px;
+  }
+
+  strong {
+    color: #282b30;
+    font-size: 23px;
+    font-weight: 750;
+    font-variant-numeric: tabular-nums;
+  }
+
+  small {
+    color: #a1a5ae;
+    font-size: 10px;
+    font-weight: 600;
+  }
+}
+
+// Card Footer
+
+.test-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+
+  margin-top: auto;
+  padding: 17px 24px;
+
+  background: #fcfcfd;
+  border-top: 1px solid #f0f1f3;
+
+  > span:first-child {
+    color: #999da5;
+    font-size: 11px;
+    line-height: 1.5;
+  }
+}
+
+.test-pending {
+  color: #c67c35;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+// Info
+
+.status-info {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+
+  margin-top: 22px;
+  padding: 17px 19px;
+
+  background: #ffffff;
+  border: 1px solid #e7e9ed;
+  border-radius: 16px;
+
+  ion-icon {
+    flex: 0 0 auto;
+    margin-top: 1px;
+    color: #a0a5af;
+    font-size: 17px;
+  }
+
+  p {
+    margin: 0;
+    color: #858a94;
+    font-size: 12px;
+    line-height: 1.7;
+  }
+}
+
+// Tablet
+
+@media (max-width: 1050px) {
+  .speed-test-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+// Mobile
+
+@media (max-width: 600px) {
+  .server-status-page {
+    width: calc(100% - 28px);
+    padding:
+      calc(20px + env(safe-area-inset-top, 0px))
+      0
+      calc(40px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .status-header {
+    align-items: flex-start;
+    gap: 11px;
+    margin-bottom: 32px;
+  }
+
+  .back-button {
+    flex-basis: 40px;
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+  }
+
+  .header-icon {
+    flex-basis: 40px;
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+
+    ion-icon {
+      font-size: 20px;
+    }
+  }
+
+  .header-copy {
+    h1 {
+      font-size: 23px;
+    }
+
+    p {
+      font-size: 11px;
+    }
+  }
+
+  .status-intro {
+    h2 {
+      font-size: 19px;
+    }
+  }
+
+  .speed-test-grid {
+    gap: 14px;
+  }
+
+  .speed-test-card {
+    border-radius: 18px;
+  }
+
+  .test-card-header {
+    padding: 18px 16px 0;
+  }
+
+  .test-card-identity {
+    gap: 9px;
+
+    h3 {
+      font-size: 13px;
+    }
+
+    p {
+      font-size: 10px;
+    }
+  }
+
+  .test-icon {
+    flex-basis: 40px;
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+  }
+
+  .test-status {
+    padding: 6px 8px;
+    font-size: 9px;
+  }
+
+  .speed-primary {
+    min-height: 175px;
+    padding: 32px 12px 20px;
+  }
+
+  .speed-value strong {
+    font-size: 58px;
+  }
+
+  .speed-metrics {
+    margin: 0 16px 16px;
+    padding: 17px 0;
+  }
+
+  .metric strong {
+    font-size: 20px;
+  }
+
+  .test-card-footer {
+    padding: 15px 16px;
+  }
+
+  .status-info {
+    padding: 15px;
+  }
+}
+
+@media (max-width: 375px) {
+  .test-card-header {
+    flex-wrap: wrap;
+  }
+
+  .speed-value strong {
+    font-size: 48px;
+  }
+}
+
+
+/* ========================================
+   Client Speed Test
+======================================== */
+
+.client-test-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+
+  min-height: 42px;
+  padding: 0 18px;
+
+  color: #ffffff;
+  background: #ff6b00;
+
+  border: 1px solid #ff6b00;
+  border-radius: 12px;
+
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+
+  transition:
+    background 160ms ease,
+    transform 160ms ease,
+    opacity 160ms ease;
+
+  ion-icon {
+    font-size: 17px;
+  }
+
+  &:hover:not(:disabled) {
+    background: #e85f00;
+  }
+
+  &:active:not(:disabled) {
+    transform: scale(0.98);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+/* ========================================
+   Footer Information
+======================================== */
+
+.test-footer-info {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+
+  span {
+    color: #999da5;
+    font-size: 11px;
+    line-height: 1.5;
+  }
+
+  small {
+    color: #a8acb4;
+    font-size: 10px;
+  }
+}
+
+/* ========================================
+   Test Status
+======================================== */
+
+.test-status-running {
+  color: #bd751c;
+  background: #fff4e5;
+  border-color: #ffe5be;
+}
+
+.test-status-success {
+  color: #16804a;
+  background: #eaf8f0;
+  border-color: #ccebd9;
+}
+
+.test-status-error {
+  color: #c43838;
+  background: #fff0f0;
+  border-color: #f5d0d0;
+}
+
+/* ========================================
+   Error Message
+======================================== */
+
+.client-test-error {
+  margin: 0 24px 18px;
+  padding: 12px 14px;
+
+  color: #bc3030;
+  background: #fff3f3;
+  border: 1px solid #f5d7d7;
+  border-radius: 12px;
+
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+/* ========================================
+   Mobile
+======================================== */
+
+@media (max-width: 600px) {
+  .test-card-footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .client-test-button {
+    width: 100%;
+    min-height: 46px;
+    border-radius: 12px;
+  }
+
+  .client-test-error {
+    margin: 0 16px 16px;
+  }
+}
+

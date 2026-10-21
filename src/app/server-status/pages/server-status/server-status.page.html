@@ -1,0 +1,418 @@
+
+<ion-content class="server-status-content">
+  <div class="server-status-page">
+
+    <!-- Page Header -->
+    <header class="status-header">
+
+      <button
+        type="button"
+        class="back-button"
+        aria-label="Go back"
+        (click)="goBack()"
+      >
+        <ion-icon name="arrow-back-outline"></ion-icon>
+      </button>
+
+      <div class="header-icon">
+        <ion-icon name="server-outline"></ion-icon>
+      </div>
+
+      <div class="header-copy">
+        <span class="eyebrow">SYSTEM MONITORING</span>
+
+        <h1>Server Status</h1>
+
+        <p>
+          Monitor server performance and test
+          your internet connection.
+        </p>
+      </div>
+
+    </header>
+
+
+    <!-- Intro -->
+    <section class="status-intro">
+      <div>
+        <span class="eyebrow">NETWORK PERFORMANCE</span>
+
+        <h2>Speed & Connectivity</h2>
+
+        <p>
+          Measure server network performance
+          and your device's connection speed.
+        </p>
+      </div>
+    </section>
+
+
+    <!-- Speed Test Cards -->
+    <div class="speed-test-grid">
+
+
+      <!-- Server Speed Test -->
+      <section class="speed-test-card">
+
+        <div class="test-card-header">
+          <div class="test-card-identity">
+
+            <div class="test-icon server-icon">
+              <ion-icon name="server-outline"></ion-icon>
+            </div>
+
+            <div>
+              <h3>Server Speed Test</h3>
+
+              <p>
+                Hetzner server internet performance.
+              </p>
+            </div>
+
+          </div>
+
+          <span
+            class="test-status"
+            [class.test-status-running]="isServerTestLoading"
+            [class.test-status-success]="serverTestStatus === 'completed' && !isServerTestLoading"
+            [class.test-status-error]="serverTestStatus === 'error'"
+          >
+      {{
+              isServerTestLoading
+                ? 'Loading...'
+                : serverTestStatus === 'completed'
+                  ? 'Completed'
+                  : serverTestStatus === 'error'
+                    ? 'Unavailable'
+                    : 'Pending'
+            }}
+    </span>
+
+        </div>
+
+
+        <!-- Download -->
+        <div class="speed-primary">
+
+    <span class="speed-label">
+      Download Speed
+    </span>
+
+          <div class="speed-value">
+
+            <strong>
+              {{
+                serverSpeedTestResult?.download_mbps ?? '—'
+              }}
+            </strong>
+
+            <span>Mbps</span>
+
+          </div>
+
+        </div>
+
+
+        <!-- Metrics -->
+        <div class="speed-metrics">
+
+          <div class="metric">
+            <span>Upload</span>
+
+            <div>
+              <strong>
+                {{
+                  serverSpeedTestResult?.upload_mbps ?? '—'
+                }}
+              </strong>
+
+              <small>Mbps</small>
+            </div>
+          </div>
+
+
+          <div class="metric">
+            <span>Ping</span>
+
+            <div>
+              <strong>
+                {{
+                  serverSpeedTestResult?.ping_ms ?? '—'
+                }}
+              </strong>
+
+              <small>ms</small>
+            </div>
+          </div>
+
+
+          <div class="metric">
+            <span>Jitter</span>
+
+            <div>
+              <strong>
+                {{
+                  serverSpeedTestResult?.jitter_ms ?? '—'
+                }}
+              </strong>
+
+              <small>ms</small>
+            </div>
+          </div>
+
+        </div>
+
+
+        <!-- Error -->
+        @if (serverTestError) {
+          <div
+            class="client-test-error"
+            role="alert"
+          >
+            {{ serverTestError }}
+          </div>
+        }
+
+
+        <!-- Footer -->
+        <div class="test-card-footer">
+
+          <div class="test-footer-info">
+
+            @if (serverSpeedTestResult; as result) {
+
+              <span>
+          Test server:
+                {{ result.server_name || 'Unknown' }}
+        </span>
+
+              <small>
+                Last tested:
+                {{ result.measured_at | date:'medium' }}
+              </small>
+
+            } @else {
+
+              <span>
+          Waiting for server speed test results.
+        </span>
+
+            }
+
+          </div>
+
+
+          <button
+            type="button"
+            class="client-test-button"
+            [disabled]="isServerTestLoading"
+            (click)="loadServerSpeedTest()"
+          >
+
+            <ion-icon name="refresh-outline"></ion-icon>
+
+            <span>
+        {{
+                isServerTestLoading
+                  ? 'Refreshing...'
+                  : 'Refresh Results'
+              }}
+      </span>
+
+          </button>
+
+        </div>
+
+      </section>
+
+
+
+
+      <!-- Client Speed Test -->
+      <section class="speed-test-card">
+
+        <div class="test-card-header">
+          <div class="test-card-identity">
+
+            <div class="test-icon client-icon">
+              <ion-icon name="speedometer-outline"></ion-icon>
+            </div>
+
+            <div>
+              <h3>Client Speed Test</h3>
+
+              <p>
+                Measure your current device connection.
+              </p>
+            </div>
+
+          </div>
+
+          <span
+            class="test-status"
+            [class.test-status-running]="isClientTestRunning"
+            [class.test-status-success]="clientTestStatus === 'Completed'"
+            [class.test-status-error]="clientTestStatus === 'Failed'"
+          >
+      {{ clientTestStatus }}
+    </span>
+        </div>
+
+
+        <!-- Download Speed -->
+        <div class="speed-primary">
+
+    <span class="speed-label">
+      Download Speed
+    </span>
+
+          <div class="speed-value">
+
+            <strong>
+              {{
+                clientDownloadMbps === null
+                  ? '—'
+                  : clientDownloadMbps
+              }}
+            </strong>
+
+            <span>Mbps</span>
+
+          </div>
+
+        </div>
+
+
+        <!-- Metrics -->
+        <div class="speed-metrics">
+
+          <div class="metric">
+            <span>Upload</span>
+
+            <div>
+              <strong>
+                {{
+                  clientUploadMbps === null
+                    ? '—'
+                    : clientUploadMbps
+                }}
+              </strong>
+
+              <small>Mbps</small>
+            </div>
+          </div>
+
+
+          <div class="metric">
+            <span>Ping</span>
+
+            <div>
+              <strong>
+                {{
+                  clientPingMs === null
+                    ? '—'
+                    : clientPingMs
+                }}
+              </strong>
+
+              <small>ms</small>
+            </div>
+          </div>
+
+
+          <div class="metric">
+            <span>Jitter</span>
+
+            <div>
+              <strong>
+                {{
+                  clientJitterMs === null
+                    ? '—'
+                    : clientJitterMs
+                }}
+              </strong>
+
+              <small>ms</small>
+            </div>
+          </div>
+
+        </div>
+
+
+        <!-- Error -->
+        @if (clientTestError) {
+          <div
+            class="client-test-error"
+            role="alert"
+          >
+            {{ clientTestError }}
+          </div>
+        }
+
+
+        <!-- Footer -->
+        <div class="test-card-footer">
+
+          <div class="test-footer-info">
+
+      <span>
+        Measures your connection to KONJ.
+      </span>
+
+            @if (clientLastTestedAt) {
+              <small>
+                Last tested:
+                {{
+                  clientLastTestedAt.toLocaleTimeString()
+                }}
+              </small>
+            }
+
+          </div>
+
+
+          <button
+            type="button"
+            class="client-test-button"
+            [disabled]="isClientTestRunning"
+            (click)="startClientSpeedTest()"
+          >
+
+            <ion-icon
+              name="speedometer-outline"
+            ></ion-icon>
+
+            <span>
+        {{
+                isClientTestRunning
+                  ? 'Testing...'
+                  : clientLastTestedAt
+                    ? 'Test Again'
+                    : 'Start Speed Test'
+              }}
+      </span>
+
+          </button>
+
+        </div>
+
+      </section>
+
+
+
+    </div>
+
+
+    <!-- Information -->
+    <div class="status-info">
+      <ion-icon name="refresh-outline"></ion-icon>
+
+      <p>
+        Server and client speed tests measure
+        different network paths. Results may vary
+        depending on network conditions.
+      </p>
+    </div>
+
+  </div>
+</ion-content>

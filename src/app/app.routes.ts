@@ -169,6 +169,25 @@ export const routes: Routes = [
       ),
   },
 
+
+  {
+    path: 'server-status',
+    title: 'Server Status | Konj Task Manager',
+
+    canActivate: [
+      authGuard,
+      verifiedGuard,
+    ],
+
+    loadComponent: () =>
+      import(
+        './server-status/pages/server-status/server-status.page'
+        ).then(
+        (module) => module.ServerStatusPage,
+      ),
+  },
+
+
   {
     path: 'workspaces/:workspaceId/instagram',
     title: 'Instagram Manager | Konj Task Manager',

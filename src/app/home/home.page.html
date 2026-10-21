@@ -372,6 +372,18 @@
           <button
             type="button"
             class="navigation-item"
+            (click)="openServerStatus()"
+          >
+            <ion-icon
+              name="speedometer-outline"
+            ></ion-icon>
+
+            <span>Server Status</span>
+          </button>
+
+          <button
+            type="button"
+            class="navigation-item"
             (click)="openSettings()"
           >
             <ion-icon
@@ -381,7 +393,13 @@
             <span>Settings</span>
           </button>
         </div>
+
       </nav>
+
+
+
+
+
 
       @if (currentUser$ | async; as user) {
       <div class="sidebar-account">
