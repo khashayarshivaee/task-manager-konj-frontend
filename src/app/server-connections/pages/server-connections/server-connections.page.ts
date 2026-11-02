@@ -74,6 +74,14 @@ import {
   VpnUserService,
 } from '../../services/vpn-user.service';
 
+import {
+  VpnServerActivityData,
+} from '../../models/vpn-server-activity.model';
+
+import {
+  VpnServerActivityService,
+} from '../../services/vpn-server-activity.service';
+
 interface ServerConnectionGroup {
   type: ServerConnection['type'];
   clientIp: string;
@@ -123,8 +131,13 @@ export class ServerConnectionsPage
   private readonly serverConnectionService =
     inject(ServerConnectionService);
 
+
+
   private readonly vpnUserService =
     inject(VpnUserService);
+
+  private readonly vpnServerActivityService =
+    inject(VpnServerActivityService);
 
 
   private readonly vpnTelegramService =
@@ -135,6 +148,12 @@ export class ServerConnectionsPage
 
 
   data: ServerConnectionsData | null = null;
+
+  serverActivity: VpnServerActivityData | null = null;
+
+  isServerActivityLoading = false;
+
+  serverActivityLoadError = '';
 
   connectionGroups:
     ServerConnectionGroup[] = [];
@@ -222,7 +241,7 @@ export class ServerConnectionsPage
 
   refresh(): void {
     this.loadVpnUsers();
-    this.loadConnections();
+    this.loadServerActivity();
   }
 
   loadVpnUsers(): void {
@@ -264,6 +283,38 @@ export class ServerConnectionsPage
         },
       });
   }
+
+
+  loadServerActivity(): void {
+    if (this.isServerActivityLoading) {
+      return;
+    }
+
+    this.isServerActivityLoading = true;
+    this.serverActivityLoadError = '';
+
+    this.vpnServerActivityService
+      .getActivity()
+      .pipe(
+        finalize(() => {
+          this.isServerActivityLoading = false;
+        }),
+      )
+      .subscribe({
+        next: (data) => {
+          this.serverActivity = data;
+          this.lastUpdatedAt = new Date();
+        },
+
+        error: () => {
+          this.serverActivity = null;
+
+          this.serverActivityLoadError =
+            'Unable to load VPN server activity.';
+        },
+      });
+  }
+
 
   loadConnections(): void {
     if (this.isConnectionsLoading) {

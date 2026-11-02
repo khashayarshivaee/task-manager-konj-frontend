@@ -6,6 +6,11 @@ import {
 
 } from '@angular/core';
 
+import {
+  MonitoredServer,
+  MonitoredServerService,
+} from '../../services/monitored-server.service';
+
 
 import {
   ServerServicesStatusService,
@@ -89,10 +94,23 @@ import {
 })
 export class ServerStatusPage implements OnInit  {
 
+  isRemoteRefreshLoading = false;
+
   private readonly router = inject(Router);
 
   private readonly serverServicesStatusService =
     inject(ServerServicesStatusService);
+
+  private readonly monitoredServerService =
+    inject(MonitoredServerService);
+
+  monitoredServers: MonitoredServer[] = [];
+
+  selectedServerSlug = 'iran';
+
+  isServerListLoading = false;
+
+  serverListError = '';
 
   isServerServicesLoading = false;
 
@@ -180,6 +198,7 @@ export class ServerStatusPage implements OnInit  {
 
   ngOnInit(): void {
     void this.loadServerSpeedTest();
+    void this.loadMonitoredServers();
   }
 
   async loadServerSpeedTest(): Promise<void> {
@@ -226,10 +245,19 @@ export class ServerStatusPage implements OnInit  {
 
 
   ionViewWillEnter(): void {
+    this.configureHealthAutoRefresh();
+
     void this.loadServerHealth();
     void this.loadServerServices();
+  }
 
+  private configureHealthAutoRefresh(): void {
     this.stopHealthAutoRefresh();
+
+    // Germany uses manual refresh only.
+    if (this.selectedServerSlug !== 'iran') {
+      return;
+    }
 
     this.healthRefreshTimer = window.setInterval(
       () => {
@@ -262,9 +290,13 @@ export class ServerStatusPage implements OnInit  {
 
     try {
       const response = await firstValueFrom(
-        this.serverHealthService
-          .getLatest()
-          .pipe(timeout(15000)),
+        (
+          this.selectedServerSlug === 'iran'
+            ? this.serverHealthService.getLatest()
+            : this.monitoredServerService.getHealth(
+              this.selectedServerSlug,
+            )
+        ).pipe(timeout(15000)),
       );
 
       if (
@@ -623,9 +655,13 @@ export class ServerStatusPage implements OnInit  {
 
     try {
       const response = await firstValueFrom(
-        this.serverServicesStatusService
-          .getLatest()
-          .pipe(timeout(15000)),
+        (
+          this.selectedServerSlug === 'iran'
+            ? this.serverServicesStatusService.getLatest()
+            : this.monitoredServerService.getServices(
+              this.selectedServerSlug,
+            )
+        ).pipe(timeout(15000)),
       );
 
       if (
@@ -672,6 +708,144 @@ export class ServerStatusPage implements OnInit  {
       ).length ?? 0
     );
   }
+
+
+  async loadMonitoredServers(): Promise<void> {
+    if (this.isServerListLoading) {
+      return;
+    }
+
+    this.isServerListLoading = true;
+    this.serverListError = '';
+
+    try {
+      const response = await firstValueFrom(
+        this.monitoredServerService
+          .getServers()
+          .pipe(timeout(15000)),
+      );
+
+      this.monitoredServers = response.data;
+
+    } catch (error) {
+      console.error(
+        '[Monitored Servers] Load failed:',
+        error,
+      );
+
+      this.serverListError =
+        'Unable to load monitored servers.';
+
+    } finally {
+      this.isServerListLoading = false;
+    }
+  }
+
+  selectServer(slug: string): void {
+    if (
+      slug === this.selectedServerSlug ||
+      this.isServerHealthLoading ||
+      this.isServerServicesLoading
+    ) {
+      return;
+    }
+
+    if (!this.monitoredServers.some(
+      server => server.slug === slug,
+    )) {
+      return;
+    }
+
+    this.selectedServerSlug = slug;
+
+    // Prevent displaying another server's data.
+    this.serverHealthResult = null;
+    this.serverServicesResult = null;
+
+    this.serverHealthStatus = 'pending';
+    this.serverServicesStatus = 'pending';
+
+    this.serverHealthError = '';
+    this.serverServicesError = '';
+
+    this.configureHealthAutoRefresh();
+
+    void this.loadServerHealth();
+    void this.loadServerServices();
+  }
+
+
+  async refreshSelectedServer(): Promise<void> {
+    if (
+      this.isRemoteRefreshLoading ||
+      this.isServerHealthLoading ||
+      this.isServerServicesLoading
+    ) {
+      return;
+    }
+
+    // Iran keeps its existing monitoring behavior.
+    if (this.selectedServerSlug === 'iran') {
+      await Promise.all([
+        this.loadServerHealth(),
+        this.loadServerServices(),
+      ]);
+
+      return;
+    }
+
+    const slug = this.selectedServerSlug;
+
+    this.isRemoteRefreshLoading = true;
+    this.isServerHealthLoading = true;
+    this.isServerServicesLoading = true;
+
+    this.serverHealthError = '';
+    this.serverServicesError = '';
+
+    try {
+      const response = await firstValueFrom(
+        this.monitoredServerService
+          .refresh(slug)
+          .pipe(timeout(30000)),
+      );
+
+      if (
+        response.status !== 'completed' ||
+        response.server.slug !== slug
+      ) {
+        throw new Error('Invalid monitoring response.');
+      }
+
+      // Health and Services are updated together.
+      this.serverHealthResult = response.health;
+      this.serverServicesResult = response.services;
+
+      this.serverHealthStatus = 'completed';
+      this.serverServicesStatus = 'completed';
+
+    } catch (error) {
+      console.error(
+        '[Remote Monitoring] Refresh failed:',
+        error,
+      );
+
+      this.serverHealthStatus = 'error';
+      this.serverServicesStatus = 'error';
+
+      // Keep previous measurements visible,
+      // but clearly indicate refresh failure.
+      this.serverHealthError =
+        'Unable to refresh remote server. ' +
+        'Previous measurements may be outdated.';
+
+    } finally {
+      this.isRemoteRefreshLoading = false;
+      this.isServerHealthLoading = false;
+      this.isServerServicesLoading = false;
+    }
+  }
+
 
 
 

@@ -47,6 +47,77 @@
     </section>
 
 
+    <!-- Monitored Server Selector -->
+    <section class="server-selector-section">
+
+      <div class="server-selector-heading">
+        <span class="eyebrow">SERVER SELECTION</span>
+
+        <h2>Monitored Servers</h2>
+
+        <p>
+          Select a server to view its health
+          and infrastructure services.
+        </p>
+      </div>
+
+      <div
+        class="server-selector-buttons"
+        role="group"
+        aria-label="Select monitored server"
+      >
+
+        @for (server of monitoredServers; track server.slug) {
+
+          <button
+            type="button"
+            class="server-selector-button"
+            [class.is-active]="selectedServerSlug === server.slug"
+            [attr.aria-pressed]="selectedServerSlug === server.slug"
+            [disabled]="isServerHealthLoading || isServerServicesLoading"
+            (click)="selectServer(server.slug)"
+          >
+
+        <span class="server-selector-flag">
+          {{
+            server.slug === 'iran'
+              ? '🇮🇷'
+              : server.slug === 'germany'
+                ? '🇩🇪'
+                : '🌐'
+          }}
+        </span>
+
+            <span class="server-selector-name">
+          {{ server.name }}
+        </span>
+
+            @if (selectedServerSlug === server.slug) {
+              <ion-icon name="checkmark-circle-outline"></ion-icon>
+            }
+
+          </button>
+
+        }
+
+      </div>
+
+      @if (isServerListLoading) {
+        <p class="server-selector-message">
+          Loading servers...
+        </p>
+      }
+
+      @if (serverListError) {
+        <p class="server-selector-message">
+          {{ serverListError }}
+        </p>
+      }
+
+    </section>
+
+
+
     <!-- Server Health -->
     <section class="server-health-section">
 
@@ -83,8 +154,8 @@
           <button
             type="button"
             class="health-refresh-button"
-            [disabled]="isServerHealthLoading"
-            (click)="loadServerHealth()"
+            [disabled]="isServerHealthLoading || isServerServicesLoading || isRemoteRefreshLoading"
+            (click)="refreshSelectedServer()"
           >
             <ion-icon name="refresh-outline"></ion-icon>
             <span>Refresh</span>
@@ -289,8 +360,8 @@
           <button
             type="button"
             class="services-refresh-button"
-            [disabled]="isServerServicesLoading"
-            (click)="loadServerServices()"
+            [disabled]="isServerHealthLoading || isServerServicesLoading || isRemoteRefreshLoading"
+            (click)="refreshSelectedServer()"
           >
             <ion-icon
               name="refresh-outline"
@@ -502,8 +573,12 @@
       </span>
 
           <span class="services-auto-refresh">
-        Auto-refresh every 60 seconds
-      </span>
+  {{
+              selectedServerSlug === 'iran'
+                ? 'Auto-refresh every 60 seconds'
+                : 'Manual refresh only'
+            }}
+</span>
 
         </div>
 
@@ -529,10 +604,10 @@
             </div>
 
             <div>
-              <h3>Server Speed Test</h3>
+              <h3>Iran Server Speed Test</h3>
 
               <p>
-                Hetzner server internet performance.
+                Network speed measured from Iran server.
               </p>
             </div>
 

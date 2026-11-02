@@ -32,7 +32,7 @@
 
           <p>
             Manage Xray VPN users and monitor
-            active server connections.
+            traffic activity and daily usage.
           </p>
 
           @if (lastUpdatedAt) {
@@ -66,8 +66,8 @@
           type="button"
           class="refresh-button"
           [disabled]="
-      isVpnUsersLoading ||
-      isConnectionsLoading
+isVpnUsersLoading ||
+isServerActivityLoading
     "
           (click)="refresh()"
         >
@@ -276,46 +276,25 @@
                     </span>
 
 
+                    <!-- Live Xray Connection Status -->
                     @if (
                       vpnUser.is_active &&
                       vpnUser.online_available
                       ) {
                       <span
                         class="vpn-online-status"
-                        [class.vpn-online-status-online]="
-                          vpnUser.is_online
-                        "
-                        [class.vpn-online-status-offline]="
-                          !vpnUser.is_online
-                        "
+                        [class.vpn-online-status-online]="vpnUser.is_online"
+                        [class.vpn-online-status-offline]="!vpnUser.is_online"
                       >
-                        <span
-                          class="vpn-online-dot"
-                        ></span>
+    <span class="vpn-online-dot"></span>
 
-                        @if (vpnUser.is_online) {
-                          Online
-
-                          @if (
-                            vpnUser.online_sessions > 0
-                            ) {
-                            ·
-                            {{
-                              vpnUser.online_sessions
-                            }}
-
-                            {{
-                              vpnUser.online_sessions === 1
-                                ? 'session'
-                                : 'sessions'
-                            }}
-                          }
-                        } @else {
-                          Offline
-                        }
-                      </span>
+                        {{
+                          vpnUser.is_online
+                            ? 'Online'
+                            : 'Offline'
+                        }}
+  </span>
                     }
-
 
                     @if (
                       vpnUser.is_active &&
@@ -323,13 +302,16 @@
                       ) {
                       <span
                         class="
-                          vpn-online-status
-                          vpn-online-status-unknown
-                        "
+      vpn-online-status
+      vpn-online-status-unknown
+    "
                       >
-                        Status unavailable
-                      </span>
+    Status unavailable
+  </span>
                     }
+
+
+
 
                   </div>
                 </div>
@@ -857,13 +839,25 @@
               <!-- Meta -->
               <div class="vpn-user-meta">
 
-                <span>
-                  VLESS · REALITY
-                </span>
 
-                <span>
-                  {{ vpnUser.flow }}
-                </span>
+<span>
+  VLESS
+</span>
+
+                @if (vpnUser.connection; as connection) {
+                  <span>
+    {{ connection.network.toUpperCase() }}
+                    ·
+                    {{ connection.security.toUpperCase() }}
+  </span>
+
+                  @if (connection.flow) {
+                    <span>
+      {{ connection.flow }}
+    </span>
+                  }
+                }
+
 
                 @if (vpnUser.created_at) {
                   <span>
@@ -911,154 +905,128 @@
 
       <div class="section-heading">
         <div>
-          <span class="section-eyebrow">
-            SERVER
-          </span>
+      <span class="section-eyebrow">
+        XRAY ACTIVITY
+      </span>
 
-          <h2>
-            Server Activity
-          </h2>
+          <h2>Server Activity</h2>
         </div>
+
+        @if (serverActivity; as activity) {
+          <span class="connections-count">
+        {{ activity.summary.total_users }}
+      </span>
+        }
       </div>
 
-
-      @if (
-        isConnectionsLoading &&
-        !data
-        ) {
+      @if (isServerActivityLoading && !serverActivity) {
         <div class="state-card">
-          <ion-spinner
-            name="crescent"
-          ></ion-spinner>
-
-          <span>
-            Loading server connections...
-          </span>
+          <ion-spinner name="crescent"></ion-spinner>
+          <span>Loading Xray activity...</span>
         </div>
       }
 
-
-      @if (connectionsLoadError) {
-        <div
-          class="
-            state-card
-            state-card-error
-          "
-        >
-          <span>
-            {{ connectionsLoadError }}
-          </span>
+      @if (serverActivityLoadError) {
+        <div class="state-card state-card-error">
+          <span>{{ serverActivityLoadError }}</span>
 
           <button
             type="button"
-            (click)="loadConnections()"
+            (click)="loadServerActivity()"
           >
             Try again
           </button>
         </div>
       }
 
-
-      @if (data; as connectionData) {
+      @if (serverActivity; as activity) {
 
         <!-- Summary -->
         <section class="summary-grid">
 
           <article class="summary-card">
-            <span class="summary-label">
-              Active TCP Connections
-            </span>
+        <span class="summary-label">
+          Enabled VPN Users
+        </span>
 
             <strong>
-              {{ connectionData.total }}
+              {{ activity.summary.enabled_users }}
             </strong>
           </article>
 
+          <article class="summary-card">
+        <span class="summary-label">
+          Recent Traffic
+        </span>
+
+            <strong>
+              {{ activity.summary.recent_traffic_users }}
+            </strong>
+          </article>
 
           <article class="summary-card">
-            <span class="summary-label">
-              Unique Client IPs
-            </span>
+        <span class="summary-label">
+          Today's Upload
+        </span>
 
             <strong>
               {{
-                connectionData
-                  .summary
-                  .unique_client_ips
+                formatBytes(
+                  activity.summary.today_uplink_bytes
+                )
               }}
             </strong>
           </article>
 
-
           <article class="summary-card">
-            <span class="summary-label">
-              SSH VPN
-            </span>
+        <span class="summary-label">
+          Today's Download
+        </span>
 
             <strong>
               {{
-                connectionData
-                  .summary
-                  .ssh_vpn_sessions
-              }}
-            </strong>
-          </article>
-
-
-          <article class="summary-card">
-            <span class="summary-label">
-              Outline TCP
-            </span>
-
-            <strong>
-              {{
-                connectionData
-                  .summary
-                  .outline_tcp_connections
+                formatBytes(
+                  activity.summary.today_downlink_bytes
+                )
               }}
             </strong>
           </article>
 
         </section>
 
-
-        <!-- Active Clients -->
+        <!-- Xray Users -->
         <section class="connections-section">
 
           <div class="section-heading">
             <div>
-              <span class="section-eyebrow">
-                LIVE
-              </span>
+          <span class="section-eyebrow">
+            TRAFFIC MONITOR
+          </span>
 
-              <h2>
-                Active clients
-              </h2>
+              <h2>VPN User Activity</h2>
             </div>
 
             <span class="connections-count">
-              {{ connectionGroups.length }}
-            </span>
+          {{ activity.users.length }}
+        </span>
           </div>
 
+          <div class="vpn-card-note">
+            Recent traffic means usage was recorded
+            within the last
+            {{ activity.recent_window_minutes }}
+            minutes. It does not confirm a live connection.
+          </div>
 
-          @if (
-            connectionGroups.length === 0
-            ) {
+          @if (activity.users.length === 0) {
             <div class="state-card">
-              No active connections.
+              No VPN users found.
             </div>
           } @else {
 
             <div class="connections-list">
 
-              @for (
-                group of connectionGroups;
-                track
-                group.type +
-                '-' +
-                group.clientIp
-                ) {
+              @for (user of activity.users; track user.id) {
                 <article class="connection-card">
 
                   <div class="connection-main">
@@ -1067,141 +1035,80 @@
 
                       <div class="connection-type-row">
 
-                        <span
-                          class="connection-type"
-                          [class.connection-type-vpn]="
-                            group.type ===
-                            'ssh_vpn'
-                          "
-                          [class.connection-type-outline]="
-                            group.type ===
-                            'outline'
-                          "
-                          [class.connection-type-admin]="
-                            group.type ===
-                            'ssh_admin'
-                          "
-                          [class.connection-type-web]="
-                            group.type ===
-                            'web'
-                          "
-                          [class.connection-type-warning]="
-                            group.type ===
-                              'ssh_preauth' ||
-                            group.type ===
-                              'ssh_other'
-                          "
-                        >
-                          {{
-                            connectionTypeLabel(
-                              group.type
-                            )
-                          }}
-                        </span>
+                    <span
+                      class="connection-type"
+                      [class.connection-type-vpn]="
+                        user.has_recent_traffic
+                      "
+                    >
+                      {{
+                        user.has_recent_traffic
+                          ? 'Recent traffic'
+                          : 'No recent traffic'
+                      }}
+                    </span>
 
-
-                        @if (
-                          group.connectionCount > 1
-                          ) {
+                        @if (!user.is_active) {
                           <span class="connection-count-pill">
-                            {{
-                              group.connectionCount
-                            }}
-                            connections
-                          </span>
+                        Disabled
+                      </span>
                         }
 
                       </div>
 
-
                       <strong class="connection-ip">
-                        {{ group.clientIp }}
+                        {{ user.name }}
                       </strong>
 
                     </div>
 
-
                     <span class="connection-service">
-                      {{ group.service }}
-                    </span>
+                  {{ activity.server }}
+                </span>
 
                   </div>
 
-
                   <div class="connection-meta">
 
-                    <span>
-                      Protocol:
-                      {{
-                        group
-                          .protocol
-                          .toUpperCase()
-                      }}
-                    </span>
+                <span>
+                  Upload today:
+                  {{
+                    formatBytes(
+                      user.today.uplink_bytes
+                    )
+                  }}
+                </span>
 
-
                     <span>
-                      Server:
+                  Download today:
                       {{
-                        formatServerPorts(
-                          group.serverPorts
+                        formatBytes(
+                          user.today.downlink_bytes
                         )
                       }}
-                    </span>
+                </span>
 
+                    <span>
+                  Total today:
+                      {{
+                        formatBytes(
+                          user.today.total_bytes
+                        )
+                      }}
+                </span>
 
-                    @if (
-                      group.connectionCount === 1
-                      ) {
+                    @if (user.last_usage_recorded_at) {
                       <span>
-                        Client:
+                    Last recorded traffic:
                         {{
-                          group.clientPorts[0]
+                          user.last_usage_recorded_at
+                            | date:'medium'
                         }}
-                      </span>
-                    }
-
-
-                    @if (group.sshUser) {
+                  </span>
+                    } @else {
                       <span>
-                        User:
-                        {{ group.sshUser }}
-                      </span>
-                    }
-
-
-                    @if (
-                      group.elapsedSeconds !==
-                      undefined
-                      ) {
-                      <span class="connection-duration">
-                        @if (
-                          group.connectionCount > 1
-                          ) {
-                          Longest:
-                        } @else {
-                          Connected:
-                        }
-
-                        {{
-                          formatDuration(
-                            group.elapsedSeconds
-                          )
-                        }}
-                      </span>
-                    }
-
-
-                    @if (
-                      group.proxiedConnections !==
-                      undefined
-                      ) {
-                      <span>
-                        Proxied:
-                        {{
-                          group.proxiedConnections
-                        }}
-                      </span>
+                    No traffic recorded yet
+                  </span>
                     }
 
                   </div>
@@ -1213,9 +1120,12 @@
           }
 
         </section>
+
       }
 
     </section>
+
+
 
   </div>
 
@@ -1277,19 +1187,15 @@
 
 
             <div>
-              <span>
-                Status
-              </span>
+  <span>
+    VPN Access
+  </span>
 
-              <strong
-                [class.is-online]="
-                  vpnUser.is_online
-                "
-              >
+              <strong>
                 {{
-                  vpnUser.is_online
-                    ? 'Online'
-                    : 'Offline'
+                  vpnUser.is_active
+                    ? 'Enabled'
+                    : 'Disabled'
                 }}
               </strong>
             </div>

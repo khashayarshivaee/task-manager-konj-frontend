@@ -1,3 +1,4 @@
+
 export interface VpnUserStats {
   uplink_bytes: number;
   downlink_bytes: number;
@@ -11,12 +12,16 @@ export interface VpnConnectionData {
   uuid: string;
   flow: string;
 
-  security: 'reality';
-  network: 'tcp';
+  security: 'tls';
+  network: 'ws';
 
   server_name: string;
-  fingerprint: string;
 
+  ws_host: string;
+  ws_path: string;
+
+  // Retained for API compatibility.
+  fingerprint: string;
   public_key: string;
   short_id: string;
 
@@ -39,7 +44,6 @@ export interface VpnUser {
   flow: string;
 
   stats_available: boolean;
-
   stats: VpnUserStats;
 
   connection_available: boolean;
