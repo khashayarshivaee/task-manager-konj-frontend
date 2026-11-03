@@ -13,6 +13,18 @@ import {
 
 
 import {
+  ServerPerformanceChartComponent,
+} from '../../components/server-performance-chart/server-performance-chart.component';
+
+import {
+  ServerPerformanceHistoryService,
+  ServerPerformanceHistoryResponse,
+  ServerHistoryRange,
+} from '../../services/server-performance-history.service';
+
+
+
+import {
   ServerServicesStatusService,
   ServerServicesStatusResult,
 } from '../../services/server-services-status.service';
@@ -90,9 +102,27 @@ import {
     IonIcon,
     DatePipe,
     DecimalPipe,
+    ServerPerformanceChartComponent,
   ],
 })
 export class ServerStatusPage implements OnInit  {
+
+
+  private readonly performanceHistoryService =
+    inject(ServerPerformanceHistoryService);
+
+  serverHistory: ServerPerformanceHistoryResponse | null = null;
+
+  historyRange: ServerHistoryRange = '24h';
+
+  isServerHistoryLoading = false;
+
+  serverHistoryError = '';
+
+// Prevent older requests from overwriting
+// the currently selected server's history.
+  private historyRequestId = 0;
+
 
   isRemoteRefreshLoading = false;
 
@@ -249,6 +279,7 @@ export class ServerStatusPage implements OnInit  {
 
     void this.loadServerHealth();
     void this.loadServerServices();
+    void this.loadServerHistory();
   }
 
   private configureHealthAutoRefresh(): void {
@@ -845,6 +876,75 @@ export class ServerStatusPage implements OnInit  {
       this.isServerServicesLoading = false;
     }
   }
+
+
+  async loadServerHistory(): Promise<void> {
+    const requestId = ++this.historyRequestId;
+
+    const slug = this.selectedServerSlug;
+    const range = this.historyRange;
+
+    this.isServerHistoryLoading = true;
+    this.serverHistoryError = '';
+    this.serverHistory = null;
+
+    try {
+      const response = await firstValueFrom(
+        this.performanceHistoryService
+          .getHistory(slug, range)
+          .pipe(timeout(15000)),
+      );
+
+      if (
+        requestId !== this.historyRequestId ||
+        slug !== this.selectedServerSlug ||
+        range !== this.historyRange
+      ) {
+        return;
+      }
+
+      if (
+        response.server.slug !== slug ||
+        response.range !== range
+      ) {
+        throw new Error('Unexpected history response.');
+      }
+
+      this.serverHistory = response;
+
+    } catch (error) {
+      if (requestId !== this.historyRequestId) {
+        return;
+      }
+
+      console.error(
+        '[Server History] Load failed:',
+        error,
+      );
+
+      this.serverHistory = null;
+      this.serverHistoryError =
+        'Unable to load server performance history.';
+
+    } finally {
+      if (requestId === this.historyRequestId) {
+        this.isServerHistoryLoading = false;
+      }
+    }
+  }
+
+  changeServerHistoryRange(
+    range: ServerHistoryRange,
+  ): void {
+    if (range === this.historyRange) {
+      return;
+    }
+
+    this.historyRange = range;
+
+    void this.loadServerHistory();
+  }
+
 
 
 

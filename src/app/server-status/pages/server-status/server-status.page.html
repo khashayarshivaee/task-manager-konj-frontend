@@ -336,6 +336,22 @@
 
 
     <!-- ========================================
+         Performance History
+    ======================================== -->
+
+    <app-server-performance-chart
+      style="margin-bottom: 38px"
+      [history]="serverHistory"
+      [range]="historyRange"
+      [loading]="isServerHistoryLoading"
+      [error]="serverHistoryError"
+      (rangeChange)="changeServerHistoryRange($event)"
+    />
+
+
+
+
+    <!-- ========================================
          Services Status
     ======================================== -->
 
@@ -608,7 +624,7 @@
 
               <p>
                 Network speed measured from Iran server.
-              </p>
+              </p>     Services Status
             </div>
 
           </div>
