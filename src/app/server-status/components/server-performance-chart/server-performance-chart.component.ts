@@ -73,11 +73,23 @@ interface ChartHoverPoint {
           role="group"
           aria-label="History range"
         >
+
+
+          <button
+            type="button"
+            [class.active]="todayMode"
+            [attr.aria-pressed]="todayMode"
+            [disabled]="loading"
+            (click)="selectToday()"
+          >
+            Today
+          </button>
+
           @for (option of ranges; track option.value) {
             <button
               type="button"
-              [class.active]="range === option.value"
-              [attr.aria-pressed]="range === option.value"
+              [class.active]="!todayMode && range === option.value"
+              [attr.aria-pressed]="!todayMode && range === option.value"
               [disabled]="loading"
               (click)="changeRange(option.value)"
             >
@@ -87,40 +99,73 @@ interface ChartHoverPoint {
         </div>
       </div>
 
+
       @if (
-        history?.summary?.peak_cpu_percent != null
-      ) {
+        (
+          todayMode
+            ? todayPeakCpuPercent
+            : history?.summary?.peak_cpu_percent
+        ) != null
+        ) {
+
         <div class="peak-summary">
+
+          <!-- Peak CPU -->
 
           <div>
             <span>Peak CPU observed</span>
+
             <strong>
               {{
-                history!.summary.peak_cpu_percent
-                  | number:'1.0-1'
+                (
+                  todayMode
+                    ? todayPeakCpuPercent
+                    : history?.summary?.peak_cpu_percent
+                ) | number:'1.0-1'
               }}%
             </strong>
           </div>
 
+          <!-- Peak Time -->
+
           <div>
             <span>Peak recorded at</span>
+
             <strong class="peak-date">
               {{
-                history!.summary.peak_cpu_at
-                  | date:'MMM d, HH:mm'
+                (
+                  todayMode
+                    ? todayPeakCpuAt
+                    : history?.summary?.peak_cpu_at
+                ) | date:'MMM d, HH:mm'
               }}
             </strong>
           </div>
 
+          <!-- Samples -->
+
           <div>
-            <span>Samples recorded</span>
+      <span>
+        {{
+          todayMode
+            ? 'Data points today'
+            : 'Samples recorded'
+        }}
+      </span>
+
             <strong>
-              {{ history!.sample_count }}
+              {{
+                todayMode
+                  ? todayDataPoints
+                  : history?.sample_count
+              }}
             </strong>
           </div>
 
         </div>
+
       }
+
 
       @if (loading) {
 
@@ -977,6 +1022,12 @@ export class ServerPerformanceChartComponent
   @Output()
   rangeChange = new EventEmitter<ServerHistoryRange>();
 
+  todayMode = false;
+
+  todayPeakCpuPercent: number | null = null;
+  todayPeakCpuAt: string | null = null;
+  todayDataPoints = 0;
+
   readonly ranges: {
     value: ServerHistoryRange;
     label: string;
@@ -1107,11 +1158,36 @@ export class ServerPerformanceChartComponent
   }
 
 
-  changeRange(value: ServerHistoryRange): void {
-    if (!this.loading && value !== this.range) {
-      this.rangeChange.emit(value);
+
+  selectToday(): void {
+    if (this.loading) {
+      return;
+    }
+
+    this.todayMode = true;
+
+    if (this.range !== '24h') {
+      this.rangeChange.emit('24h');
+    } else {
+      this.resetZoom();
     }
   }
+
+  changeRange(value: ServerHistoryRange): void {
+    if (this.loading) {
+      return;
+    }
+
+    const wasToday = this.todayMode;
+    this.todayMode = false;
+
+    if (value !== this.range) {
+      this.rangeChange.emit(value);
+    } else if (wasToday) {
+      this.resetZoom();
+    }
+  }
+
 
   setFocus(metric: ChartFocus): void {
     if (metric === this.focusMetric) {
@@ -1304,8 +1380,19 @@ export class ServerPerformanceChartComponent
       '30d': 30 * 24 * 60 * 60 * 1000,
     }[this.range];
 
+
     this.fullEndMs = Date.now();
-    this.fullStartMs = this.fullEndMs - duration;
+
+    if (this.todayMode && this.range === '24h') {
+      const midnight = new Date(this.fullEndMs);
+
+      midnight.setHours(0, 0, 0, 0);
+
+      this.fullStartMs = midnight.getTime();
+    } else {
+      this.fullStartMs = this.fullEndMs - duration;
+    }
+
 
     this.viewStartMs =
       this.zoomStartMs ?? this.fullStartMs;
@@ -1334,6 +1421,39 @@ export class ServerPerformanceChartComponent
       );
     this.visibleDataStartMs = null;
     this.visibleDataEndMs = null;
+
+
+    this.todayPeakCpuPercent = null;
+    this.todayPeakCpuAt = null;
+    this.todayDataPoints = 0;
+
+    if (this.todayMode && this.range === '24h') {
+      const todayPoints = points.filter(point => {
+        const time = Date.parse(point.time);
+
+        return (
+          time >= this.fullStartMs &&
+          time <= this.fullEndMs
+        );
+      });
+
+      this.todayDataPoints = todayPoints.length;
+
+      for (const point of todayPoints) {
+        if (!Number.isFinite(point.cpu_max)) {
+          continue;
+        }
+
+        if (
+          this.todayPeakCpuPercent === null ||
+          point.cpu_max > this.todayPeakCpuPercent
+        ) {
+          this.todayPeakCpuPercent = point.cpu_max;
+          this.todayPeakCpuAt = point.time;
+        }
+      }
+    }
+
 
     const visiblePoints = points.filter(point => {
       const time = Date.parse(point.time);
